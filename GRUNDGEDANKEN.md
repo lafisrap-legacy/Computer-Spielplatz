@@ -19,7 +19,7 @@ Ein Computer-Spielplatz setzt die neuesten, offenen und freien Internet-Technolg
 
 Und dadurch bekommen sie vor allem Mut, Selbstvertrauen. Sie wagen sich dann auch an andere Dinge, die nichts mit Internet und Programmierung zu tun haben, mit weniger Selbstzweifel und weniger Zögern. Sie gewinnen persönliche Freiheit. Das ist das Ziel von Computer-Spielplätzen.
  
-## Grundregeln
+## Sieben Grundregeln
 
 1. Keine/r soll Angst haben
 1. Alle Spiele sind selbstgemacht
@@ -60,7 +60,8 @@ Wie in der 5. Grundregel beschrieben, soll jeder Computerspielplatz eigene Bezei
     * persönliche Einführungen durch Lehrer oder erfahrene Schüler (1-3 Wochen intensiv),
     * Online-Lernplätze wie Khan-Academy, Codacademy, W3Schools ...,
     * Gemeinsamen Kreativ-Workshops (mit einzelnen Künsten, einer Mischung oder allen gleichzeitig),
-    * Spiele-Sessions mit selbstprogrammierten Spielen.
+    * Spiele-Sessions mit selbstprogrammierten Spielen,
+    * Teilnahme an Programmier-Wettbewerben (unter Einschluss von allen Künsten)
 
 3. Stufe: DER ANWÄRTER/DIE ANWÄRTERIN
     
@@ -104,10 +105,77 @@ Wie in der 5. Grundregel beschrieben, soll jeder Computerspielplatz eigene Bezei
 auf welche Weise
 
 
-## Sieben Phasen
+## Sieben Entwicklungs-Phasen
 
-Die folgenden sieben Phasen sind keineswegs streng aufeinanderfolgend gedacht. Die Reihenfolge ergibt sich aus der Logik. Im einzelnen Fall sind viele Dinge schon vorhanden, die eine mehr oder weniger chaotische Abfolge der Phasen bedingen.
+Die folgenden sieben Entwicklungs-Phasen eines Computer-Spielplatzes sind keineswegs streng aufeinanderfolgend gedacht. Anhand der Phasen soll man besser sehen können, wo man einsteigen kann, was als nächstes kommt, wann man einen neuen Spielplatz braucht. Es gibt auch chaotische Computer-Spielplätze, die von selbst entstehen. Arbeitsgruppen, Projekte, Initiativen, die sich um Ähnliches drehen, wie das, was einen Computer-Spielplatz ausmacht. Dann kann man diese als Ausgangspunkt nehmen.
 
 1. Phase: NEULAND
 
-Situation: Am Lernort, zum Beispiel einer Schule, ist noch keinerlei
+	Situation: Am Lernort, zum Beispiel einer Schule, ist noch keine oder wenig Aktivität in Richtung eines Computer-Spielplatzes. 
+
+	Ziele:
+
+	* Kennenlernen der Grundidee des Computer-Spielplatzes
+	* Ein Blick unter die Oberfläche des Internets
+	* Vorbereitung eines eigenen Computer-Spielplatzes
+
+	Möglichkeiten:
+
+	* Einführungs-Workshops (2 bis 6 Stunden, bis 15 Teilnehmer):  
+		* "Programmieren mit Javascript"
+		* "Eine Präsentation mit Mostafa, der Tigermücke."
+		* "Umgestalten einer Webseite"
+		* "Programmieren mit Scratch"
+	* Präsentation des Projekts (45 Minuten, Teilnehmer unbegrenzt)  
+	* Workshop-Wochenende mit Fortgeschrittenen (12-20 Stunden, bis 5 Teilnehmer)  
+
+2. Phase: ORIENTIERUNG
+
+	Situation: Der erste eigene Spielplatz-Server ist installiert und funktionsfähig. Es gibt 3 bis 5 aktive Unterstützer, die an dre Schule oder dem Lernort sind, davon mindestens ein Erwachsener und ein Jugendlicher.
+
+	Ziele:
+
+	* Den Computer-Spielplatz mit eigenen Inhalten füllen
+	* Bekanntmachen, zum Ausprobieren einladen
+	* Herausfinden, was zu tun ist und wer was tun will
+	* Neue aktive Unterstützer finden
+	* (Nicht: Aufgaben verteilen, Verantwortung teilen, Inhalte planen)
+
+	Möglichkeiten:
+
+	* Erste eigene Spiele programmieren, Grafik erstellen ...
+	* Workshops anbieten und durchführen (durch Externe und/oder Interne)
+	* Ergebnisse vorführen (Tag der offenen Tür, Elternabende, Schulversammlungen ...)
+
+3. Phase: SPRUNG IST KALTE WASSER
+
+	Situation: Es gibt regelmäßig Spielplatz-Workshops. Es entstehen erste Spiele, die nicht aus dem Kreis der aktiven Unterstützer kommen, und die gespielt werden.
+
+	Ziele: 
+
+	* Der Computer-Spielplatz mit der Schule oder dem Lernumfeld verbinden.
+	* Alle einbeziehen!
+	* Hemmnisse finden und beheben.
+
+	Möglichkeiten:
+
+	* Ein erstes Spiel-Turnier veranstalten.
+	* Ein erster Programmier-Wettbewerb.
+	* Erste Spiele schaffen, die im Unterricht eingesetzt und dort "normalen" Unterricht ersetzen sollen.
+	* Einen Tag der offenen Tür veranstalten
+	
+4. Phase: DAS IST UNSER SPIELPLATZ!
+	
+	...
+
+5. Phase: NEUE BEREICHE, NEUE TECHNOLOGIEN, NEUE ...
+
+	... 
+
+6. Phase: PARTY UND HAUSPUTZ
+
+	...
+
+7. Phase: DAS ENDE
+
+...

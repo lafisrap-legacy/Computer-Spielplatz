@@ -1,13 +1,13 @@
 # Computer-Spielplatz
 ###Lernen, spielen und arbeiten sind im Grunde ein und dasselbe
 Willkommen auf dem Computer-Spielplatz!  
-Alles, was dir hier begegnet, ist zum verändern, weiterentwickeln, verbessern gedacht. Du sollst auch alles verstehen und durchschauen können, was du verstehen und durchschauen willst.
+Alles, was dir hier begegnet, ist zum verändern, weiterentwickeln, verbessern gedacht.
 
-Die erste Regel auf dem Computer-Spielplatz ist es, keine Angst zu haben, und keine Angst zu machen -- auch nicht sich selbst. Man kann hier nichts kaputt machen, was nicht wieder zu reparieren wäre. Und Fehler zu machen ist oft die intensivste Art zu lernen.
+Die erste Regel auf dem Computer-Spielplatz ist es, keine Angst zu haben, und keine Angst zu machen -- auch nicht sich selbst. Man kann hier nichts kaputt machen, was nicht wieder zu reparieren wäre. Und Fehler zu machen ist oft eine gute Art viel zu lernen.
 
-Wie kannst du hier anfangen? Es gibt zwei Wege: einen theoretischen und einen praktischen. Beide Wege sind natürlich praktisch, aber der eine fängt damit an, dass du alles Mögliche liest, ausprobierst, dass du dir vom Computer Vorschläge machen lässt, was du tun kannst. Wenn du dem folgen willst, fange mit dem Kapitel "Der theoretische Einstieg" an.
+Wie kannst du hier anfangen? Es gibt zwei Wege: einen theoretischen und einen praktischen. Beide Wege sind natürlich praktisch, aber der eine fängt damit an, dass du alles Mögliche liest, selbst ausprobierst, dass du dir vom Computer Vorschläge machen lässt, was du tun kannst. Wenn du dem folgen willst, fange mit dem Kapitel "Der theoretische Einstieg" an.
 
-Die andere Möglichkeit ist, dass du im Kalender einen Anfänger-Workshop findest und dorthin gehst. Oder du legst dir ein Diaspora-Konto zu (so etwas wie Facebook) und meldest dich bei der Computer-Spielplatz-Gruppe an. Wie das alles geht, steht unter "Der praktische Einstieg".
+Die andere Möglichkeit ist, dass du im Kalender einen Anfänger-Workshop findest und dorthin gehst. Oder du legst dir ein Diaspora-Konto zu (so etwas wie Facebook) und meldest dich bei der Computer-Spielplatz-Gruppe an. Dort findest du Leute, die dir weiterhelfen. Wie das alles geht, steht unter "Der praktische Einstieg".
 
 Viel Spaß!
 Michael
@@ -20,9 +20,14 @@ Wenn du dir folgende Dokumente durchliest, wirst du Ideen bekommen, was du alles
 
 Kein Haus kann gebaut werden, ohne dass sich vorher jemand darüber grundlegende Gedanken macht, wie das Haus aussehen soll. Hier findest du die Gedanken, die Computer-Spielplätzen zugrund liegen.
 
-### RUNDGANG.md - Ein Rundgang über einen Computer-Spielplatz
+### RUNDGANG - Ein Rundgang über einen Computer-Spielplatz
 
-Ein kleines interaktives Video, was dich alles erwartet.
+Eine kleine interaktive Animation, die zeigt, was dich alles erwartet.
+
+[Der Spielplatz!](/playground/)
+
+(Damit dieser Link funktioniert, musst du das Projekt vorher zu dir auf deine Computer laden. Die beste Art ist der Befehl "git clone https://github.com")
+
 
 ### TECHNOLOGIE.md - Die Technologien, die jeder Spielplatz kennt
 
@@ -31,7 +36,10 @@ Was kannst du alles lernen? Wie man ein Spiel auf einem Smartphone schreibt und 
 ## Der praktische Einstieg
 Such dir etwas aus:
 ### Anfänger-Workshops
-Anfänger-Workshops gehen von zwei Stunden bis zu einem Tag und zeigen dir, wie du auf dem zentralen Computer-Spielplatz, dem "Cypherpunk-Spielplatz", einen eigenen Sandkasten bekommst und was du dort machen kannst. Hier findest du eine Liste: ...
+Anfänger-Workshops gehen von zwei Stunden bis zu einem Tag und zeigen dir, wie du auf dem zentralen Computer-Spielplatz, dem "Cypherpunk-Spielplatz", einen eigenen Sandkasten bekommst und was du dort machen kannst. Hier findest du eine Liste: 
+
+...
+
 ### Diaspora
 Auf Diaspora treffen sich Menschen, die unterschiedlich viel über Computer-Spielplätze wissen und tauschen sich aus. Es ist immer spannend, wenn Menschen unterschiedlich viel wissen, dann macht austauschen Sinn. Und es ist ein Geschenk für andere, etwas wissen zu wollen. 
 
@@ -41,5 +49,8 @@ Wenn du dich bei Diaspora anmelden willst, dann ist das ein wenig komplizierter 
 - ???
 - ???
 
-Oder bei diaspora.org einen anderen Anbieter aussuchen. Kostenlos sind alle.
-### Aktive Schulen
+Oder bei diaspora.org einen anderen Anbieter aussuchen.
+### Hineinschnuppern
+Es gibt eine Reihe aktiver Computer-Spielplätze, wo du hineinschnuppern kannst. 
+
+...
