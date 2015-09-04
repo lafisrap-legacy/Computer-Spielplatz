@@ -11,8 +11,14 @@
 ### Webserver
 	* KA Live Editor
 	* Processing-Umgebung
+### Diaspora-Server
+    * Gruppen
+    * Blogs
 ### cocos2d Entwicklungsumgebung (incl. Android und iOS)
 	* Android SDK/NDK
+### MySQL Datenbank
+    * Spieleverzeichnis
+
 
 ## Aufbau des Cypherpunk-Spielservers
 	* Raspberry PI kaufen

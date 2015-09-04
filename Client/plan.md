@@ -1,4 +1,13 @@
 # Nächste Schritte
+# Oktober
+    - Live-Editor ausprobieren
+    - Go-Spielplatz mit Addons?
+    - Disaspora-Funktionen für Blog und Treffen
+    - KhanAcademie Funktionen
+    - W3Schools, Bootstrap Schulung, andere Möglichkeiten (Verbindungen?)
+
+# November
+# Dezember
 ## Startversion
 
     - Rein Browser basiert
