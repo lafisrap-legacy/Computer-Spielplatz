@@ -1,6 +1,6 @@
 # BUSINESS-PLAN "Computer-Spielplätze"
 ## Präambel
-
+ 
 Angesichts von kostenlosen Weltklasse-Angeboten wie Khan-Academy, W3Schools oder dem Golang-Spielplatz ist die Frage naheliegend ob ein neues Internet-Lernsystem wie Computer-Spielplätze überhaupt gebraucht wird und ob man es wirtschaftlich auf die Beine stellen kann. Natürlich auch die Fragen: *Wie* das gehen kann? Und ob die neuen Möglichkeiten den Aufwand lohnen? Die letzten beiden Fragen sind Thema der folgenden Abschnitte. Die Frage, ob man es braucht und ob es wirtschaftlich sein kann, will ich so beantworten:
 
 Computer-Spielplätze sind im Kern kein System, sie sind eine Idee: die Idee, dass der Mensch beim Spielen immer in einer Art "Lernmodus" ist. Er ist offen, aufmerksam, interessiert und fantasievoll. In diesen spielerischen "Lernmodus" kann man in allen möglichen Situationen im Leben kommen. Auch beim Programieren, beim Gestalten, Komponieren, Hacken, besonders intensiv wenn man dabei mit anderen Menschen zusammenarbeitet, die in der gleichen Situation sind. Eine solche Zusammenarbeit ist überaus "wirtschaftlich", weil sie kreativ ist und Kraft bringt, statt sie zu nehmen. Aus den dadurch entstehenden Produkten (Spiele, die andere in der Umgebung nutzen können) und dem Geben und Nehmen in der Zusammenarbeit entsteht ein positiver Kreislauf. Das ist die Idee. Und ihre Zeit ist im Kommen.
@@ -46,86 +46,70 @@ Eltern wollen ihre ihre Kinder dabei unterstützen, selbständig zu werden, muti
 
 Computer-Spielplätze vermitteln Selbstbewusstsein, Kreativität, Unternehmertum. Selbstbewusstsein kommt über das Verstehen. Mut über Erfahrung und über den Mut anderer. Selbständigkeit kommt dadurch, dass jeder im eigenen Projekt König ist. Und er bleibt es, auch wenn sein Programm irgendwann Hunderte oder sogar Millionen von Menschen verwenden, was mit Spmartphone-App durchaus passieren kann.
 
-## Drei Phasen
+## Unintentionales, virales Marketing
 
-### Phase A: Bekanntmachung
+### Situation 1
 
-* Kontaktmöglichkeiten
-	* Schulen
-	* Freie Bildungseinrichtungen
-	* Bildungsforschung
-	* Jugendeinrichtungen	
+Ich lebe hier und jetzt. Ich bin vollkommen überzeugt, dass die positiven Kreisläufe von Computer-Spielplätzen die Kraft haben, Angst zu vermindern und Kreativität und Eigeninitiative zu ermöglichen. Sie bringen Mut und Selbstvertrauen. Führung soll immer bis zu dem Punkt sein, wo ich etwas noch nicht verinnerlicht hat, dann, sehr schnell: freilassen. Immer wieder. Für ein freies spielerisches Arbeiten. Lernen. **Ich ziehe  in den Computer-Spielplatz ein**.
 
-* Themenabende an Schulen und anderen Lerneinrichtungen
-	* "Sind Videospiele gefährlich?"
-	* "Alphabetisierung im digitalen Zeitalter"
-	* "Entdeckung von Talenten durch freie Software"
-	* "Computer-Spielplätze als Lernplattform der Zukunft"
+### Situation 2
 
-* Presse
-	* Artikel, Interview
+Ich lebe hier und jetzt. Ich bin auf der Suche. Nach dem anderen, nach dem was mir Freude macht, nach dem, was die andere brauchen kann. Ich will die andere treffen, in dem, was sie braucht. Ich will mich erleben, in dem Erleben des anderen mit dem, was ich gemacht habe. **Ich spiele auf dem Computer-Spielplatz**.
 
-* Soziale Medien
-	* Twitter
-	* Facebook
+### Situation 3
 
-* Congresse, 
-	* CCC-Treffen, Transmediale, republica, Informatiklehrer-Tag
+Ich lebe hier und jetzt. Ich suche Ruhe. Ich suche Fantasie. Ich suche die Mühe, mich zu verstehen. Ich will mich verbinden mit einem Arbeitsergebnis von jemandem, den ich kenne. Ich will Bedingungslosigkeit erleben. **Ich erforsche den Computer-Spielplatz**
+ 
+### Situation 4
 
-### Phase B: Pilotprojekte
+Ich lebe hier und jetzt. Ich brauche Hilfe. Ich brauche andere Menschen, die mich anregen meinen Weg zu finden. Ich habe ihn aus den Augen verloren. Wo bin ich? Ich will nichts machen und mich ok fühlen. ... Ok.
 
-* 10-12 Schulen mit Spielplatz-Server
-* Workshops an Schulen
-* Begleitung
-* In-Residence-Vermittlung
-* Weiterhin: Themenabende, Presse, Soziale Medien, Congresse
+### Situation 5
 
-### Phase C: Spielplätze bauen
+Ich lebe hier und jetzt. Ich will helfen. Etwas gut machen, gutmachen. Ich will sehen, was in meiner Umgebung lebt, was sie hindert. Hindernisse wegräumen. Angst abbauen. Probleme meistern. Gläser halbvoll sehen. **Oder einfach nur leben?**
 
-* Ziel: 50 Schulen mit Spielplatzserver
-* Spielplätze einrichten, begleiten, unterstützen
-* Computer-Spielplatz-Center (Treffpunkt für Seminare/Fragen/etc.)
-* Eigene Workshops (auch für Spielplatz-Betreiber)
+### Situation 6
 
+Ich lebe nicht hier und jetzt.
 
 ## Finanzplan
 
-### Phase 1
-* Kosten
-	* Reisen			1500 €
-	* Web-Server		 100 €
-	* Arbeitszeit	 (Investition) ? €
-* Einnahmen
-	* Persönliche Spenden
+### Kostenlose Angebote (Kommunikation / Kennenlernen / Mitarbeit)
 
-### Phase 2
-* Kosten
-	* Reisen			   1500 €	(Schulen sind in Berlin)
-	* Web-Server		    250 €
-	* Arbeitszeit	Gewinnverteilung €
-* Einnahmen
-	* pro Schule, Ziel: € 4000 (~ 100 Stunden Arbeitszeit)
-	* Fördergelder, Ziel: € 40000
-	* Crowdfunding, Ziel: € 10000
-	* Spenden: ?
+* Spielplatz-Linux-Server (zum selbst Betreiben, Download / USB stick / Github.com)
+* Cypherpunk-Spielplatz (www.cspielplatz.de, Github.com)
+* Abend-Vorträge, Konferenz-Vorträge
 
-### Phase 3
-* Kosten
-	* Raummiete		           9200 €
-	* Reisen			           5000 €
-	* Web-Server		           1000 €
-	* Rechtsberatung			  4000 €
-	* Arbeitszeit (5 Zauberer, Basis)  120000 €
-	* Projekte (10 Elfen)	         100000 €
-	* Verwaltung / Finanzen (gGmbH)	 40000 € 
-* Einnahmen
-	* pro Schule, Ziel: 	4000 € = 200000 €
-	* Workshops: 			 15000 €
-	* Födergelder, Ziel: 		 40000 €
-	* Crowdfunding: 			 40000 €
-	* Getränkeverkauf: 		  5000 €
+### Angebote, die etwas kosten
 
-## Angebot: Ein Computerspiel-Platz
+* Grundlagen-Seminare (Grundsätzliche Vorbereitung)  
+	-> 2 Wochenenden / 1 Woche, 5-12 Teilnehmer, €150 p.Tn.
+* Technische Installation (Konkrete Vorbereitung)  
+	-> 2 - 20 Stunden, 1-2 Techniker, € 40 p.St.
+* Workshops (Konkrete Vorbereitung, Aufbau)  
+	-> 1 Wochenende / 3 Tage, 5-12 Teilnehmer, 1-3 Instruktoren, € 500 p.I.
+* Begleitung (Aufbau)  
+	-> 3 - 6 Wochen, 1-2 Instruktoren, € 500 p.I./p.W.
+* Veranstaltungen  
+	-> 1 - 2 Tage, 1-2 Instruktoren, € 100 p.I./p.T.
+
+### Finanzbedarf
+
+Bis zur Gründung des ersten Spielplatz-Centers
+
+* Vollzeit-Bewohner, € 20000 / p.J. (Grundlegende Finanzierung)
+* Teilzeit-Bewohner, € 10000 / p.J. (    "              "     )
+* Server, € 300 p.J.
+
+Ab der Gründung des ersten Spielplatz-Centers
+
+* Miete, € 9000 p.J.
+* Verwaltung, € 6000 p.J.
+* Rechtsberatung, € 3000 p.J.
+
+
+
+## Angebot: Ein Computer-Spielplatz
 
 ### Software (Free Software)
 
@@ -157,10 +141,14 @@ Computer-Spielplätze vermitteln Selbstbewusstsein, Kreativität, Unternehmertum
 	* Technologien (€)
 	* Techniken (€)
 	* Freie Workshops (€)
+* Grundlagen-Seminare (eine Woche / zwei Wochenenden)
+	* Die Befreiung des Internets
+	* Das Internet und die Zukunft von Schule
+	* Die Freie Software-Bewegung als Gesellschaftsmodell
 
 Das Computer-Spielplatz-Projekt soll kostendeckend arbeiten und dabei dem Spielplatz ein Auskommen sichern.
 
-### Spielplatz-CenterBefreiung
+### Spielplatz-Center
 
 * Mitglieder (€)
 	* Mitgliederbereich
@@ -191,6 +179,7 @@ Das Computer-Spielplatz-Projekt soll kostendeckend arbeiten und dabei dem Spielp
 * Dezember
 	* Kleinere Spiele programmieren
 	* Andere zum Spielen und Testen einladen
+	* Rechtsfragen, Copyright defs vergleichen
 ### 2016
 * Januar
 	* Test von Version 0.1 an der RS Schule
