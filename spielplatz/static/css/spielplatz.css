@@ -1,0 +1,113 @@
+// Spielplatz CCS defs
+
+@font-face {
+  font-family: 'Exo';
+  font-weight: 400;
+  font-style: normal;
+  src: url('../fonts/Exo-regular/Exo-regular.eot');
+  src: url('../fonts/Exo-regular/Exo-regular.eot?#iefix') format('embedded-opentype'),
+       local('Exo Regular'),
+       local('Exo-regular'),
+       url('../fonts/Exo-regular/Exo-regular.woff2') format('woff2'),
+       url('../fonts/Exo-regular/Exo-regular.woff') format('woff'),
+       url('../fonts/Exo-regular/Exo-regular.ttf') format('truetype'),
+       url('../fonts/Exo-regular/Exo-regular.svg#Exo') format('svg');
+}
+
+@font-face {
+  font-family: 'Exo';
+  font-weight: 300;
+  font-style: normal;
+  src: url('../fonts/Exo-300/Exo-300.eot');
+  src: url('../fonts/Exo-300/Exo-300.eot?#iefix') format('embedded-opentype'),
+       local('Exo Light'),
+       local('Exo-300'),
+       url('../fonts/Exo-300/Exo-300.woff2') format('woff2'),
+       url('../fonts/Exo-300/Exo-300.woff') format('woff'),
+       url('../fonts/Exo-300/Exo-300.ttf') format('truetype'),
+       url('../fonts/Exo-300/Exo-300.svg#Exo') format('svg');
+}
+
+@font-face {
+  font-family: 'Exo';
+  font-weight: 700;
+  font-style: normal;
+  src: url('../fonts/Exo-700/Exo-700.eot');
+  src: url('../fonts/Exo-700/Exo-700.eot?#iefix') format('embedded-opentype'),
+       local('Exo Bold'),
+       local('Exo-700'),
+       url('../fonts/Exo-700/Exo-700.woff2') format('woff2'),
+       url('../fonts/Exo-700/Exo-700.woff') format('woff'),
+       url('../fonts/Exo-700/Exo-700.ttf') format('truetype'),
+       url('../fonts/Exo-700/Exo-700.svg#Exo') format('svg');
+}
+
+@font-face {
+  font-family: 'Exo';
+  font-weight: 300;
+  font-style: italic;
+  src: url('../fonts/Exo-300italic/Exo-300italic.eot');
+  src: url('../fonts/Exo-300italic/Exo-300italic.eot?#iefix') format('embedded-opentype'),
+       local('Exo Light Italic'),
+       local('Exo-300italic'),
+       url('../fonts/Exo-300italic/Exo-300italic.woff2') format('woff2'),
+       url('../fonts/Exo-300italic/Exo-300italic.woff') format('woff'),
+       url('../fonts/Exo-300italic/Exo-300italic.ttf') format('truetype'),
+       url('../fonts/Exo-300italic/Exo-300italic.svg#Exo') format('svg');
+}
+
+@font-face {
+  font-family: 'Exo';
+  font-weight: 400;
+  font-style: italic;
+  src: url('../fonts/Exo-italic/Exo-italic.eot');
+  src: url('../fonts/Exo-italic/Exo-italic.eot?#iefix') format('embedded-opentype'),
+       local('Exo Italic'),
+       local('Exo-italic'),
+       url('../fonts/Exo-italic/Exo-italic.woff2') format('woff2'),
+       url('../fonts/Exo-italic/Exo-italic.woff') format('woff'),
+       url('../fonts/Exo-italic/Exo-italic.ttf') format('truetype'),
+       url('../fonts/Exo-italic/Exo-italic.svg#Exo') format('svg');
+}
+
+@font-face {
+  font-family: 'Exo';
+  font-weight: 700;
+  font-style: italic;
+  src: url('/fonts/Exo-700italic/Exo-700italic.eot');
+  src: url('/fonts/Exo-700italic/Exo-700italic.eot?#iefix') format('embedded-opentype'),
+       local('Exo Bold Italic'),
+       local('Exo-700italic'),
+       url('/fonts/Exo-700italic/Exo-700italic.woff2') format('woff2'),
+       url('/fonts/Exo-700italic/Exo-700italic.woff') format('woff'),
+       url('/fonts/Exo-700italic/Exo-700italic.ttf') format('truetype'),
+       url('/fonts/Exo-700italic/Exo-700italic.svg#Exo') format('svg');
+}
+
+
+body {
+  font-family: "Exo", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.42857143;
+  color: #333;
+  background-color: #fff;
+}
+
+.form-signin {
+	width: 480px;
+	margin: 0 auto;
+	margin-top: 100px;
+}
+
+@media (max-width: 767px) {
+}
+
+@media (min-width: 767px) and (max-width: 991px) {
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+}
+
+@media (min-width: 1200px) {
+}
+
