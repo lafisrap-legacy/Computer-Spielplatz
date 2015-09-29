@@ -1,14 +1,27 @@
 package routers
 
 import (
+	"encoding/json"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
 	"github.com/lavisrap/Computer-Spielplatz/spielplatz/controllers"
+	"github.com/lavisrap/Computer-Spielplatz/spielplatz/models"
+	"os"
+	"strings"
 )
+
+// langType represents a language type.
+type langType struct {
+	Lang, Name string
+}
+
+var langTypes []*langType // Languages are supported.
 
 func init() {
 	beego.Router("/", &controllers.RootController{})
 	beego.Router("/login", &controllers.LoginController{})
+	beego.Router("/logout", &controllers.LogoutController{})
+	beego.Router("/signup", &controllers.SignupController{})
 
 	var FilterUser = func(ctx *context.Context) {
 		_, ok := ctx.Input.Session("uid").(int)
@@ -21,4 +34,39 @@ func init() {
 
 	beego.ErrorController(&controllers.ErrorController{})
 	beego.SetLogger("file", `{"filename":"log/spielplatz.log"}`)
+
+	loadLanguages()
+}
+
+func loadLanguages() {
+	langs := strings.Split(beego.AppConfig.String("lang::types"), "|")
+	names := strings.Split(beego.AppConfig.String("lang::names"), "|")
+	langTypes = make([]*langType, 0, len(langs))
+	for i, v := range langs {
+		langTypes = append(langTypes, &langType{
+			Lang: v,
+			Name: names[i],
+		})
+	}
+
+	tLanguages := make(map[string]map[string]string)
+	for _, lang := range langs {
+		t := make(map[string]string)
+
+		configFile, err := os.Open("conf/" + "locale_" + lang + ".json")
+		if err != nil {
+			beego.Error("opening config file", err.Error())
+		}
+
+		jsonParser := json.NewDecoder(configFile)
+		if err = jsonParser.Decode(&t); err != nil {
+			beego.Error("Error parsing config file", err.Error())
+		}
+
+		beego.Trace(t)
+		tLanguages[lang] = t
+	}
+
+	models.T = tLanguages["de-DE"]
+	models.TLanguages = tLanguages
 }

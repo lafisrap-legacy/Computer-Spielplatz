@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>{{.Title}}</title>
+<title>{{.hello}}</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -11,19 +11,22 @@
 </head>
 <body>
     <div class="container">
-        <form class="form-signin" action="login" method="post">
+        <form class="form-signin {{ if .Error }}has-error{{ end }}" action="login" method="post">
             {{ .xsrfdata }}
             <h2 class="form-signin-heading">Logge dich ein</h2>
-            <label for="inputEmail" class="sr-only">E-Mail-Adresse</label>
-            <input id="inputEmail" class="form-control" placeholder="Email address" required="" autofocus="" type="email" name="email">
+            <label for="inputName" class="sr-only">E-Mail-Adresse</label>
+            <input id="inputName" class="form-control" placeholder="Email address" required="" autofocus="" type="name" name="name" value="{{ .Name }}">
             <label for="inputPassword" class="sr-only">Passwort</label>
-            <input id="inputPassword" class="form-control" placeholder="Password" required="" type="password" name="password">
+            <input id="inputPassword" class="form-control" placeholder="Password" required="" type="password" name="password" value="{{ .Password }}">
             <div class="checkbox">
                 <label>
                     <input value="remember-me" type="checkbox"> Remember me
                 </label>
             </div>
             <button class="btn btn-lg btn-primary btn-block" type="submit">Einloggen</button>
+            {{ if .Error }}
+            <span >{{ .Error }}</span>
+            {{ end }}
         </form>
     </div>
 </div>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<title>CYPHERPUNK Computer-Spielplatz</title>
+<title>{{ .Title }}</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="static/css/bootstrap.min.css">
@@ -12,27 +12,30 @@
 </head>
 <body>
 
-<nav class="navbar navbar-default">
-    <div class="container">
-        {{if not .UserId }}
-            <a href="/login" class="btn btn-info btn-sm pull-right">Login <span class="glyphicon glyphicon-search"></span></a>
+<div class="container">
+    <div class="login-area">
+        {{if not .UserName }}
+            <a href="/login" class="btn btn-info btn-sm pull-right">Anmelden <span class="glyphicon glyphicon-search"></span></a>
+            <a href="/signup" class="btn btn-info btn-sm pull-right">Neues Konto<span class="glyphicon glyphicon-search"></span></a>
+        {{else}}
+            <a href="/logout" class="btn btn-info btn-sm pull-right">Abmelden '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>        
         {{end}}
-        <div class="jumbotron">
-            <h1>CYPHERPUNK Computer-Spielplatz</h1> 
-            <p class="text-center">Spielen, Arbeiten und Lernen sind im Grunde genau dasselbe.</p> 
-            <a href="#" class="btn btn-info btn-lg pull-right">Suche <span class="glyphicon glyphicon-search"></span></a>
-        </div>
-        <ul class="nav nav-tabs kuenste">
-            {{range $i, $art := .Arts}}
-                <li><a href="{{$art.File}}" class="btn btn-default btn-{{$art.Size}}">{{$art.Name}}</a></li>
-            {{end}}                       
-        </div>
-        {{if .UserId }}
-            <a href="#" class="btn btn-info btn-lg pull-right">Gruppen <span class="glyphicon glyphicon-search"></span></a>
-        {{end}}
-
     </div>
-</nav>
+    <div class="jumbotron">
+        <h1>{{ .Title }}</h1> 
+        <p class="text-center">{{ .Subtitle }}</p> 
+        <a href="#" class="btn btn-info btn-lg pull-right">Suche <span class="glyphicon glyphicon-search"></span></a>
+    </div>
+    <ul class="nav nav-tabs kuenste">
+        {{range $i, $art := .Arts}}
+            <li><a href="{{$art.File}}" class="btn btn-default btn-{{$art.Size}}">{{$art.Name}}</a></li>
+        {{end}}                       
+    </div>
+    {{if .UserId }}
+        <a href="#" class="btn btn-info btn-lg pull-right">Gruppen <span class="glyphicon glyphicon-search"></span></a>
+    {{end}}
+
+</div>
 </div>
 </body>
 </html>

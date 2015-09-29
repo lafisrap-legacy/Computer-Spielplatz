@@ -1,0 +1,19 @@
+{
+    "Title"                       : "CYPHERPUNK Computer-Spielplatz",
+    "Subtitle"                    : "Spielen und Lernen ist die beste Art zu arbeiten ... ähh ... zu leben",
+
+    "signup_insert_failed"        : "Die Datenbank scheint derzeit nicht richtig zu funktionieren.",
+
+    "signup_name_exists"          : "Den Namen gibt es schon.",
+    "signup_passwords_dont_match" : "Die Passworte passen nicht zusammen.",
+    "login_password_incorrect"    : "Passwort oder Name sind nicht korrekt.",
+
+    "arts_programming"            : "Programmieren",
+	"arts_graphics"               : "Grafik & Animation",
+	"arts_sound"                  : "Sound & Music",
+	"arts_texts"                  : "Texte",
+	"arts_gamedesign"             : "Spiele erfinden",
+	"arts_controllers"            : "Spiel-Steuerung",
+	"arts_hacking"                : "Hacken (Freestyle)"
+}
+

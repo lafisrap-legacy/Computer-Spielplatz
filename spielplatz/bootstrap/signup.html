@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>{{.Title}}</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+<link rel="stylesheet" href="static/css/spielplatz.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <form class="form-signup {{ if .Error }}has-error{{ end }}" action="signup" method="post">
+            {{ .xsrfdata }}
+            <h2 class="form-signin-heading">Lege ein Konto an</h2>
+            <label for="inputName" class="sr-only">Name</label>
+            <input id="inputName" class="form-control" placeholder="Name" required="" autofocus="" type="name" name="name" value="{{ .Name }}">
+            <label for="inputPassword" class="sr-only">Passwort</label>
+            <input id="inputPassword" class="form-control" placeholder="Password" required="" type="password" name="password" value="{{ .Pwd }}">
+            <label for="inputPassword2" class="sr-only">Passwort-Wiederholung</label>
+            <input id="inputPassword2" class="form-control" placeholder="Password2" required="" type="password" name="password2" value="{{ .Pwd }}">
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Konto anlegen</button>
+            {{ if .Error }}
+            <span>{{ .Error }}</span>
+            {{ end }}
+        </form>
+    </div>
+</div>
+</body>
+</html>

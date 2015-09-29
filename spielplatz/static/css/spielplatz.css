@@ -93,10 +93,19 @@ body {
   background-color: #fff;
 }
 
-.form-signin {
+.form-signin, .form-signup {
 	width: 480px;
 	margin: 0 auto;
 	margin-top: 100px;
+}
+
+.form-signin input,
+.form-signup input {
+  margin: 5px;
+}
+
+.login-area .btn {
+  margin: 5px;
 }
 
 @media (max-width: 767px) {
