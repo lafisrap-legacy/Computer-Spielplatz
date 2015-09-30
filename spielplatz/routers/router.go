@@ -22,6 +22,10 @@ func init() {
 	beego.Router("/login", &controllers.LoginController{})
 	beego.Router("/logout", &controllers.LogoutController{})
 	beego.Router("/signup", &controllers.SignupController{})
+	beego.Router("/live-editor", &controllers.LiveEditorController{})
+	beego.Router("/external/:file", &controllers.LiveEditorController{})
+
+	beego.SetStaticPath("/build", "bootstrap/live-editor/build")
 
 	var FilterUser = func(ctx *context.Context) {
 		_, ok := ctx.Input.Session("uid").(int)

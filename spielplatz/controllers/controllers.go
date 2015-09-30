@@ -34,14 +34,26 @@ type LoginController struct {
 }
 
 //////////////////////////////
-// LoginController serves the login redirction page
+// LoginController serves the logout redirction page
 type LogoutController struct {
 	beego.Controller
 }
 
 //////////////////////////////
-// SignupController serves the login redirction page
+// SignupController serves the signup redirction page
 type SignupController struct {
+	beego.Controller
+}
+
+//////////////////////////////
+// LiveEditorController brings the Khan-Academy Live-Editor to life
+type LiveEditorController struct {
+	beego.Controller
+}
+
+//////////////////////////////
+// LiveEditorController brings the Khan-Academy Live-Editor to life
+type LiveEditorBuildController struct {
 	beego.Controller
 }
 
@@ -226,13 +238,37 @@ func (c *SignupController) Post() {
 	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
 }
 
+//////////////////////////////////////////////////////////
+// LiveEditorController functions
+//
+// Get
+func (c *LiveEditorController) Get() {
+	file := c.Ctx.Input.Param(":file")
+
+	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
+
+	if file != "" {
+		c.TplNames = "live-editor/demos/simple/" + c.Ctx.Input.Param(":file")
+	} else {
+		c.TplNames = "live-editor/demos/simple/index.html"
+	}
+}
+
+//////////////////////////////////////////////////////////
+// LiveEditorBuildController functions
+//
+// Get
+func (c *LiveEditorBuildController) Get() {
+	beego.Trace("This is my filename: ", c.Ctx.Input.Param(":file"))
+	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
+	c.TplNames = "live-editor/build/js/" + c.Ctx.Input.Param(":file")
+}
+
 /////////////////////////////////////////////////////////////
 // Error Controller functions
 //
 // Error 404
 func (c *ErrorController) Error404() {
-	beego.Trace("This is a trace ...")
-	beego.Error("This is an Errorr ...")
 	c.Data["content"] = "page not found"
 	c.TplNames = "404.html"
 }

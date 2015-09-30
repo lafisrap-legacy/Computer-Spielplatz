@@ -1,0 +1,3 @@
+[submodule "spielplatz/bootstrap/live-editor"]
+	path = spielplatz/bootstrap/live-editor
+	url = https://github.com/lavisrap/live-editor
