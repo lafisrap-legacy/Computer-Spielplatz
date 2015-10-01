@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<title>{{ .Title }}</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="static/css/bootstrap.min.css">
+<link rel="stylesheet" href="static/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="static/css/spielplatz.css">
+<link rel="stylesheet" href="build/css/live-editor.core_deps.css"/>
+<link rel="stylesheet" href="build/css/live-editor.audio.css"/>
+<link rel="stylesheet" href="build/css/live-editor.tooltips.css"/>
+<link rel="stylesheet" href="build/css/live-editor.ui.css"/>
+<script src="static/js/jquery-2.1.4.min.js"></script>
+<script src="static/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="login-area">
+        {{if not .UserName }}
+            <a href="/login" class="btn btn-info btn-sm pull-right">Anmelden <span class="glyphicon glyphicon-search"></span></a>
+            <a href="/signup" class="btn btn-info btn-sm pull-right">Neues Konto<span class="glyphicon glyphicon-search"></span></a>
+        {{else}}
+            <a href="/logout" class="btn btn-info btn-sm pull-right">Abmelden '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>        
+        {{end}}
+    </div>
+    <button id="edit-prev" class="btn btn-info btn-sm">Zurück</button>
+    <button id="edit-next" class="btn btn-info btn-sm">weiter</button>
+    <button class="btn btn-info btn-sm">weiter</button>
+    <div class="jumbotron">
+        <h1>{{ .Title }}</h1> 
+        <p class="text-center">{{ .Subtitle }}</p> 
+        <a href="#" class="btn btn-info btn-lg pull-right">Suche <span class="glyphicon glyphicon-search"></span></a>
+    </div>
+    <div id="sample-live-editor"></a>
+</div>
+
+
+
+
+    <script src="build/js/live-editor.core_deps.js"></script>
+    <script src="build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="build/js/live-editor.audio.js"></script>
+    <script src="build/js/live-editor.shared.js"></script>
+    <script src="build/js/live-editor.tooltips.js"></script>
+    <script src="build/js/live-editor.ui.js"></script>
+    <script src="build/js/live-editor.editor_ace.js"></script>
+
+    <!-- The actual slides -->
+    <script src="static/js/slides.js"></script>
+    <script>
+(function() {
+
+window.liveEditor = new LiveEditor({
+    el: $("#sample-live-editor"),
+    code: window.localStorage["test-code"] || "",
+    width: 400,
+    height: 400,
+    editorHeight: "400px",
+    autoFocus: true,
+    workersDir: "../build/workers/",
+    execFile: "external/output.html",
+    externalsDir: "../build/external/",
+    imagesDir: "../build/images/",
+    jshintFile: "../build/external/jshint/jshint.js"
+});
+
+var slideNum = 0;
+
+var stringifyTestCode = function(codeStrOrFunc) {
+    if (!_.isString(codeStrOrFunc)) {
+        codeStrOrFunc = codeStrOrFunc.toString()
+            .replace(/^function\s\(\)\s\{/gi, "")
+            .replace(/\}$/gi, "");
+    }
+
+    return codeStrOrFunc;
+};
+
+var displaySlide = function(slideNum) {
+    if (slideNum < slides.length) {
+        liveEditor.editor.reset(stringifyTestCode(slides[slideNum]));
+    }
+};
+
+$("#edit-next")
+    .on('click', function() {
+        slideNum++;
+        displaySlide(slideNum);
+    });
+
+$("#edit-prev")
+    .on('click', function() {
+        slideNum--;
+        displaySlide(slideNum);
+    });
+
+
+displaySlide(slideNum);
+
+})();
+    </script>
+
+
+</body>
+</html>

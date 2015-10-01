@@ -28,7 +28,7 @@
     </div>
     <ul class="nav nav-tabs kuenste">
         {{range $i, $art := .Arts}}
-            <li><a href="{{$art.File}}" class="btn btn-default btn-{{$art.Size}}">{{$art.Name}}</a></li>
+            <li><a href="{{$art.Page}}" class="btn btn-default btn-{{$art.Size}}">{{$art.Name}}</a></li>
         {{end}}                       
     </div>
     {{if .UserId }}

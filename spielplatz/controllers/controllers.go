@@ -83,7 +83,6 @@ func (c *RootController) Get() {
 
 	w := c.Ctx.ResponseWriter
 	r := c.Ctx.Request
-
 	s, _ := globalSessions.SessionStart(w, r)
 	defer s.SessionRelease(w)
 
@@ -100,30 +99,37 @@ func setTitleData(data map[interface{}]interface{}) {
 		Name: T["arts_programming"],
 		Size: "lg",
 		File: "programmieren.html",
+		Page: "live-editor.html",
 	}, {
 		Name: T["arts_graphics"],
 		Size: "lg",
 		File: "grafik.html",
+		Page: "#",
 	}, {
 		Name: T["arts_sound"],
 		Size: "lg",
 		File: "sound.html",
+		Page: "#",
 	}, {
 		Name: T["arts_texts"],
 		Size: "lg",
 		File: "texte.html",
+		Page: "#",
 	}, {
 		Name: T["arts_gamedesign"],
 		Size: "lg",
 		File: "erfinden.html",
+		Page: "#",
 	}, {
 		Name: T["arts_controllers"],
 		Size: "lg",
 		File: "steuerung.html",
+		Page: "#",
 	}, {
 		Name: T["arts_hacking"],
 		Size: "lg",
 		File: "hacken.html",
+		Page: "#",
 	}}
 	data["Title"] = T["Title"]
 	data["Subtitle"] = T["Subtitle"]
@@ -243,14 +249,20 @@ func (c *SignupController) Post() {
 //
 // Get
 func (c *LiveEditorController) Get() {
-	file := c.Ctx.Input.Param(":file")
+	w := c.Ctx.ResponseWriter
+	r := c.Ctx.Request
+	s, _ := globalSessions.SessionStart(w, r)
+	defer s.SessionRelease(w)
+
+	c.Data["UserName"] = s.Get("UserName")
 
 	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
 
+	file := c.Ctx.Input.Param(":file")
 	if file != "" {
-		c.TplNames = "live-editor/demos/simple/" + c.Ctx.Input.Param(":file")
+		c.TplNames = "external/" + c.Ctx.Input.Param(":file")
 	} else {
-		c.TplNames = "live-editor/demos/simple/index.html"
+		c.TplNames = "live-editor.html"
 	}
 }
 
