@@ -108,6 +108,14 @@ body {
   margin: 5px;
 }
 
+#top-control-bar button,
+#bottom-control-bar button {
+  margin: 5px;
+}
+
+#bottom-control-bar {
+}
+
 @media (max-width: 767px) {
 }
 

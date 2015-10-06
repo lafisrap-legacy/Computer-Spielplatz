@@ -6,6 +6,7 @@ import (
 	"github.com/astaxie/beego/session"
 	"github.com/lavisrap/Computer-Spielplatz/spielplatz/models"
 	"html/template"
+	"time"
 )
 
 var globalSessions *session.Manager
@@ -16,6 +17,17 @@ var globalSessions *session.Manager
 type Session struct {
 	UserId string
 }
+
+type SessionXsrfStruct struct {
+	Session   session.SessionStore
+	Timestamp time.Time
+}
+
+type SessionXsrf map[string]SessionXsrfStruct
+
+//////////////////////////////////////////////////
+// Global Session Variables
+var SessionXsrfTable SessionXsrf
 
 //////////////////////////////////////////////////
 // Main Controllers (Root, Login, Error)
@@ -68,6 +80,8 @@ type ErrorController struct {
 func init() {
 	globalSessions, _ = session.NewManager("memory", `{"cookieName":"computerspielplatzID", "enableSetCookie,omitempty": true, "gclifetime":3600, "maxLifetime": 3600, "secure": false, "sessionIDHashFunc": "sha1", "sessionIDHashKey": "", "cookieLifeTime": 3600, "providerConfig": ""}`)
 	go globalSessions.GC()
+
+	SessionXsrfTable = make(SessionXsrf)
 }
 
 ///////////////////////////////////////////////////////
@@ -81,11 +95,9 @@ func (c *RootController) Prepare() {
 // Get
 func (c *RootController) Get() {
 
-	w := c.Ctx.ResponseWriter
-	r := c.Ctx.Request
-	s, _ := globalSessions.SessionStart(w, r)
-	defer s.SessionRelease(w)
+	s := c.StartSession()
 
+	//c.Data["Sid"] = s.SessionID()
 	c.Data["UserName"] = s.Get("UserName")
 	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
 	c.TplNames = "index.html"
@@ -156,10 +168,7 @@ func (c *LoginController) Get() {
 func (c *LoginController) Post() {
 	///////////////////////////////////
 	// Session prefix
-	w := c.Ctx.ResponseWriter
-	r := c.Ctx.Request
-	s, _ := globalSessions.SessionStart(w, r)
-	defer s.SessionRelease(w)
+	s := c.StartSession()
 
 	var (
 		u   models.User
@@ -184,12 +193,8 @@ func (c *LoginController) Post() {
 //
 // Get
 func (c *LogoutController) Get() {
-	///////////////////////////////////
-	// Session prefix
-	w := c.Ctx.ResponseWriter
-	r := c.Ctx.Request
-	s, _ := globalSessions.SessionStart(w, r)
-	defer s.SessionRelease(w)
+
+	s := c.StartSession()
 
 	s.Delete("UserName")
 	s.Delete("Email")
@@ -209,12 +214,7 @@ func (c *SignupController) Get() {
 ///////////////////////////////////
 // Post
 func (c *SignupController) Post() {
-	///////////////////////////////////
-	// Session prefix
-	w := c.Ctx.ResponseWriter
-	r := c.Ctx.Request
-	s, _ := globalSessions.SessionStart(w, r)
-	defer s.SessionRelease(w)
+	s := c.StartSession()
 
 	var (
 		u   models.User
@@ -249,10 +249,7 @@ func (c *SignupController) Post() {
 //
 // Get
 func (c *LiveEditorController) Get() {
-	w := c.Ctx.ResponseWriter
-	r := c.Ctx.Request
-	s, _ := globalSessions.SessionStart(w, r)
-	defer s.SessionRelease(w)
+	s := c.StartSession()
 
 	c.Data["UserName"] = s.Get("UserName")
 
@@ -266,12 +263,27 @@ func (c *LiveEditorController) Get() {
 	}
 }
 
+func (c *LiveEditorController) StartSession() session.SessionStore {
+
+	if c.CruSession == nil {
+		c.CruSession = c.Ctx.Input.CruSession
+	}
+
+	SessionXsrfTable[c.XsrfToken()] = SessionXsrfStruct{
+		Session:   c.CruSession,
+		Timestamp: time.Now(),
+	}
+
+	beego.Trace("SessionXsrfTable: ", SessionXsrfTable)
+
+	return c.CruSession
+}
+
 //////////////////////////////////////////////////////////
 // LiveEditorBuildController functions
 //
 // Get
 func (c *LiveEditorBuildController) Get() {
-	beego.Trace("This is my filename: ", c.Ctx.Input.Param(":file"))
 	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
 	c.TplNames = "live-editor/build/js/" + c.Ctx.Input.Param(":file")
 }
