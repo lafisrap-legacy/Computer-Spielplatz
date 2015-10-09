@@ -34,6 +34,18 @@ type Art struct {
 	Page string
 }
 
+type File struct {
+	Id       int
+	Filename string
+	User     *User `orm:"rel(one)"` // OneToOne relation
+}
+
+type Fork struct {
+	Id       int
+	OrigFile *File `orm:"rel(one)"`
+	DestFile *File `orm:"rel(one)"` // OneToOne relation
+}
+
 //////////////////////////////////////////////////
 // Global variables
 //
@@ -52,6 +64,8 @@ func init() {
 	orm.SetMaxOpenConns("default", 30)
 
 	orm.RegisterModel(new(User))
+	orm.RegisterModel(new(File))
+	orm.RegisterModel(new(Fork))
 }
 
 func Login(uf *UserForm) (User, error) {

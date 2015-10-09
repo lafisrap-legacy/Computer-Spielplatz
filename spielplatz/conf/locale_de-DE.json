@@ -14,6 +14,21 @@
 	"arts_texts"                  : "Texte",
 	"arts_gamedesign"             : "Spiele erfinden",
 	"arts_controllers"            : "Spiel-Steuerung",
-	"arts_hacking"                : "Hacken (Freestyle)"
+	"arts_hacking"                : "Hacken (Freestyle)",
+
+    "control_bar_label"           : "Speichern",
+    "control_bar_save"            : "Speichern",
+    "control_bar_save_as"         : "Speichern unter ...",
+    "control_bar_version"         : "Version speichern",
+    "control_bar_history"         : "Alte Version laden",
+    "control_bar_new"             : "Neu",
+    "control_bar_delete"          : "Löschen",
+    "control_bar_saved"           : "Gespeichert",
+    "control_bar_new_file"        : "?.js",
+    "control_bar_no_user"         : "Wenn du Dateien laden und speichern willst, musst du dich anmelden.",
+
+    "login_login"                 : "Anmelden",
+    "login_signup"                : "Neues Konto",
+    "login_logout"                : "Abmelden"
 }
 

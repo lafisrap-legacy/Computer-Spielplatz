@@ -4,16 +4,17 @@
 <title>{{.Title}}</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="static/css/bootstrap.min.css">
-<link rel="stylesheet" href="static/css/bootstrap-theme.min.css">
-<link rel="stylesheet" href="static/css/spielplatz.css">
-<script src="static/js/jquery-2.1.4.min.js"></script>
-<script src="static/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="../static/css/bootstrap.min.css">
+<link rel="stylesheet" href="../static/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="../static/css/spielplatz.css">
+<script src="../static/js/jquery-2.1.4.min.js"></script>
+<script src="../static/js/bootstrap.min.js"></script>
 </head>
 <body>
     <div class="container">
         <form class="form-signup {{ if .Error }}has-error{{ end }}" action="signup" method="post">
             {{ .xsrfdata }}
+            <input type="hidden" name="_dest" value="{{ .Destination }}">
             <h2 class="form-signin-heading">Lege ein Konto an</h2>
             <label for="inputName" class="sr-only">Name</label>
             <input id="inputName" class="form-control" placeholder="Name" required="" autofocus="" type="name" name="name" value="{{ .Name }}">

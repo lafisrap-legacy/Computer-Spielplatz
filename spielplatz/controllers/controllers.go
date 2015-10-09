@@ -6,6 +6,7 @@ import (
 	"github.com/astaxie/beego/session"
 	"github.com/lavisrap/Computer-Spielplatz/spielplatz/models"
 	"html/template"
+	"os"
 	"time"
 )
 
@@ -143,6 +144,9 @@ func setTitleData(data map[interface{}]interface{}) {
 		File: "hacken.html",
 		Page: "#",
 	}}
+	data["LoginLogin"] = T["login_login"]
+	data["LoginSignup"] = T["login_signup"]
+	data["LoginLogout"] = T["login_logout"]
 	data["Title"] = T["Title"]
 	data["Subtitle"] = T["Subtitle"]
 }
@@ -160,6 +164,7 @@ func (c *LoginController) Get() {
 	defer s.SessionRelease(w)
 
 	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
+	c.Data["Destination"] = "/" + c.Ctx.Input.Param(":dest")
 	c.TplNames = "login.html"
 }
 
@@ -175,16 +180,23 @@ func (c *LoginController) Post() {
 		err error
 	)
 	uf := models.UserForm{}
+	dest := c.Ctx.Input.Query("_dest")
+	beego.Trace("Destination:", dest)
+	if dest == "" {
+		dest = "/"
+	}
 	if err = c.ParseForm(&uf); err == nil {
 		if u, err = models.Login(&uf); err == nil {
 			s.Set("UserName", u.Name)
 			s.Set("Email", u.Email)
-			c.Ctx.Redirect(302, "/")
+			c.Ctx.Redirect(302, dest)
+			return
 		}
 	}
 
 	c.Data["Error"] = err.Error()
 	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
+	c.Data["Destination"] = dest
 	c.TplNames = "login.html"
 }
 
@@ -208,6 +220,7 @@ func (c *LogoutController) Get() {
 // Get
 func (c *SignupController) Get() {
 	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
+	c.Data["Destination"] = "/" + c.Ctx.Input.Param(":dest")
 	c.TplNames = "signup.html"
 }
 
@@ -222,13 +235,20 @@ func (c *SignupController) Post() {
 	)
 	T := models.T
 	uf := models.UserForm{}
+	dest := c.Ctx.Input.Query("_dest")
+	beego.Trace("Destination:", dest)
+	if dest == "" {
+		dest = "/"
+	}
 	if err = c.ParseForm(&uf); err == nil {
 		if uf.Pwd == uf.Pwd2 {
 			if u, err = models.Signup(&uf); err == nil {
 				s.Set("UserName", u.Name)
 				s.Set("Email", u.Email)
 
-				c.Ctx.Redirect(302, "/")
+				c.setupAccount(u.Name)
+				c.Ctx.Redirect(302, dest)
+				return
 			} else {
 				c.Data["Name"] = uf.Name
 				c.Data["Pwd"] = uf.Pwd
@@ -241,7 +261,16 @@ func (c *SignupController) Post() {
 
 	c.Data["Error"] = err.Error()
 	c.TplNames = "signup.html"
+	c.Data["Destination"] = dest
 	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
+}
+
+func (c *SignupController) setupAccount(userName string) {
+
+	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::jsfiles")
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		beego.Error("Cannot create directory.")
+	}
 }
 
 //////////////////////////////////////////////////////////
@@ -249,10 +278,23 @@ func (c *SignupController) Post() {
 //
 // Get
 func (c *LiveEditorController) Get() {
+	T := models.T
 	s := c.StartSession()
 
 	c.Data["UserName"] = s.Get("UserName")
-
+	c.Data["ControlBarLabel"] = T["control_bar_label"]
+	c.Data["ControlBarSave"] = T["control_bar_save"]
+	c.Data["ControlBarSaveAs"] = T["control_bar_save_as"]
+	c.Data["ControlBarSaved"] = T["control_bar_saved"]
+	c.Data["ControlBarVersion"] = T["control_bar_version"]
+	c.Data["ControlBarHistory"] = T["control_bar_history"]
+	c.Data["ControlBarNew"] = T["control_bar_new"]
+	c.Data["ControlBarDelete"] = T["control_bar_delete"]
+	c.Data["ControlBarNewFile"] = T["control_bar_new_file"]
+	c.Data["ControlBarNoUser"] = T["control_bar_no_user"]
+	c.Data["LoginLogin"] = T["login_login"]
+	c.Data["LoginSignup"] = T["login_signup"]
+	c.Data["LoginLogout"] = T["login_logout"]
 	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
 
 	file := c.Ctx.Input.Param(":file")

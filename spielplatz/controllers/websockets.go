@@ -6,9 +6,13 @@ import (
 	_ "errors"
 	"fmt"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/session"
+	"github.com/lavisrap/Computer-Spielplatz/spielplatz/models"
 	"io"
 	"net/http"
+	"os"
+	"time"
 )
 
 //////////////////////////////////////////////////////////
@@ -33,13 +37,24 @@ func (s socket) Close() error {
 /////////////////////////////////////////////////
 // Message defines a websocket message
 type Message struct {
-	Id         int
-	Xsrf       string
+	Id      int
+	Xsrf    string
+	Session session.SessionStore
+
 	Command    string
-	FileNames  []string
-	Code       []string
-	Session    session.SessionStore
 	returnChan chan Data
+
+	FileName  string
+	FileNames []string
+	CodeFiles []string
+	Range     Range
+}
+
+type Range struct {
+	IndexFrom int
+	IndexTo   int
+	DateFrom  time.Time
+	DateTo    time.Time
 }
 
 // Data is a map for command parameter to and from the controller
@@ -138,12 +153,78 @@ func serveMessages(messageChan chan Message) {
 	for {
 		message := <-messageChan
 
+		data := make(Data)
+		s := message.Session
+		switch message.Command {
+		case "readJSFiles":
+			//data = readJSFiles(s, message.FileNames)
+		case "readJSDir":
+			//data = readJSDir(s)
+		case "writeJSFiles":
+			data = writeJSFiles(s, message.FileNames, message.CodeFiles)
+		case "commitJSFiles":
+			//data = commitJSFiles(s, message.FileNames)
+		case "getPrevJSFiles":
+			//data = getArchivedJSFiles(s, message.FileName, message.Range)
+		default:
+			beego.Error("Unknown command:", message.Command)
+		}
+
 		beego.Trace("Received message: ", message)
-		beego.Trace(message.Session.Get("UserName"))
-		data := Data{}
 		data["Id"] = message.Id
-		data["FileNames"] = []string{"test.js"}
 
 		message.returnChan <- data
 	}
+}
+
+func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string) Data {
+
+	// if user is not logged in return
+	if s.Get("UserName") == nil {
+		return Data{}
+	}
+
+	name := s.Get("UserName").(string)
+	dir := beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::jsfiles")
+
+	for i := 0; i < len(fileNames); i++ {
+		var (
+			file *os.File
+			err  error
+			num  int
+		)
+		/////////////////////////////////////////
+		// Create/overwrite file
+		fileName := dir + fileNames[i]
+		if file, err = os.Create(fileName); err != nil {
+			beego.Error("Cannot create or overwrite file")
+			return Data{}
+		}
+		defer file.Close()
+		num, err = file.Write([]byte(codeFiles[i]))
+		beego.Trace("I wrote the file!", num, err)
+
+		////////////////////////////////////////
+		// Write to database if not already there
+		u := models.User{Name: name}
+		f := models.File{}
+		o := orm.NewOrm()
+
+		err = o.Read(&u, "Name")
+		if err == nil {
+			err = o.QueryTable(f).Filter("filename", fileName).Filter("user_id", u.Id).One(&f)
+			if err == orm.ErrMultiRows {
+				beego.Error("Returned Multi Rows Not One")
+			}
+			if err == orm.ErrNoRows {
+				beego.Trace("File", fileName, "not found in database. Inserting new.")
+				f := models.File{Filename: fileNames[i], User: &u}
+				_, err = o.Insert(&f)
+				if err != nil {
+					beego.Error("Couldn't insert file.")
+				}
+			}
+		}
+	}
+	return Data{}
 }

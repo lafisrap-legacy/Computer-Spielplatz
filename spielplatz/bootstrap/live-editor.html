@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<title>({{ .Sid }})({{ .SessionId }})</title>
+<title>{{ .Title }}</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="static/css/bootstrap.min.css">
@@ -19,20 +19,50 @@
 <div class="container">
     <div class="login-area">
         {{if not .UserName }}
-            <a href="/login" class="btn btn-info btn-sm pull-right">Anmelden <span class="glyphicon glyphicon-search"></span></a>
-            <a href="/signup" class="btn btn-info btn-sm pull-right">Neues Konto<span class="glyphicon glyphicon-search"></span></a>
+            <a href="/login/live-editor" class="btn btn-info btn-sm pull-right">{{ .LoginLogin }} <span class="glyphicon glyphicon-share-alt"></span></a>
+            <a href="/signup/live-editor" class="btn btn-info btn-sm pull-right">{{ .LoginSignup }} <span class="glyphicon glyphicon-book"></span></a>
         {{else}}
-            <a href="/logout" class="btn btn-info btn-sm pull-right">Abmelden '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>        
+            <a href="/logout" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>        
         {{end}}
     </div>
     <div class="clearfix"></div>
     <div id="top-control-bar">
     </div>
     <div id="sample-live-editor" class="span12"></div>
+    {{ if .UserName }}
     <div id="bottom-control-bar">
-        <button id="edit-prev" class="btn btn-info btn-sm">Zurück</button>
-        <button id="edit-next" class="btn btn-info btn-sm">Weiter</button>
-    </div>
+        <button id="control-bar-prev" class="btn btn-primary btn-sm">{{ .ControlBarNew }}</button>
+        <span class="dropdown">
+            <button class="btn btn-primary dropdown-toggle btn-md" type="button" data-toggle="dropdown">test.js
+                <span class="caret"></span></button>
+                <ul class="dropdown-menu">
+                    <li><a href="#">einige.js</a></li>
+                    <li><a href="#">test.js</a></li>
+                    <li><a href="#">files.js</a></li>
+                </ul>
+        </span>
+        <button id="control-bar-next" class="btn btn-primary btn-sm">{{ .ControlBarDelete }}</button>
+        <span class="dropdown" style="float: right">
+            <button class="btn btn-primary dropdown-toggle btn-md" type="button" data-toggle="dropdown"><span id= "control-bar-label">{{ .ControlBarLabel }}</span>
+                <span class="caret"></span></button>
+                <ul class="dropdown-menu">
+                    <li><a id="control-bar-save">{{ .ControlBarSave }}</a></li>
+                    <li><a id="control-bar-saveas">{{ .ControlBarSaveAs }}</a></li>
+                    <li><a id="control-bar-version">{{ .ControlBarVersion }}</a></li>
+                    <li><a id="control-bar-history">{{ .ControlBarHistory }}</a></li>
+                </ul>
+        </span>
+        <form id="control-bar-input" class="form-inline" role="form" action="" style="float:right">  
+             <div class="form-group col-sm-3">
+                 <input class="form-control" type="text" name="filename" value="{{ .ControlBarNewFile }}" placeholder="Description" style="display:none"/>
+             </div>
+        </form>
+  </div>
+  {{ else }}
+    <div id="bottom-control-bar">
+        <span class="label label-info">{{ .ControlBarNoUser }}</span>
+    </div>  
+  {{ end }}
 </div>
 
     <!-- The Live-Editor files -->
@@ -77,29 +107,81 @@ var stringifyTestCode = function(codeStrOrFunc) {
     }
 
     return codeStrOrFunc;
+
 };
 
 var displaySlide = function(slideNum) {
     if (slideNum < slides.length) {
-        liveEditor.editor.reset(stringifyTestCode(slides[slideNum]));
+        var code = stringifyTestCode(slides[slideNum]);
+        liveEditor.editor.reset(code);
     }
 };
 
-$("#edit-next")
+$("#control-bar-delete")
     .on('click', function() {
-        slideNum++;
-        displaySlide(slideNum);
-        $WS.sendMessage(null, function(message) {
+ //       slideNum++;
+ //       displaySlide(slideNum);
+ //       $WS.sendMessage(null, function(message) {
+ //           console.log(JSON.stringify(message));
+ //       });
+    });
+
+$("#control-bar-new")
+    .on('click', function() {
+//        slideNum--;
+//        displaySlide(slideNum);
+    });
+
+$("#control-bar-save").on('click', function() {
+    var input = $("#control-bar-input input"),
+        filename = input.val();
+
+    if( filename === "{{ .ControlBarNewFile }}") {
+        input.fadeIn();
+        input.focus();
+    } else {
+        input.fadeOut();
+        $("#control-bar-label").text("...");
+        $WS.sendMessage({
+            Command: "writeJSFiles",
+            FileNames: [filename],
+            CodeFiles: [liveEditor.editor.text()]
+        }, function(message) {
+            $("#control-bar-label").text("{{ .ControlBarSaved }}");
+            setTimeout(function() { $("#control-bar-label").text("{{ .ControlBarLabel }}"); }, 2000);
             console.log(JSON.stringify(message));
         });
-    });
+    }
+});
 
-$("#edit-prev")
-    .on('click', function() {
-        slideNum--;
-        displaySlide(slideNum);
-    });
+$("#control-bar-saveas").on('click', function() {
+    var input = $("#control-bar-input input");
+    input.fadeIn();
+    input.focus();
+});
 
+$("#control-bar-input").submit(function(e) {
+    var input = $("#control-bar-input input"),
+        filename = input.val();
+
+    if( filename.slice(-3) != ".js" ) {
+        filename += ".js"
+        input.val(filename);
+    }
+
+    $WS.sendMessage({
+        Command: "writeJSFiles",
+        FileNames: [filename],
+        CodeFiles: [liveEditor.editor.text()]
+    }, function(message) {
+        $("#control-bar-label").text("{{ .ControlBarSaved }}");
+        setTimeout(function() { $("#control-bar-label").text("{{ .ControlBarLabel }}"); }, 2000);
+    });
+    
+    input.fadeOut();
+
+    return false;
+});
 
 displaySlide(slideNum);
 
