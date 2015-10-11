@@ -181,7 +181,6 @@ func (c *LoginController) Post() {
 	)
 	uf := models.UserForm{}
 	dest := c.Ctx.Input.Query("_dest")
-	beego.Trace("Destination:", dest)
 	if dest == "" {
 		dest = "/"
 	}

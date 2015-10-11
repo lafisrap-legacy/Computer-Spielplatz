@@ -33,12 +33,10 @@
     <div id="bottom-control-bar">
         <button id="control-bar-prev" class="btn btn-primary btn-sm">{{ .ControlBarNew }}</button>
         <span class="dropdown">
-            <button class="btn btn-primary dropdown-toggle btn-md" type="button" data-toggle="dropdown">test.js
+            <button class="btn btn-primary dropdown-toggle btn-md" type="button" data-toggle="dropdown">
+                <span id= "control-bar-file"></span>
                 <span class="caret"></span></button>
-                <ul class="dropdown-menu">
-                    <li><a href="#">einige.js</a></li>
-                    <li><a href="#">test.js</a></li>
-                    <li><a href="#">files.js</a></li>
+                <ul id= "control-bar-files" class="dropdown-menu">
                 </ul>
         </span>
         <button id="control-bar-next" class="btn btn-primary btn-sm">{{ .ControlBarDelete }}</button>
@@ -93,11 +91,100 @@ window.liveEditor = new LiveEditor({
     jshintFile: "../build/external/jshint/jshint.js"
 });
 
+var userName = "{{ .UserName }}",
+    userData = localStorage.userData && JSON.parse(localStorage.userData) || {},
+    currentCodeFile = localStorage.currentCodeFile || "{{ .ControlBarNewFile }}";
+
+if( localStorage.userName !== userName || userName === "") {
+    localStorage.userName = userName;
+    localStorage.userData = "";
+}
+
+var fillButtonControl = function() {
+
+    // create file list for button control
+    var fileList = [];
+    for( var file in userData.codeFiles ) {
+        fileList.push({ 
+            fileName: file,
+            timeStamp: userData.codeFiles[file].TimeStamp
+        });
+    }
+
+    fileList.sort(function(a,b) {
+        if( a.timeStamp < b.timeStamp ) return -1;
+        else return 1;
+    });
+
+    for( var i=0 ; i<fileList.length ; i++ ) {
+        $("#control-bar-files").append('<li><a href="#">'+fileList[i].fileName+'('+getFormatedDate(fileList[i].timeStamp)+')</a></li>');                   
+    }
+    $("#control-bar-file").text(currentCodeFile);
+};
+
+var getFormatedDate = function(time) {
+    var monthNames = [
+      "Januar", "Februar", "März",
+      "April", "Mai", "Juni", "Juli",
+      "August", "September", "Oktober",
+      "November", "Dezember"
+    ];
+
+    var date = new Date();
+    date.setTime(time);
+    var day = date.getDate();
+    var monthIndex = date.getMonth();
+    var year = date.getFullYear();
+
+    return ""+day+" "+monthNames[monthIndex]+" "+year;
+};
+
 $WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
+
+    if( localStorage.userData === "" && localStorage.userName !== "") {
+        $WS.sendMessage({
+            Command: "readJSDir"
+        }, function(message) {
+            userData = {codeFiles: {}}
+            localStorage.userDir = JSON.stringify(message.Files);
+
+            var codeFiles=[];
+            for( file in message.Files ) {
+                 codeFiles.push({ name: file, timeStamp: message.Files[file].TimeStamp });
+            }
+
+            codeFiles = codeFiles.sort(function(a, b) {
+                if( a.timeStamp < b.timeStamp ) return 1;
+                else return -1;
+            });
+
+            for( var i=0, codeFilesToRead=[] ; i<5 ; i++ ) {
+                codeFilesToRead.push(codeFiles[i].name);
+            }
+
+            if( codeFilesToRead.length ) {
+                $WS.sendMessage({
+                    command: "readJSFiles",
+                    FileNames: codeFilesToRead,
+                }, function(message) {
+                    userData.codeFiles = message.CodeFiles;
+                    localStorage.userData = JSON.stringify(userData);
+
+                    localStorage.currentCodeFile = currentCodeFile = codeFilesToRead[0];
+                    fillButtonControl();
+
+                    liveEditor.editor.reset(userData.codeFiles[currentCodeFile].Code);
+                });
+            }
+        });
+    } else {
+        fillButtonControl();
+        
+        liveEditor.editor.reset(currentCodeFile === "{{ .ControlBarNewFile }}"? "": userData.codeFiles[currentCodeFile].Code);
+    }
+
     console.log("Websockets connected!");
 });
-
-var slideNum = 0;
 
 var stringifyTestCode = function(codeStrOrFunc) {
     if (!_.isString(codeStrOrFunc)) {
@@ -110,26 +197,12 @@ var stringifyTestCode = function(codeStrOrFunc) {
 
 };
 
-var displaySlide = function(slideNum) {
-    if (slideNum < slides.length) {
-        var code = stringifyTestCode(slides[slideNum]);
-        liveEditor.editor.reset(code);
-    }
-};
-
 $("#control-bar-delete")
     .on('click', function() {
- //       slideNum++;
- //       displaySlide(slideNum);
- //       $WS.sendMessage(null, function(message) {
- //           console.log(JSON.stringify(message));
- //       });
     });
 
 $("#control-bar-new")
     .on('click', function() {
-//        slideNum--;
-//        displaySlide(slideNum);
     });
 
 $("#control-bar-save").on('click', function() {
@@ -182,8 +255,6 @@ $("#control-bar-input").submit(function(e) {
 
     return false;
 });
-
-displaySlide(slideNum);
 
 })();
     </script>

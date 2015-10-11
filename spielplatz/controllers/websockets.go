@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -47,7 +48,13 @@ type Message struct {
 	FileName  string
 	FileNames []string
 	CodeFiles []string
+	SortedBy  string
 	Range     Range
+}
+
+type JSFile struct {
+	TimeStamp int64
+	Code      string
 }
 
 type Range struct {
@@ -82,6 +89,13 @@ func StartWebsockets(doneChan chan bool) {
 		fmt.Println("New socket connection started ...")
 		s := socket{ws, make(chan bool)}
 		go translateMessages(s)
+
+		encoder := json.NewEncoder(s)
+		data := Data{
+			"Time": time.Now().UnixNano() / int64(time.Millisecond),
+		}
+		encoder.Encode(&data)
+
 		<-s.done
 		fmt.Println("Socket connection gone ...")
 	}))
@@ -157,9 +171,9 @@ func serveMessages(messageChan chan Message) {
 		s := message.Session
 		switch message.Command {
 		case "readJSFiles":
-			//data = readJSFiles(s, message.FileNames)
+			data = readJSFiles(s, message.FileNames)
 		case "readJSDir":
-			//data = readJSDir(s)
+			data = readJSDir(s)
 		case "writeJSFiles":
 			data = writeJSFiles(s, message.FileNames, message.CodeFiles)
 		case "commitJSFiles":
@@ -227,4 +241,82 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 		}
 	}
 	return Data{}
+}
+
+func readJSFiles(s session.SessionStore, fileNames []string) Data {
+
+	// if user is not logged in return
+	if s.Get("UserName") == nil {
+		return Data{}
+	}
+
+	name := s.Get("UserName").(string)
+	dir := beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::jsfiles")
+	codeFiles := make(map[string]JSFile)
+
+	for i := 0; i < len(fileNames); i++ {
+		var (
+			file *os.File
+			err  error
+			num  int
+		)
+		/////////////////////////////////////////
+		// Read file
+		fileName := dir + fileNames[i]
+
+		if file, err = os.Open(fileName); err != nil {
+			beego.Error("Cannot open file")
+			return Data{}
+		}
+		defer file.Close()
+
+		fileInfo, _ := file.Stat()
+		fileSize := fileInfo.Size()
+		codeFile := make([]byte, fileSize)
+		num, err = file.Read(codeFile)
+
+		if err != nil {
+			beego.Error("Read error occured.")
+			return Data{}
+		}
+
+		beego.Trace("I read the file!", num, err)
+		codeFiles[fileNames[i]] = JSFile{
+			TimeStamp: fileInfo.ModTime().UnixNano() / int64(time.Millisecond),
+			Code:      string(codeFile),
+		}
+	}
+	return Data{
+		"CodeFiles": codeFiles,
+	}
+}
+
+func readJSDir(s session.SessionStore) Data {
+
+	data := Data{}
+	files := make(map[string]JSFile)
+
+	// if user is not logged in return
+	if s.Get("UserName") == nil {
+		return data
+	}
+
+	name := s.Get("UserName").(string)
+	dir := beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::jsfiles")
+
+	filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
+
+		name := f.Name()
+		if len(name) > 3 && name[len(name)-3:] == ".js" {
+			files[name] = JSFile{
+				TimeStamp: f.ModTime().UnixNano() / int64(time.Millisecond),
+			}
+		}
+
+		return nil
+	})
+
+	data["Files"] = files
+
+	return data
 }
