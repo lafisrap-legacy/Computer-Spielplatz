@@ -4,6 +4,7 @@ $WS = {
     _callbacks: [],
     _openCallback: null,
     _xsrf: null,
+    _timeOffset: null,
 
     connect: function(addr, xsrf, cb) {
 
@@ -31,7 +32,6 @@ $WS = {
 
     onOpen: function(evt) {
         this._connected = true;
-        if( this._openCallback ) this._openCallback();
     },
 
     onMessage: function(evt) {
@@ -42,11 +42,27 @@ $WS = {
             throw "onMessage: parse json message failed (" + e + ")";
         }
 
+        if( data.Time ) {
+            this.setTimeOffset(data.Time);
+            if( this._openCallback ) {
+                this._openCallback();
+                this._openCallback = null;
+            }
+        }
+
         if( data.Id && this._callbacks[data.Id] ) {
             var id = data.Id;
             delete data.Id;
             this._callbacks[id](data);
         }
+    },
+
+    setTimeOffset: function(serverTime) {
+        this._timeOffset = new Date().getTime() - serverTime;
+    },
+
+    getServerTime: function(time) {
+        return (time || new Date().getTime()) - this._timeOffset;
     },
 
     onError: function(evt) {

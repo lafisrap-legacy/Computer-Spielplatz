@@ -155,10 +155,8 @@ func translateMessages(s socket) {
 }
 
 func catchReturn(returnChan chan Data, encoder *json.Encoder) {
-	beego.Trace("... waiting for return data ...")
 	select {
 	case data := <-returnChan:
-		fmt.Println("Got message back!", data)
 		encoder.Encode(&data)
 	}
 }
@@ -200,12 +198,12 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 
 	name := s.Get("UserName").(string)
 	dir := beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::jsfiles")
+	timeStamps := []int64{}
 
 	for i := 0; i < len(fileNames); i++ {
 		var (
 			file *os.File
 			err  error
-			num  int
 		)
 		/////////////////////////////////////////
 		// Create/overwrite file
@@ -215,8 +213,12 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 			return Data{}
 		}
 		defer file.Close()
-		num, err = file.Write([]byte(codeFiles[i]))
-		beego.Trace("I wrote the file!", num, err)
+		_, err = file.Write([]byte(codeFiles[i]))
+
+		////////////////////////////////////////
+		// Record timestamps for web app
+		fileStat, _ := file.Stat()
+		timeStamps = append(timeStamps, fileStat.ModTime().UnixNano()/int64(time.Millisecond))
 
 		////////////////////////////////////////
 		// Write to database if not already there
@@ -240,7 +242,9 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 			}
 		}
 	}
-	return Data{}
+	return Data{
+		"TimeStamps": timeStamps,
+	}
 }
 
 func readJSFiles(s session.SessionStore, fileNames []string) Data {
@@ -258,7 +262,6 @@ func readJSFiles(s session.SessionStore, fileNames []string) Data {
 		var (
 			file *os.File
 			err  error
-			num  int
 		)
 		/////////////////////////////////////////
 		// Read file
@@ -273,14 +276,13 @@ func readJSFiles(s session.SessionStore, fileNames []string) Data {
 		fileInfo, _ := file.Stat()
 		fileSize := fileInfo.Size()
 		codeFile := make([]byte, fileSize)
-		num, err = file.Read(codeFile)
+		_, err = file.Read(codeFile)
 
 		if err != nil {
 			beego.Error("Read error occured.")
 			return Data{}
 		}
 
-		beego.Trace("I read the file!", num, err)
 		codeFiles[fileNames[i]] = JSFile{
 			TimeStamp: fileInfo.ModTime().UnixNano() / int64(time.Millisecond),
 			Code:      string(codeFile),
@@ -318,5 +320,6 @@ func readJSDir(s session.SessionStore) Data {
 
 	data["Files"] = files
 
+	beego.Warning("readJSDir", files)
 	return data
 }

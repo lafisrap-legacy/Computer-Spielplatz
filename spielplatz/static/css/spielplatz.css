@@ -116,6 +116,24 @@ body {
 #bottom-control-bar {
 }
 
+.control-bar-file {
+  padding: 5px;
+}
+
+#control-bar-files li {
+  padding: 3px 0px;
+}
+
+#control-bar-files li:hover {
+  background-color: lightgrey;
+}
+
+.control-bar-file .timestamp {
+  position: absolute;
+  right: 10px;
+  font-size: 0.7em;
+}
+
 @media (max-width: 767px) {
 }
 
