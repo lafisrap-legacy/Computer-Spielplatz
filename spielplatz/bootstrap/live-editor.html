@@ -72,8 +72,6 @@
     <script src="build/js/live-editor.ui.js"></script>
     <script src="build/js/live-editor.editor_ace.js"></script>
 
-    <!-- The actual slides -->
-    <script src="static/js/slides.js"></script>
     <script>
 (function() {
 
@@ -91,23 +89,28 @@ window.liveEditor = new LiveEditor({
     jshintFile: "../build/external/jshint/jshint.js"
 });
 
-var userName = "{{ .UserName }}",
-    userData = localStorage.userData && JSON.parse(localStorage.userData) || {},
-    currentCodeFile = localStorage.currentCodeFile || "{{ .ControlBarNewFile }}";
+var CPG_userName = "{{ .UserName }}",
+    CPG_codeFileList = localStorage.codeFileList && JSON.parse(localStorage.codeFileList) || [],
+    CPG_allFileList = localStorage.allFileList && JSON.parse(localStorage.allFileList) || [],
+    CPG_currentCodeFile = localStorage.currentCodeFile || "{{ .ControlBarNewFile }}",
+    CPG_codeFiles = {};
 
-if( localStorage.userName !== userName || userName === "") {
-    localStorage.userName = userName;
-    localStorage.userData = "";
+for( var i=0 ; i<CPG_codeFileList.length ; i++ ) CPG_codeFiles[CPG_codeFileList[i]] = localStorage[CPG_codeFileList[i]] && JSON.parse(localStorage[CPG_codeFileList[i]]) || null;
+
+if( localStorage.userName !== CPG_userName || CPG_userName === "") {
+    localStorage.userName = CPG_userName;
+    for( var i=0 ; i<CPG_codeFileList.length ; i++ ) CPG_codeFiles[CPG_codeFileList[i]] = null;
+    localStorage.codeFileList = [];
 }
 
 var fillButtonControl = function() {
 
     // create file list for button control
     var fileList = [];
-    for( var file in userData.codeFiles ) {
-        fileList.push({ 
-            fileName: file,
-            timeStamp: userData.codeFiles[file].TimeStamp
+    for( var i=0 ; i<CPG_codeFileList.length ; i++ ) {
+        fileList.push({
+            fileName: CPG_codeFileList[i],
+            timeStamp: CPG_codeFiles[CPG_codeFileList[i]].timeStamp
         });
     }
 
@@ -125,14 +128,14 @@ var fillButtonControl = function() {
         cbf.append('<li><span class="control-bar-file" codefile="'+fileList[i].fileName+'">'+fileList[i].fileName+'<span class="timestamp">'+getFormatedDate(fileList[i].timeStamp)+'</span></span></li>')
             .width(width + 20); 
     }
-    $("#control-bar-current-file").text(currentCodeFile);
-    $("#control-bar-input input").val(currentCodeFile);
+    $("#control-bar-current-file").text(CPG_currentCodeFile);
+    $("#control-bar-input input").val(CPG_currentCodeFile);
 
     $(".control-bar-file").on('click', function(e) {
-        localStorage.currentCodeFile = currentCodeFile = $(this).attr("codeFile");
-        $("#control-bar-current-file").text(currentCodeFile);
-        $("#control-bar-input input").val(currentCodeFile);
-        liveEditor.editor.reset(userData.codeFiles[currentCodeFile].Code);
+        localStorage.currentCodeFile = CPG_currentCodeFile = $(this).attr("codeFile");
+        $("#control-bar-current-file").text(CPG_currentCodeFile);
+        $("#control-bar-input input").val(CPG_currentCodeFile);
+        liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile].code);
     });
 };
 
@@ -165,25 +168,25 @@ var getFormatedDate = function(time) {
 
 $WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
 
-    if( localStorage.userData === "" && localStorage.userName !== "") {
+    if( (!localStorage.codeFileList || !localStorage.codeFileList.length) && localStorage.userName !== "") {
         $WS.sendMessage({
             Command: "readJSDir"
         }, function(message) {
-            userData = {codeFiles: {}}
-            localStorage.userDir = JSON.stringify(message.Files);
+            CPG_codeFileList = [];
+            localStorage.allFileList = JSON.stringify(message.Files);
 
-            var codeFiles=[];
+            var files=[];
             for( file in message.Files ) {
-                 codeFiles.push({ name: file, timeStamp: message.Files[file].TimeStamp });
+                 files.push({ name: file, timeStamp: message.Files[file].TimeStamp });
             }
 
-            codeFiles.sort(function(a, b) {
+            files.sort(function(a, b) {
                 if( a.timeStamp < b.timeStamp ) return 1;
                 else return -1;
             });
 
             for( var i=0, codeFilesToRead=[] ; i<5 ; i++ ) {
-                codeFilesToRead.push(codeFiles[i].name);
+                codeFilesToRead.push(files[i].name);
             }
 
             if( codeFilesToRead.length ) {
@@ -191,21 +194,29 @@ $WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
                     command: "readJSFiles",
                     FileNames: codeFilesToRead,
                 }, function(message) {
-                    userData.codeFiles = message.CodeFiles;
-                    localStorage.userData = JSON.stringify(userData);
+                    for( fileName in message.CodeFiles ) {
+                        var codeFile = message.CodeFiles[fileName];
+                        CPG_codeFiles[fileName] = {
+                            code: codeFile.Code,
+                            timeStamp: codeFile.TimeStamp,
+                        }
+                        localStorage[fileName] = JSON.stringify(CPG_codeFiles[fileName]);
+                        CPG_codeFileList.push(fileName);
+                    }
+                    localStorage.codeFileList = JSON.stringify(CPG_codeFileList);
 
-                    localStorage.currentCodeFile = currentCodeFile = codeFilesToRead[0];
-                    $("#control-bar-input input").val(currentCodeFile);
+                    localStorage.currentCodeFile = CPG_currentCodeFile = codeFilesToRead[0];
+                    $("#control-bar-input input").val(CPG_currentCodeFile);
                     fillButtonControl();
 
-                    liveEditor.editor.reset(userData.codeFiles[currentCodeFile].Code);
+                    liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile].code);
                 });
             }
         });
     } else {
         fillButtonControl();
         
-        liveEditor.editor.reset(currentCodeFile === "{{ .ControlBarNewFile }}"? "": userData.codeFiles[currentCodeFile].Code);
+        liveEditor.editor.reset(CPG_currentCodeFile === "{{ .ControlBarNewFile }}"? "": CPG_codeFiles[CPG_currentCodeFile].code);
     }
 
     console.log("Websockets connected!");
