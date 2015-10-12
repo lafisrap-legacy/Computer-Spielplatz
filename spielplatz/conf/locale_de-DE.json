@@ -24,7 +24,7 @@
     "control_bar_new"             : "Neu",
     "control_bar_delete"          : "Löschen",
     "control_bar_saved"           : "Gespeichert",
-    "control_bar_new_file"        : "?.js",
+    "control_bar_new_file"        : "unbekannt.js",
     "control_bar_no_user"         : "Wenn du Dateien laden und speichern willst, musst du dich anmelden.",
 
     "login_login"                 : "Anmelden",

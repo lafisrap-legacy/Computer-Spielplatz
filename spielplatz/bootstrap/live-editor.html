@@ -89,19 +89,25 @@ window.liveEditor = new LiveEditor({
     jshintFile: "../build/external/jshint/jshint.js"
 });
 
-var CPG_userName = "{{ .UserName }}",
+///////////////////////////////////
+// User changed: clear everything from localStorage
+if( localStorage.userName !== "{{ .UserName }}") {
+    var fileList = localStorage.codeFileList && JSON.parse(localStorage.codeFileList) || [];
+    for( var i=0 ; i<fileList.length ; i++ ) localStorage.removeItem(fileList[i]);
+    localStorage.removeItem("codeFileList");
+    localStorage.removeItem("allFileList");
+    localStorage.removeItem("currentCodeFile");
+    localStorage.userName = "{{ .UserName }}";
+}
+
+var CPG_userName = localStorage.userName,
     CPG_codeFileList = localStorage.codeFileList && JSON.parse(localStorage.codeFileList) || [],
     CPG_allFileList = localStorage.allFileList && JSON.parse(localStorage.allFileList) || [],
-    CPG_currentCodeFile = localStorage.currentCodeFile || "{{ .ControlBarNewFile }}",
+    CPG_currentCodeFile = localStorage.currentCodeFile,
     CPG_codeFiles = {};
 
-for( var i=0 ; i<CPG_codeFileList.length ; i++ ) CPG_codeFiles[CPG_codeFileList[i]] = localStorage[CPG_codeFileList[i]] && JSON.parse(localStorage[CPG_codeFileList[i]]) || null;
+for( var i=0 ; i<CPG_codeFileList.length ; i++ ) CPG_codeFiles[CPG_codeFileList[i]] = localStorage[CPG_codeFileList[i]] && JSON.parse(localStorage[CPG_codeFileList[i]]) || {};
 
-if( localStorage.userName !== CPG_userName || CPG_userName === "") {
-    localStorage.userName = CPG_userName;
-    for( var i=0 ; i<CPG_codeFileList.length ; i++ ) CPG_codeFiles[CPG_codeFileList[i]] = null;
-    localStorage.codeFileList = [];
-}
 
 var fillButtonControl = function() {
 
@@ -132,6 +138,13 @@ var fillButtonControl = function() {
     $("#control-bar-input input").val(CPG_currentCodeFile);
 
     $(".control-bar-file").on('click', function(e) {
+        if( CPG_currentCodeFile === "{{ .ControlBarNewFile }}" ) {
+        } else {
+            localStorage[CPG_currentCodeFile] = JSON.stringify({
+                code: liveEditor.editor.text(),
+                timeStamp: CPG_codeFiles[CPG_currentCodeFile].TimeStamp,
+            });
+        }
         localStorage.currentCodeFile = CPG_currentCodeFile = $(this).attr("codeFile");
         $("#control-bar-current-file").text(CPG_currentCodeFile);
         $("#control-bar-input input").val(CPG_currentCodeFile);
@@ -140,6 +153,8 @@ var fillButtonControl = function() {
 };
 
 var getFormatedDate = function(time) {
+    if( !time ) return "";
+
     var monthNames = ["Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sep.", "Okt.", "Nov.", "Dez."];
 
     var date = new Date(),
@@ -168,7 +183,11 @@ var getFormatedDate = function(time) {
 
 $WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
 
-    if( (!localStorage.codeFileList || !localStorage.codeFileList.length) && localStorage.userName !== "") {
+    if( !localStorage.userName || localStorage.userName === "" ) {
+        
+        liveEditor.editor.reset("");
+
+    } else if( !localStorage.codeFileList || !localStorage.codeFileList.length) {
         $WS.sendMessage({
             Command: "readJSDir"
         }, function(message) {
@@ -185,7 +204,7 @@ $WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
                 else return -1;
             });
 
-            for( var i=0, codeFilesToRead=[] ; i<5 ; i++ ) {
+            for( var i=0, codeFilesToRead=[] ; i<5 && i<files.length ; i++ ) {
                 codeFilesToRead.push(files[i].name);
             }
 
@@ -205,15 +224,28 @@ $WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
                     }
                     localStorage.codeFileList = JSON.stringify(CPG_codeFileList);
 
-                    localStorage.currentCodeFile = CPG_currentCodeFile = codeFilesToRead[0];
+                    localStorage.currentCodeFile = CPG_currentCodeFile = CPG_codeFileList[0];
                     $("#control-bar-input input").val(CPG_currentCodeFile);
                     fillButtonControl();
 
                     liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile].code);
                 });
+            } else {
+                CPG_currentCodeFile = "{{ .ControlBarNewFile }}";
+                CPG_codeFileList = [CPG_currentCodeFile];
+                CPG_codeFiles[CPG_currentCodeFile] = { code: "", timeStamp: null };
+
+                localStorage.codeFileList = JSON.stringify(CPG_codeFileList);
+                localStorage.currentCodeFile = CPG_currentCodeFile;
+                localStorage[CPG_currentCodeFile] = JSON.stringify(CPG_codeFiles[CPG_currentCodeFile]);
+
+                $("#control-bar-input input").val(CPG_currentCodeFile);
+                fillButtonControl();
+                liveEditor.editor.reset("");
             }
         });
     } else {
+
         fillButtonControl();
         
         liveEditor.editor.reset(CPG_currentCodeFile === "{{ .ControlBarNewFile }}"? "": CPG_codeFiles[CPG_currentCodeFile].code);
@@ -241,6 +273,32 @@ $("#control-bar-new")
     .on('click', function() {
     });
 
+var saveCodeFile = function(filename) {
+    $("#control-bar-label").text("...");
+    var code = liveEditor.editor.text();
+
+    $WS.sendMessage({
+        Command: "writeJSFiles",
+        FileNames: [filename],
+        CodeFiles: [code]
+    }, function(message) {
+        if( CPG_currentCodeFile !== filename ) {
+            CPG_codeFiles[filename] = CPG_codeFiles[CPG_currentCodeFile];
+            CPG_codeFiles[CPG_currentCodeFile] = null; 
+            CPG_codeFileList[CPG_codeFileList.indexOf(CPG_currentCodeFile)] = filename;
+
+            localStorage.removeItem(CPG_currentCodeFile);
+            localStorage[filename] = JSON.stringify( CPG_codeFiles[filename] );
+            localStorage.codeFileList = JSON.stringify( CPG_codeFileList );
+            localStorage.currentCodeFile = CPG_currentCodeFile = filename;
+        }
+        CPG_codeFiles[filename].timeStamp = message.TimeStamps[0];
+        fillButtonControl();
+        $("#control-bar-label").text("{{ .ControlBarSaved }}");
+        setTimeout(function() { $("#control-bar-label").text("{{ .ControlBarLabel }}"); }, 2000);
+    });
+};
+
 $("#control-bar-save").on('click', function() {
     var input = $("#control-bar-input input"),
         filename = input.val();
@@ -249,19 +307,8 @@ $("#control-bar-save").on('click', function() {
         input.fadeIn();
         input.focus();
     } else {
+        saveCodeFile(filename);
         input.fadeOut();
-        $("#control-bar-label").text("...");
-        $WS.sendMessage({
-            Command: "writeJSFiles",
-            FileNames: [filename],
-            CodeFiles: [liveEditor.editor.text()]
-        }, function(message) {
-            userData.codeFiles[filename].TimeStamp = message.TimeStamps[0];
-            fillButtonControl();
-            $("#control-bar-label").text("{{ .ControlBarSaved }}");
-            setTimeout(function() { $("#control-bar-label").text("{{ .ControlBarLabel }}"); }, 2000);
-            console.log(JSON.stringify(message));
-        });
     }
 });
 
@@ -275,21 +322,18 @@ $("#control-bar-input").submit(function(e) {
     var input = $("#control-bar-input input"),
         filename = input.val();
 
-    if( filename.slice(-3) != ".js" ) {
-        filename += ".js"
-        input.val(filename);
-    }
+    if( filename === "{{ .ControlBarNewFile }}") {
+        input.focus();
+    } else {
 
-    $WS.sendMessage({
-        Command: "writeJSFiles",
-        FileNames: [filename],
-        CodeFiles: [liveEditor.editor.text()]
-    }, function(message) {
-        $("#control-bar-label").text("{{ .ControlBarSaved }}");
-        setTimeout(function() { $("#control-bar-label").text("{{ .ControlBarLabel }}"); }, 2000);
-    });
-    
-    input.fadeOut();
+        if( filename.slice(-3) != ".js" ) {
+            filename += ".js"
+            input.val(filename);
+        }
+
+        saveCodeFile(filename);
+        input.fadeOut();
+    }
 
     return false;
 });
