@@ -26,9 +26,14 @@
     "control_bar_saved"           : "Gespeichert",
     "control_bar_new_file"        : "unbekannt.js",
     "control_bar_no_user"         : "Wenn du Dateien laden und speichern willst, musst du dich anmelden.",
+	"control_bar_yes"             : "Ja",
+	"control_bar_no"              : "Nein",
+	"control_bar_file_exists"     : "Der Dateiname wird schon verwendet",
 
     "login_login"                 : "Anmelden",
     "login_signup"                : "Neues Konto",
-    "login_logout"                : "Abmelden"
+    "login_logout"                : "Abmelden",
+	
+	"websockets_file_exists"	  : "Es gibt schon eine Datei mit dem gleichen Namen. Überschreiben?"
 }
 

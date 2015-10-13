@@ -291,6 +291,9 @@ func (c *LiveEditorController) Get() {
 	c.Data["ControlBarDelete"] = T["control_bar_delete"]
 	c.Data["ControlBarNewFile"] = T["control_bar_new_file"]
 	c.Data["ControlBarNoUser"] = T["control_bar_no_user"]
+	c.Data["ControlBarYes"] = T["control_bar_yes"]
+	c.Data["ControlBarNo"] = T["control_bar_no"]
+	c.Data["ControlBarFileExists"] = T["control_bar_file_exists"]
 	c.Data["LoginLogin"] = T["login_login"]
 	c.Data["LoginSignup"] = T["login_signup"]
 	c.Data["LoginLogout"] = T["login_logout"]
@@ -300,6 +303,7 @@ func (c *LiveEditorController) Get() {
 	if file != "" {
 		c.TplNames = "external/" + c.Ctx.Input.Param(":file")
 	} else {
+		//c.TplNames = "live-editor.html"
 		c.TplNames = "live-editor.html"
 	}
 }

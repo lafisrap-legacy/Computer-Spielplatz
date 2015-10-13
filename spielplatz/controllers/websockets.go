@@ -50,6 +50,8 @@ type Message struct {
 	CodeFiles []string
 	SortedBy  string
 	Range     Range
+
+	Overwrite bool
 }
 
 type JSFile struct {
@@ -173,7 +175,7 @@ func serveMessages(messageChan chan Message) {
 		case "readJSDir":
 			data = readJSDir(s)
 		case "writeJSFiles":
-			data = writeJSFiles(s, message.FileNames, message.CodeFiles)
+			data = writeJSFiles(s, message.FileNames, message.CodeFiles, message.Overwrite)
 		case "commitJSFiles":
 			//data = commitJSFiles(s, message.FileNames)
 		case "getPrevJSFiles":
@@ -182,20 +184,20 @@ func serveMessages(messageChan chan Message) {
 			beego.Error("Unknown command:", message.Command)
 		}
 
-		beego.Trace("Received message: ", message)
 		data["Id"] = message.Id
 
 		message.returnChan <- data
 	}
 }
 
-func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string) Data {
+func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string, overwrite bool) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
 		return Data{}
 	}
 
+	T := models.T
 	name := s.Get("UserName").(string)
 	dir := beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::jsfiles")
 	timeStamps := []int64{}
@@ -205,9 +207,21 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 			file *os.File
 			err  error
 		)
+		fileName := dir + fileNames[i]
+
+		/////////////////////////////////////////
+		// Check if file exists
+		if !overwrite {
+			if _, err := os.Stat(fileName); !os.IsNotExist(err) {
+				beego.Warning("no such file or directory:", fileName)
+				return Data{
+					"Error": T["websockets_file_exists"],
+				}
+			}
+		}
+
 		/////////////////////////////////////////
 		// Create/overwrite file
-		fileName := dir + fileNames[i]
 		if file, err = os.Create(fileName); err != nil {
 			beego.Error("Cannot create or overwrite file")
 			return Data{}
