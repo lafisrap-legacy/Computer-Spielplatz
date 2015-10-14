@@ -128,11 +128,18 @@ body {
   background-color: lightgrey;
 }
 
+#control-bar-files .border-top {
+  border-top: 1px solid grey;
+  margin-top: 5px;
+}
+
 .control-bar-file .timestamp {
   position: absolute;
   right: 10px;
   font-size: 0.7em;
 }
+
+
 
 @media (max-width: 767px) {
 }
