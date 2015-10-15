@@ -295,6 +295,7 @@ func (c *LiveEditorController) Get() {
 	c.Data["ControlBarNo"] = T["control_bar_no"]
 	c.Data["ControlBarFileExists"] = T["control_bar_file_exists"]
 	c.Data["ControlBarAllFiles"] = T["control_bar_all_files"]
+	c.Data["ControlBarFileDelete"] = T["control_bar_file_delete"]
 	c.Data["LoginLogin"] = T["login_login"]
 	c.Data["LoginSignup"] = T["login_signup"]
 	c.Data["LoginLogout"] = T["login_logout"]

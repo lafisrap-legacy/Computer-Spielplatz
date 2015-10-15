@@ -30,6 +30,7 @@
 	"control_bar_yes"             : "Ja",
 	"control_bar_no"              : "Nein",
 	"control_bar_file_exists"     : "Der Dateiname wird schon verwendet",
+	"control_bar_file_delete"   : "Willst du die Datei wirklich löschen?",
 
     "login_login"                 : "Anmelden",
     "login_signup"                : "Neues Konto",

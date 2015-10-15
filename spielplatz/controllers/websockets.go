@@ -176,6 +176,8 @@ func serveMessages(messageChan chan Message) {
 			data = readJSDir(s)
 		case "writeJSFiles":
 			data = writeJSFiles(s, message.FileNames, message.CodeFiles, message.Overwrite)
+		case "deleteJSFiles":
+			data = deleteJSFiles(s, message.FileNames)
 		case "commitJSFiles":
 			//data = commitJSFiles(s, message.FileNames)
 		case "getPrevJSFiles":
@@ -242,12 +244,12 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 
 		err = o.Read(&u, "Name")
 		if err == nil {
-			err = o.QueryTable(f).Filter("filename", fileName).Filter("user_id", u.Id).One(&f)
+			err = o.QueryTable(f).Filter("filename", fileNames[i]).Filter("user_id", u.Id).One(&f)
 			if err == orm.ErrMultiRows {
 				beego.Error("Returned Multi Rows Not One")
 			}
 			if err == orm.ErrNoRows {
-				beego.Trace("File", fileName, "not found in database. Inserting new.")
+				beego.Trace("File", fileNames[i], "not found in database. Inserting new.")
 				f := models.File{Filename: fileNames[i], User: &u}
 				_, err = o.Insert(&f)
 				if err != nil {
@@ -336,4 +338,46 @@ func readJSDir(s session.SessionStore) Data {
 
 	beego.Warning("readJSDir", files)
 	return data
+}
+
+func deleteJSFiles(s session.SessionStore, fileNames []string) Data {
+
+	// if user is not logged in return
+	if s.Get("UserName") == nil {
+		return Data{}
+	}
+
+	name := s.Get("UserName").(string)
+	dir := beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::jsfiles")
+
+	for i := 0; i < len(fileNames); i++ {
+		var (
+			file *os.File
+			err  error
+		)
+		/////////////////////////////////////////
+		// Read file
+		fileName := dir + fileNames[i]
+
+		if err = os.Remove(fileName); err != nil {
+			beego.Error("Cannot remove file")
+			return Data{}
+		}
+		defer file.Close()
+
+		////////////////////////////////////////
+		// Clear from database if not already there
+		u := models.User{Name: name}
+		f := models.File{}
+		o := orm.NewOrm()
+
+		err = o.Read(&u, "Name")
+		if err == nil {
+			num, _ := o.QueryTable(f).Filter("filename", fileNames[i]).Filter("user_id", u.Id).Delete()
+			if num != 1 {
+				beego.Error("I deleted", num, "occurences of", fileNames[i], "instead of 1.")
+			}
+		}
+	}
+	return Data{}
 }

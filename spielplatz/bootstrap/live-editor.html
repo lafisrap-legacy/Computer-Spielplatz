@@ -90,12 +90,11 @@
   {{ end }}
 </div>
 
-    <!-- The Live-Editor files -->
-
-
-    <script>
+<script>
 (function() {
 
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Live-Editor !
 window.liveEditor = new LiveEditor({
     el: $("#sample-live-editor"),
     code: window.localStorage["test-code"] || "",
@@ -110,8 +109,10 @@ window.liveEditor = new LiveEditor({
     jshintFile: "../build/external/jshint/jshint.js"
 });
 
-///////////////////////////////////
-// User changed: clear everything from localStorage
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// Live Editor page logic
+//
+// If User changed: clear everything from localStorage
 if( localStorage.userName !== "{{ .UserName }}") {
     var fileList = localStorage.codeFileList && JSON.parse(localStorage.codeFileList) || [];
     for( var i=0 ; i<fileList.length ; i++ ) localStorage.removeItem(fileList[i]);
@@ -121,6 +122,8 @@ if( localStorage.userName !== "{{ .UserName }}") {
     localStorage.userName = "{{ .UserName }}";
 }
 
+//////////////////////////////////////////
+// Fill in the globals form local storage
 var CPG_userName = localStorage.userName,
     CPG_codeFileList = localStorage.codeFileList && JSON.parse(localStorage.codeFileList) || [],
     CPG_allFileList = localStorage.allFileList && JSON.parse(localStorage.allFileList) || [],
@@ -130,7 +133,8 @@ var CPG_userName = localStorage.userName,
 for( var i=0 ; i<CPG_codeFileList.length ; i++ ) CPG_codeFiles[CPG_codeFileList[i]] = localStorage[CPG_codeFileList[i]] && JSON.parse(localStorage[CPG_codeFileList[i]]) || {};
 CPG_codeFiles[{{ .ControlBarNewFile }}] = localStorage[{{ .ControlBarNewFile }}] && JSON.parse(localStorage[{{ .ControlBarNewFile }}]) || {};
 
-
+///////////////////////////////////////////
+// showModal displays a modal dialog with answers yes and no
 var showModal = function(title, body, cb) {
     var modal = $("#control-bar-yes-no-modal")
 
@@ -150,11 +154,15 @@ var showModal = function(title, body, cb) {
     });
 };
 
+////////////////////////////////////////////
+// storeCurrentCodeFile syncs the current code file with the global variable and the local storage
 var storeCurrentCodeFile = function() {
     CPG_codeFiles[CPG_currentCodeFile].code = liveEditor.editor.text();
     localStorage[CPG_currentCodeFile] = JSON.stringify(CPG_codeFiles[CPG_currentCodeFile]);    
 };
 
+/////////////////////////////////////////////
+// fillButtonControl fills the file select button with current files
 var fillButtonControl = function() {
 
     // create file list for button control
@@ -200,6 +208,8 @@ var fillButtonControl = function() {
     });
 };
 
+///////////////////////////////////////////
+// getFormatedDate returns a neatly formated date or time
 var getFormatedDate = function(time) {
     if( !time ) return "";
 
@@ -229,6 +239,8 @@ var getFormatedDate = function(time) {
     return dateString;
 };
 
+/////////////////////////////////////////
+// selectFilename displays a filename input and selects the js filename
 var selectFilename = function(input) {
 
     input.fadeIn();
@@ -243,7 +255,8 @@ var selectFilename = function(input) {
     }
 }
 
-
+//////////////////////////////////////////
+// WS.connect connects to server and loads code files
 $WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
 
     if( !localStorage.userName || localStorage.userName === "" ) {
@@ -322,20 +335,36 @@ $WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
     console.log("Websockets connected!");
 });
 
-var stringifyTestCode = function(codeStrOrFunc) {
-    if (!_.isString(codeStrOrFunc)) {
-        codeStrOrFunc = codeStrOrFunc.toString()
-            .replace(/^function\s\(\)\s\{/gi, "")
-            .replace(/\}$/gi, "");
+///////////////////////////////////////////
+// Delete button
+$("#control-bar-delete").on('click', function() {
+    if( CPG_currentCodeFile !== "{{ .ControlBarNewFile }}" ) {
+        showModal(CPG_currentCodeFile, "{{ .ControlBarFileDelete }}", function(yes) {
+            if( yes ) {
+                $WS.sendMessage({
+                    command: "deleteJSFiles",
+                    FileNames: [CPG_currentCodeFile],
+                }, function(message) {
+
+                    // weiter mit go command deleteJSFiles
+                    CPG_codeFileList.splice(CPG_codeFileList.indexOf(CPG_currentCodeFile),1);
+                    CPG_allFileList.splice(CPG_allFileList.indexOf(CPG_currentCodeFile),1);
+                    CPG_codeFiles[CPG_currentCodeFile] = null;
+
+                    localStorage.currentCodeFile = CPG_currentCodeFile = CPG_codeFileList[0] || "{{ .ControlBarNewFile }}"
+                    localStorage.codeFileList = JSON.stringify(CPG_codeFileList);
+                    localStorage[CPG_currentCodeFile] = JSON.stringify(CPG_codeFiles[CPG_currentCodeFile] || { code: "" });
+
+                    fillButtonControl();
+                    liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile]? CPG_codeFiles[CPG_currentCodeFile].code : "");
+                });
+            } else {
+            }
+        });
+        return;
+
     }
-
-    return codeStrOrFunc;
-
-};
-
-$("#control-bar-delete")
-    .on('click', function() {
-    });
+});
 
 $("#control-bar-new").on('click', function() {
 
@@ -374,7 +403,7 @@ var saveCodeFile = function(filename) {
             return;
         } else if( CPG_currentCodeFile !== filename ) {
 
-            CPG_codeFiles[CPG_currentCodeFile].code = liveEditor.editor.text();
+            CPG_codeFiles[CPG_currentCodeFile].code = CPG_currentCodeFile !== "{{ .ControlBarNewFile }}"? liveEditor.editor.text() : "";
             localStorage[CPG_currentCodeFile] = JSON.stringify( CPG_codeFiles[CPG_currentCodeFile] );
             
             CPG_codeFileList.push(filename);
