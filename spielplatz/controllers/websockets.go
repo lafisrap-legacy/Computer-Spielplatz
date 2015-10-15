@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"code.google.com/p/go.net/websocket"
+	"encoding/base64"
 	"encoding/json"
 	_ "errors"
 	"fmt"
@@ -9,10 +10,13 @@ import (
 	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/session"
 	"github.com/lavisrap/Computer-Spielplatz/spielplatz/models"
+	"image"
+	"image/png"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -48,6 +52,7 @@ type Message struct {
 	FileName  string
 	FileNames []string
 	CodeFiles []string
+	Images    []string
 	SortedBy  string
 	Range     Range
 
@@ -175,7 +180,7 @@ func serveMessages(messageChan chan Message) {
 		case "readJSDir":
 			data = readJSDir(s)
 		case "writeJSFiles":
-			data = writeJSFiles(s, message.FileNames, message.CodeFiles, message.Overwrite)
+			data = writeJSFiles(s, message.FileNames, message.CodeFiles, message.Images, message.Overwrite)
 		case "deleteJSFiles":
 			data = deleteJSFiles(s, message.FileNames)
 		case "commitJSFiles":
@@ -192,7 +197,7 @@ func serveMessages(messageChan chan Message) {
 	}
 }
 
-func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string, overwrite bool) Data {
+func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string, Images []string, overwrite bool) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -206,8 +211,9 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 
 	for i := 0; i < len(fileNames); i++ {
 		var (
-			file *os.File
-			err  error
+			file    *os.File
+			imgFile *os.File
+			err     error
 		)
 		fileName := dir + fileNames[i]
 
@@ -235,6 +241,20 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 		// Record timestamps for web app
 		fileStat, _ := file.Stat()
 		timeStamps = append(timeStamps, fileStat.ModTime().UnixNano()/int64(time.Millisecond))
+
+		////////////////////////////////////////
+		// Write image file
+		imageReader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(Images[i]))
+		pngImage, _, err := image.Decode(imageReader)
+		if err != nil {
+			beego.Error(err)
+		}
+		if imgFile, err = os.Create(fileName[0:len(fileName)-3] + ".png"); err != nil {
+			beego.Error("Cannot create or overwrite file")
+			return Data{}
+		}
+		defer imgFile.Close()
+		png.Encode(imgFile, pngImage)
 
 		////////////////////////////////////////
 		// Write to database if not already there
