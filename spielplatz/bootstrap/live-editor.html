@@ -78,7 +78,7 @@
     {{ if .UserName }}
     <div id="bottom-control-bar">
         <button id="control-bar-new" class="btn btn-primary btn-sm">{{ .ControlBarNew }}</button>
-        <span class="dropdown">
+        <span class="dropup">
             <button class="btn btn-primary dropdown-toggle btn-md" type="button" data-toggle="dropdown">
                 <span id= "control-bar-current-file"></span>
                 <span class="caret"></span></button>
@@ -87,8 +87,9 @@
         </span>
         <button id="control-bar-delete" class="btn btn-primary btn-sm">{{ .ControlBarDelete }}</button>
         <span class="dropdown" style="float: right">
-            <button class="btn btn-primary dropdown-toggle btn-md" type="button" data-toggle="dropdown"><span id= "control-bar-label">{{ .ControlBarLabel }}</span>
-                <span class="caret"></span></button>
+            <button class="btn btn-primary dropdown-toggle btn-md" type="button" data-toggle="dropdown">
+                <span id="control-bar-label">{{ .ControlBarLabel }}</span> 
+                <span id="control-bar-caret" class="caret"></span></button>
                 <ul class="dropdown-menu">
                     <li><a id="control-bar-save">{{ .ControlBarSave }}</a></li>
                     <li><a id="control-bar-saveas">{{ .ControlBarSaveAs }}</a></li>
@@ -136,7 +137,7 @@ if( localStorage.userName !== "{{ .UserName }}") {
     var fileList = localStorage.codeFileList && JSON.parse(localStorage.codeFileList) || [];
     for( var i=0 ; i<fileList.length ; i++ ) localStorage.removeItem(fileList[i]);
     localStorage.removeItem("codeFileList");
-    localStorage.removeItem("allFileList");
+    localStorage.removeItem("allFilesList");
     localStorage.removeItem("currentCodeFile");
     localStorage.userName = "{{ .UserName }}";
 }
@@ -145,7 +146,7 @@ if( localStorage.userName !== "{{ .UserName }}") {
 // Fill in the globals form local storage
 var CPG_userName = localStorage.userName,
     CPG_codeFileList = localStorage.codeFileList && JSON.parse(localStorage.codeFileList) || [],
-    CPG_allFileList = localStorage.allFileList && JSON.parse(localStorage.allFileList) || [],
+    CPG_allFilesList = localStorage.allFilesList && JSON.parse(localStorage.allFilesList) || [],
     CPG_currentCodeFile = localStorage.currentCodeFile,
     CPG_codeFiles = {};
 
@@ -159,18 +160,19 @@ var showModalYesNo = function(title, body, cb) {
 
     $(".modal-title", modal).text(title);
     $(".modal-body p", modal).text(body);
-    $(".modal-yes", modal).one("click", function(e) {
-        cb(true);
+    $(".modal-yes", modal).off("click").one("click", function(e) {
+        var lcb = cb;
         cb = null;
         modal.modal('hide');
+        if( lcb ) lcb(true);
     });
-    $(".modal-no", modal).one("click", function(e) {
+    $(".modal-no", modal).off("click").one("click", function(e) {
         // cb is called on hide event
         modal.modal('hide');
     });
 
     modal.modal('show');
-    modal.one('hide.bs.modal', function(e) {
+    modal.one('hidden.bs.modal', function(e) {
         if( cb ) cb(false);
     });
 };
@@ -180,7 +182,7 @@ var showModalYesNo = function(title, body, cb) {
 var showModalCodeFiles = function(cb) {
     var modal = $("#control-bar-codefile-modal");
 
-    var afl = CPG_allFileList,
+    var afl = CPG_allFilesList,
         files = $("<div id='modal-codefiles'>"),
         row = null;
 
@@ -226,7 +228,7 @@ var showModalCodeFiles = function(cb) {
         return filenames;
     }
 
-    $(".modal-open", modal).one("click", function(e) {
+    $(".modal-open", modal).off("click").one("click", function(e) {
 
         var lcb = cb;
         cb = null;
@@ -236,11 +238,11 @@ var showModalCodeFiles = function(cb) {
         if( lcb ) lcb("open", getCheckedFilenames());
     });
 
-    $(".modal-cancel", modal).one("click", function(e) {
+    $(".modal-cancel", modal).off("click").one("click", function(e) {
         modal.modal('hide');
     });
 
-    $(".modal-delete", modal).one("click", function(e) {
+    $(".modal-delete", modal).off("click").one("click", function(e) {
         var lcb = cb;
         cb = null;
         modal.modal('hide');
@@ -249,7 +251,7 @@ var showModalCodeFiles = function(cb) {
         if( lcb ) lcb("delete", getCheckedFilenames());
     });
 
-    modal.one('hide.bs.modal', function(e) {
+    modal.one('hidden.bs.modal', function(e) {
         if( cb ) cb("cancel");
     });
 
@@ -291,7 +293,7 @@ var fillButtonControl = function() {
             .width(width + 20); 
     }
 
-    if( CPG_allFileList.length >= 2 ) {
+    if( CPG_allFilesList.length >= 2 ) {
         cbf.append('<li class="border-top control-bar-file" codefile="all"><span>{{ .ControlBarAllFiles }}</span></li>')
     }
 
@@ -311,23 +313,23 @@ var fillButtonControl = function() {
             $("#control-bar-input input").val(CPG_currentCodeFile)
             liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile].code);
         } else {
-            showModalCodeFiles(function(button, files) {
+            showModalCodeFiles(function(button, selFiles) {
                 switch( button ) {
                     /////////////////////////////////////////////////
                     // User selected "open"
                     case "open":
-                        for( var i=0, openFiles=[] ; i<files.length ; i++ ) {
-                            if( CPG_codeFileList.indexOf(files[i]) !== -1 ) openFiles.push(files[i]);
+                        for( var i=0, openFiles=[] ; i<selFiles.length ; i++ ) {
+                            if( CPG_codeFileList.indexOf(selFiles[i]) !== -1 ) openFiles.push(selFiles[i]);
                         }
 
                         var readFiles = function() {
-                            if( files.length ) {
+                            if( selFiles.length ) {
                                 $WS.sendMessage({
                                     command: "readJSFiles",
-                                    FileNames: files,
+                                    FileNames: selFiles,
                                 }, function(message) {
-                                    for( var i=0 ; i<files.length ; i++ ) {
-                                        var fileName = files[i],
+                                    for( var i=0 ; i<selFiles.length ; i++ ) {
+                                        var fileName = selFiles[i],
                                             codeFile = message.CodeFiles[fileName];
                                         if( codeFile ) {
                                             CPG_codeFiles[fileName] = {
@@ -340,7 +342,7 @@ var fillButtonControl = function() {
                                     }
                                     localStorage.codeFileList = JSON.stringify(CPG_codeFileList);
 
-                                    localStorage.currentCodeFile = CPG_currentCodeFile = files[0];
+                                    localStorage.currentCodeFile = CPG_currentCodeFile = selFiles[0];
                                     $("#control-bar-input input").val(CPG_currentCodeFile);
                                     fillButtonControl();
 
@@ -352,7 +354,7 @@ var fillButtonControl = function() {
                         if( openFiles.length ) {
                             showModalYesNo(openFiles.join("   "), openFiles.length === 1?"{{ .ControlBarModalAlreadyOpenS }}":"{{ .ControlBarModalAlreadyOpenP }}", function(yes) {
                                 if( !yes ) {
-                                    for( var i=0 ; i<openFiles.length ; i++ ) files.splice(files.indexOf(openFiles[i]),1);
+                                    for( var i=0 ; i<openFiles.length ; i++ ) selFiles.splice(selFiles.indexOf(openFiles[i]),1);
                                 }
 
                                 readFiles();
@@ -368,32 +370,32 @@ var fillButtonControl = function() {
                     /////////////////////////////////////////////////
                     // User selected "delete"
                     case "delete":
-                        if( files.length ) {
-                            showModalYesNo(files.join("   "), files.length === 1? "{{ .ControlBarModalFileDeleteS }}" : "{{ .ControlBarModalFileDeleteP }}", function(yes) {
+                        if( selFiles.length ) {
+                            showModalYesNo(selFiles.join("   "), selFiles.length === 1? "{{ .ControlBarModalFileDeleteS }}" : "{{ .ControlBarModalFileDeleteP }}", function(yes) {
                                 if( yes ) {
                                     $WS.sendMessage({
                                         command: "deleteJSFiles",
-                                        FileNames: files,
+                                        FileNames: selFiles,
                                     }, function(message) {
 
                                         // Todo: Error message
                                         //if( message.Error ) return;
 
-                                        for( var i=0 ; i<files.length ; i++ ) {
+                                        for( var i=0 ; i<selFiles.length ; i++ ) {
                                             // hier wird ab und zu ein Wort nicht aus allFiles gelöscht ... (step debug!!)
 
-                                            CPG_codeFileList.splice(CPG_codeFileList.indexOf(files[i]),1);
-                                            for( var j=0, afl=CPG_allFileList ; j<afl.length ; j++ ) {
-                                                if( afl[j].name === files[i] ) {
+                                            CPG_codeFileList.splice(CPG_codeFileList.indexOf(selFiles[i]),1);
+                                            for( var j=0, afl=CPG_allFilesList ; j<afl.length ; j++ ) {
+                                                if( afl[j].name === selFiles[i] ) {
                                                     afl.splice(j,1);
                                                     break;
                                                 }
                                             } 
-                                            CPG_codeFiles[files[i]] = null;
+                                            CPG_codeFiles[selFiles[i]] = null;
 
-                                            if( files[i] === CPG_currentCodeFile ) localStorage.currentCodeFile = CPG_currentCodeFile = CPG_codeFileList[0] || "{{ .ControlBarNewFile }}"
+                                            if( selFiles[i] === CPG_currentCodeFile ) localStorage.currentCodeFile = CPG_currentCodeFile = CPG_codeFileList[0] || "{{ .ControlBarNewFile }}"
                                         }
-                                        localStorage.allFileList = JSON.stringify(CPG_allFileList);
+                                        localStorage.allFilesList = JSON.stringify(CPG_allFilesList);
                                         localStorage.codeFileList = JSON.stringify(CPG_codeFileList);
                                         localStorage[CPG_currentCodeFile] = JSON.stringify(CPG_codeFiles[CPG_currentCodeFile] || { code: "" });
 
@@ -483,8 +485,8 @@ $WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
                 else return -1;
             });
 
-            CPG_allFileList = files;
-            localStorage.allFileList = JSON.stringify(CPG_allFileList);
+            CPG_allFilesList = files;
+            localStorage.allFilesList = JSON.stringify(CPG_allFilesList);
 
             for( var i=0, codeFilesToRead=[] ; i<5 && i<files.length ; i++ ) {
                 codeFilesToRead.push(files[i].name);
@@ -552,7 +554,7 @@ $("#control-bar-delete").on('click', function() {
 
                     // weiter mit go command deleteJSFiles
                     CPG_codeFileList.splice(CPG_codeFileList.indexOf(CPG_currentCodeFile),1);
-                    for( var i=0, afl=CPG_allFileList ; i<afl.length ; i++ ) {
+                    for( var i=0, afl=CPG_allFilesList ; i<afl.length ; i++ ) {
                         if( afl[i].name === CPG_currentCodeFile ) afl.splice(i,1);
                         break;
                     } 
@@ -560,7 +562,7 @@ $("#control-bar-delete").on('click', function() {
 
                     localStorage.currentCodeFile = CPG_currentCodeFile = CPG_codeFileList[0] || "{{ .ControlBarNewFile }}"
                     localStorage.codeFileList = JSON.stringify(CPG_codeFileList);
-                    localStorage.allFileList = JSON.stringify(CPG_allFileList);
+                    localStorage.allFilesList = JSON.stringify(CPG_allFilesList);
                     localStorage[CPG_currentCodeFile] = JSON.stringify(CPG_codeFiles[CPG_currentCodeFile] || { code: "" });
 
                     fillButtonControl();
@@ -619,18 +621,19 @@ var saveCodeFile = function(filename) {
                 CPG_codeFiles[CPG_currentCodeFile].code = CPG_currentCodeFile !== "{{ .ControlBarNewFile }}"? liveEditor.editor.text() : "";
                 
                 CPG_codeFileList.push(filename);
-                for( var i=0, filenameExists=false, afl=CPG_allFileList ; i<afl.length ; i++ ) {
+                for( var i=0, filenameExists=false, afl=CPG_allFilesList ; i<afl.length ; i++ ) {
                     if( afl[i].name === filename ) {
                         filenameExists = true;
                         break;
                     }
                 }
-                if( !filenameExists ) CPG_allFileList.push({
+                if( !filenameExists ) CPG_allFilesList.push({
                     name: filename,
                     timeStamp: CPG_codeFiles[CPG_currentCodeFile].timeStamp
                 });
                 localStorage[CPG_currentCodeFile] = JSON.stringify( CPG_codeFiles[CPG_currentCodeFile] );
-                localStorage.codeFileList = JSON.stringify( CPG_codeFileList );
+                localStorage.codeFileList = JSON.stringify(CPG_codeFileList);
+                localStorage.allFilesList = JSON.stringify(CPG_allFilesList);
                 localStorage.currentCodeFile = CPG_currentCodeFile = filename;
             }
 
@@ -641,8 +644,12 @@ var saveCodeFile = function(filename) {
             localStorage[filename] = JSON.stringify(CPG_codeFiles[filename]);
             
             fillButtonControl();
-            $("#control-bar-label").text("{{ .ControlBarSaved }}");
-            setTimeout(function() { $("#control-bar-label").text("{{ .ControlBarLabel }}"); }, 2000);
+            $("#control-bar-label").text("{{ .ControlBarSaved }}").parent().removeClass("btn-primary").addClass("btn-success");
+            $
+            setTimeout(function() { 
+                $("#control-bar-label").text("{{ .ControlBarLabel }}")
+                    .parent().addClass("btn-primary")
+                    .removeClass("btn-success"); }, 2000);
         });
     });
 };
@@ -659,6 +666,11 @@ $("#control-bar-save").on('click', function(e) {
     }
 
     return false;
+});
+
+$("#control-bar-label").on('click', function(e) {
+    $("#control-bar-save").trigger("click");
+    e.stopPropagation()
 });
 
 $("#control-bar-saveas").on('click', function() {

@@ -162,17 +162,19 @@ body {
 }
 
 #control-bar-codefile-modal .modal-body {
-    height: 550px;
-    overflow-y: auto;
-    background-color: #f8f8f8;
+  height: 550px;
+  overflow-y: auto;
+  background-color: #f8f8f8;
 }
 
 #control-bar-codefile-modal .modal-body .bottom {
-    background-color: #e8e8e8;
-    border-top: 1px solid #c8c8c8;
+  background-color: #e8e8e8;
+  border-top: 1px solid #c8c8c8;
 }
 
-
+#control-bar-caret {
+  margin-left: 10px;
+}
 
 @media (max-width: 767px) {
 }

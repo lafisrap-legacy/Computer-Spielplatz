@@ -13,7 +13,7 @@
 </head>
 <body>
 <div class="container">
-    <canvas id="canvas" style="position: absolute; top: 0px; z-index: 10;"></canvas>
+    <canvas id="canvas" style="position: absolute; top: 0px; z-index: 10; pointer-events:none;"></canvas>
   <script>
     var canvas = document.getElementById("canvas");
     var processing = new Processing(canvas, function(processing) {
@@ -34,9 +34,14 @@
             return processing.loadImage(url);
         }
 
+        var rotateFn = processing.rotate;
+        processing.rotate = function(angle) {
+            rotateFn(processing.radians(angle));
+        }
+
         with (processing) {
             var winkel = 15;
-            angleMode = "radians";
+            //angleMode = "radians";
 
             var draw = function() {
                 background(0,0,0,0);
@@ -46,12 +51,12 @@
                 text("Hello World!", 10, 10);              
 
                 translate(900, 200);
-                rotate(radians(winkel));
+                rotate(winkel);
                 ellipse(0,0,300,100);
                 resetMatrix();
 
                 translate(900, 200);
-                rotate(radians(-winkel*1.54137));
+                rotate(-winkel*1.54137);
                 ellipse(0,0,100,300);
                 resetMatrix();
                 
@@ -59,12 +64,12 @@
                 stroke(0, 140, 0);
 
                 translate(900, 200);
-                rotate(radians(winkel*2.3));
+                rotate(winkel*2.3);
                 ellipse(0,0,30,100);
                 resetMatrix();
 
                 translate(900, 200);
-                rotate(radians(-winkel*1.54137));
+                rotate(-winkel*1.54137);
                 ellipse(0,0,30,100);
                 resetMatrix();
                 
