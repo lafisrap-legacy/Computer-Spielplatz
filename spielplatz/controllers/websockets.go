@@ -250,11 +250,12 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 			beego.Error(err)
 		}
 		if imgFile, err = os.Create(fileName[0:len(fileName)-3] + ".png"); err != nil {
-			beego.Error("Cannot create or overwrite file")
+			beego.Error("Cannot create or overwrite file (", err, ")")
 			return Data{}
 		}
 		defer imgFile.Close()
 		png.Encode(imgFile, pngImage)
+		beego.Trace("PNG file written to harddrive.")
 
 		////////////////////////////////////////
 		// Write to database if not already there
@@ -371,19 +372,22 @@ func deleteJSFiles(s session.SessionStore, fileNames []string) Data {
 	dir := beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::jsfiles")
 
 	for i := 0; i < len(fileNames); i++ {
-		var (
-			file *os.File
-			err  error
-		)
 		/////////////////////////////////////////
-		// Read file
+		// Remove js and png file
 		fileName := dir + fileNames[i]
 
-		if err = os.Remove(fileName); err != nil {
+		if err := os.Remove(fileName); err != nil {
 			beego.Error("Cannot remove file")
-			return Data{}
+			return Data{
+				"Error": "I cannot remove " + fileName + ".",
+			}
 		}
-		defer file.Close()
+		if err := os.Remove(fileName[0:len(fileName)-3] + ".png"); err != nil {
+			beego.Error("Cannot remove file")
+			return Data{
+				"Error": "I cannot remove " + fileName[0:len(fileName)-3] + ".png.",
+			}
+		}
 
 		////////////////////////////////////////
 		// Clear from database if not already there
@@ -391,7 +395,7 @@ func deleteJSFiles(s session.SessionStore, fileNames []string) Data {
 		f := models.File{}
 		o := orm.NewOrm()
 
-		err = o.Read(&u, "Name")
+		err := o.Read(&u, "Name")
 		if err == nil {
 			num, _ := o.QueryTable(f).Filter("filename", fileNames[i]).Filter("user_id", u.Id).Delete()
 			if num != 1 {

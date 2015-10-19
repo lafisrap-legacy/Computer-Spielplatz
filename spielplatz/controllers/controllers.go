@@ -65,6 +65,12 @@ type LiveEditorController struct {
 }
 
 //////////////////////////////
+//
+type PtestController struct {
+	beego.Controller
+}
+
+//////////////////////////////
 // LiveEditorController brings the Khan-Academy Live-Editor to life
 type LiveEditorBuildController struct {
 	beego.Controller
@@ -291,11 +297,19 @@ func (c *LiveEditorController) Get() {
 	c.Data["ControlBarDelete"] = T["control_bar_delete"]
 	c.Data["ControlBarNewFile"] = T["control_bar_new_file"]
 	c.Data["ControlBarNoUser"] = T["control_bar_no_user"]
-	c.Data["ControlBarYes"] = T["control_bar_yes"]
-	c.Data["ControlBarNo"] = T["control_bar_no"]
-	c.Data["ControlBarFileExists"] = T["control_bar_file_exists"]
 	c.Data["ControlBarAllFiles"] = T["control_bar_all_files"]
 	c.Data["ControlBarFileDelete"] = T["control_bar_file_delete"]
+	c.Data["ControlBarModalYes"] = T["control_bar_modal_yes"]
+	c.Data["ControlBarModalNo"] = T["control_bar_modal_no"]
+	c.Data["ControlBarModalFileExists"] = T["control_bar_modal_file_exists"]
+	c.Data["ControlBarModalFileDeleteS"] = T["control_bar_modal_file_delete_s"]
+	c.Data["ControlBarModalFileDeleteP"] = T["control_bar_modal_file_delete_p"]
+	c.Data["ControlBarModalAlreadyOpenS"] = T["control_bar_modal_already_open_s"]
+	c.Data["ControlBarModalAlreadyOpenP"] = T["control_bar_modal_already_open_p"]
+	c.Data["ControlBarModalCodefileTitle"] = T["control_bar_modal_codefile_title"]
+	c.Data["ControlBarModalDelete"] = T["control_bar_modal_delete"]
+	c.Data["ControlBarModalCancel"] = T["control_bar_modal_cancel"]
+	c.Data["ControlBarModalOpen"] = T["control_bar_modal_open"]
 	c.Data["LoginLogin"] = T["login_login"]
 	c.Data["LoginSignup"] = T["login_signup"]
 	c.Data["LoginLogout"] = T["login_logout"]

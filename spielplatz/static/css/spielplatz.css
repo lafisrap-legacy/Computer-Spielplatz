@@ -139,6 +139,39 @@ body {
   font-size: 0.7em;
 }
 
+#control-bar-codefile-modal .file {
+  margin: 5px;
+}
+
+#control-bar-codefile-modal .filename {
+  font-size: 1.2em;
+}
+
+#control-bar-codefile-modal .timestamp {
+  font-size: 0.7em;
+  margin: 5px;
+}
+
+#control-bar-codefile-modal .checkbox {
+  width: 20px;
+  height: 20px;
+}
+
+#control-bar-codefile-modal .modal-dialog {
+  overflow-y: initial !important
+}
+
+#control-bar-codefile-modal .modal-body {
+    height: 550px;
+    overflow-y: auto;
+    background-color: #f8f8f8;
+}
+
+#control-bar-codefile-modal .modal-body .bottom {
+    background-color: #e8e8e8;
+    border-top: 1px solid #c8c8c8;
+}
+
 
 
 @media (max-width: 767px) {

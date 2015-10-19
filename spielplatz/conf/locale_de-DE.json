@@ -1,41 +1,48 @@
 {
-    "Title"                       : "CYPHERPUNK Computer-Spielplatz",
-    "Subtitle"                    : "Spielen und Lernen ist die beste Art zu arbeiten ... ähh ... zu leben",
+    "Title"                             : "CYPHERPUNK Computer-Spielplatz",
+    "Subtitle"                          : "Spielen und Lernen ist die beste Art zu arbeiten ... ähh ... zu leben",
+                                        
+    "signup_insert_failed"              : "Die Datenbank scheint derzeit nicht richtig zu funktionieren.",
+                                        
+    "signup_name_exists"                : "Den Namen gibt es schon.",
+    "signup_passwords_dont_match"       : "Die Passworte passen nicht zusammen.",
+    "login_password_incorrect"          : "Passwort oder Name sind nicht korrekt.",
+                                        
+    "arts_programming"                  : "Programmieren",
+	"arts_graphics"                     : "Grafik & Animation",
+	"arts_sound"                        : "Sound & Music",
+	"arts_texts"                        : "Texte",
+	"arts_gamedesign"                   : "Spiele erfinden",
+	"arts_controllers"                  : "Spiel-Steuerung",
+	"arts_hacking"                      : "Hacken (Freestyle)",
+                                        
+    "control_bar_label"                 : "Speichern",
+    "control_bar_save"                  : "Speichern",
+    "control_bar_save_as"               : "Speichern unter ...",
+    "control_bar_version"               : "Version speichern",
+    "control_bar_history"               : "Alte Version laden",
+    "control_bar_new"                   : "Neu",
+    "control_bar_delete"                : "Löschen",
+    "control_bar_saved"                 : "Gespeichert",
+    "control_bar_new_file"              : "unbekannt.js",
+	"control_bar_all_files"             : "Alle Dateien",
+    "control_bar_no_user"               : "Wenn du Dateien laden und speichern willst, musst du dich anmelden.",
+	"control_bar_modal_yes"             : "Ja",
+	"control_bar_modal_no"              : "Nein",
+	"control_bar_modal_file_exists"     : "Der Dateiname wird schon verwendet",
+	"control_bar_modal_file_delete_s"   : "Willst du die Datei wirklich löschen?",
+	"control_bar_modal_file_delete_p"   : "Willst du die Dateien wirklich löschen?",
+	"control_bar_modal_already_open_s"	: "Die Datei ist schon geöffnet. Willst du sie trotzdem laden?",
+	"control_bar_modal_already_open_p"	: "Die Dateien sind schon geöffnet. Willst du sie trotzdem laden?",
+	"control_bar_modal_codefile_title"  : "Deine JavaScript-Dateien",
+	"control_bar_modal_delete"		    : "Löschen",
+	"control_bar_modal_cancel"		    : "Abbrechen",
+	"control_bar_modal_open"		    : "Öffnen",
 
-    "signup_insert_failed"        : "Die Datenbank scheint derzeit nicht richtig zu funktionieren.",
-
-    "signup_name_exists"          : "Den Namen gibt es schon.",
-    "signup_passwords_dont_match" : "Die Passworte passen nicht zusammen.",
-    "login_password_incorrect"    : "Passwort oder Name sind nicht korrekt.",
-
-    "arts_programming"            : "Programmieren",
-	"arts_graphics"               : "Grafik & Animation",
-	"arts_sound"                  : "Sound & Music",
-	"arts_texts"                  : "Texte",
-	"arts_gamedesign"             : "Spiele erfinden",
-	"arts_controllers"            : "Spiel-Steuerung",
-	"arts_hacking"                : "Hacken (Freestyle)",
-
-    "control_bar_label"           : "Speichern",
-    "control_bar_save"            : "Speichern",
-    "control_bar_save_as"         : "Speichern unter ...",
-    "control_bar_version"         : "Version speichern",
-    "control_bar_history"         : "Alte Version laden",
-    "control_bar_new"             : "Neu",
-    "control_bar_delete"          : "Löschen",
-    "control_bar_saved"           : "Gespeichert",
-    "control_bar_new_file"        : "unbekannt.js",
-	"control_bar_all_files"       : "Alle Dateien",
-    "control_bar_no_user"         : "Wenn du Dateien laden und speichern willst, musst du dich anmelden.",
-	"control_bar_yes"             : "Ja",
-	"control_bar_no"              : "Nein",
-	"control_bar_file_exists"     : "Der Dateiname wird schon verwendet",
-	"control_bar_file_delete"   : "Willst du die Datei wirklich löschen?",
-
-    "login_login"                 : "Anmelden",
-    "login_signup"                : "Neues Konto",
-    "login_logout"                : "Abmelden",
-	
-	"websockets_file_exists"	  : "Es gibt schon eine Datei mit dem gleichen Namen. Überschreiben?"
+    "login_login"                       : "Anmelden",
+    "login_signup"                      : "Neues Konto",
+    "login_logout"                      : "Abmelden",
+	                                    
+	"websockets_file_exists"	        : "Es gibt schon eine Datei mit dem gleichen Namen. Überschreiben?"
 }
 

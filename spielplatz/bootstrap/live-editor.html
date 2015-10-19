@@ -37,8 +37,27 @@
             <p>You forgot to set the body text&hellip;</p>
           </div>
           <div class="modal-footer">
-            <button type="button" class="modal-yes btn btn-default" data-dismiss="modal">?</button>
-            <button type="button" class="modal-no btn btn-primary" data-dismiss="modal">?</button>
+            <button type="button" class="modal-yes btn btn-default" data-dismiss="modal">{{ .ControlBarModalYes }}</button>
+            <button type="button" class="modal-no btn btn-primary" data-dismiss="modal">{{ .ControlBarModalNo }}</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->    
+
+    <div id="control-bar-codefile-modal" class="modal  fade">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">{{ .ControlBarModalCodefileTitle }}</h4>
+          </div>
+          <div class="modal-body">
+          </div>
+            <div class="clearfix"></div>
+          <div class="modal-footer">
+            <button type="button" class="modal-delete pull-left btn btn-default" data-dismiss="modal">{{ .ControlBarModalDelete }}</button>
+            <button type="button" class="modal-open pull-right btn btn-primary" data-dismiss="modal">{{ .ControlBarModalOpen }}</button>
+            <button type="button" class="modal-cancel pull-right btn btn-default" data-dismiss="modal">{{ .ControlBarModalCancel }}</button>
           </div>
         </div><!-- /.modal-content -->
       </div><!-- /.modal-dialog -->
@@ -134,24 +153,107 @@ for( var i=0 ; i<CPG_codeFileList.length ; i++ ) CPG_codeFiles[CPG_codeFileList[
 CPG_codeFiles[{{ .ControlBarNewFile }}] = localStorage[{{ .ControlBarNewFile }}] && JSON.parse(localStorage[{{ .ControlBarNewFile }}]) || {};
 
 ///////////////////////////////////////////
-// showModal displays a modal dialog with answers yes and no
-var showModal = function(title, body, cb) {
-    var modal = $("#control-bar-yes-no-modal")
+// showModalYesNo displays a modal dialog with answers yes and no
+var showModalYesNo = function(title, body, cb) {
+    var modal = $("#control-bar-yes-no-modal");
 
     $(".modal-title", modal).text(title);
-    $(".modal-body", modal).text(body);
-    $(".modal-yes", modal).text("{{ .ControlBarYes }}").one("click", function(e) {
+    $(".modal-body p", modal).text(body);
+    $(".modal-yes", modal).one("click", function(e) {
         cb(true);
+        cb = null;
         modal.modal('hide');
     });
-    $(".modal-no", modal).text("{{ .ControlBarNo }}").one("click", function(e) {
+    $(".modal-no", modal).one("click", function(e) {
+        // cb is called on hide event
         modal.modal('hide');
     });
 
     modal.modal('show');
     modal.one('hide.bs.modal', function(e) {
-        cb(false);
+        if( cb ) cb(false);
     });
+};
+
+///////////////////////////////////////////
+// showModalCodeFiles shows the code file info and modification dialog
+var showModalCodeFiles = function(cb) {
+    var modal = $("#control-bar-codefile-modal");
+
+    var afl = CPG_allFileList,
+        files = $("<div id='modal-codefiles'>"),
+        row = null;
+
+    for( var i=0 ; i<afl.length ; i++ ) {
+        files.append(
+            "<div class='file file"+i+" pull-left' filename='"+afl[i].name+"'>"+
+            "   <div class='top'>"+
+            "   </div>"+
+            "   <div class='middle'>"+
+            "       <img src='static/userdata/{{.UserName}}/js/"+(afl[i].name.slice(0,-3)+".png")+"'>"+
+            "   </div>"+
+            "   <div class='bottom'>"+
+            "       <span class='filename text-center'>"+afl[i].name+"</span>"+
+            "       <span class='timestamp pull-left vbottom'>"+getFormatedDate(afl[i].timeStamp)+"</span>"+
+            "       <input type='checkbox' class='checkbox large pull-right' value=''>"+
+            "   </div>"+
+            "</div>"
+        );
+    }
+    $(".modal-body", modal ).html(files);
+
+    /*
+    $(".file .middle", modal).one("dblclick", function(e) {
+        cb("open", [$(this).parent().attr("filename")]);
+        cb = null;
+        modal.modal('hide');
+    });
+    */
+
+    $(".file .middle", modal).on("click", function(e) {
+        var checkbox = $(".checkbox", $(this).parent()); 
+        checkbox.prop("checked", !checkbox.prop("checked"));
+    });
+
+    var getCheckedFilenames = function() { 
+        var filenames = [];
+        $.each($(".file", modal), function( index, file ) {
+            var checkbox = $(".checkbox", $(this))
+            if( checkbox.is(':checked')) {
+                filenames.push($(this).attr("filename"));
+            }
+        });
+        return filenames;
+    }
+
+    $(".modal-open", modal).one("click", function(e) {
+
+        var lcb = cb;
+        cb = null;
+        modal.modal('hide');
+
+        //if( !lcb ) debugger;
+        if( lcb ) lcb("open", getCheckedFilenames());
+    });
+
+    $(".modal-cancel", modal).one("click", function(e) {
+        modal.modal('hide');
+    });
+
+    $(".modal-delete", modal).one("click", function(e) {
+        var lcb = cb;
+        cb = null;
+        modal.modal('hide');
+
+        //if( !lcb ) debugger;
+        if( lcb ) lcb("delete", getCheckedFilenames());
+    });
+
+    modal.one('hide.bs.modal', function(e) {
+        if( cb ) cb("cancel");
+    });
+
+    modal.modal('show');
 };
 
 ////////////////////////////////////////////
@@ -185,12 +287,12 @@ var fillButtonControl = function() {
     cbf.html("");
     for( var i=0 ; i<fileList.length ; i++ ) {
 
-        cbf.append('<li><span class="control-bar-file" codefile="'+fileList[i].fileName+'">'+fileList[i].fileName+'<span class="timestamp">'+getFormatedDate(fileList[i].timeStamp)+'</span></span></li>')
+        cbf.append('<li class="control-bar-file" codefile="'+fileList[i].fileName+'"><span>'+fileList[i].fileName+'<span class="timestamp">'+getFormatedDate(fileList[i].timeStamp)+'</span></span></li>')
             .width(width + 20); 
     }
 
-    if( CPG_allFileList.length > CPG_codeFileList.length ) {
-        cbf.append('<li class="border-top"><span class="control-bar-file" codefile="all">{{ .ControlBarAllFiles }}</span></li>')
+    if( CPG_allFileList.length >= 2 ) {
+        cbf.append('<li class="border-top control-bar-file" codefile="all"><span>{{ .ControlBarAllFiles }}</span></li>')
     }
 
     $("#control-bar-current-file").text(CPG_currentCodeFile);
@@ -200,11 +302,113 @@ var fillButtonControl = function() {
         if( CPG_currentCodeFile !== "{{ .ControlBarNewFile }}" ) {
             storeCurrentCodeFile();
         }
+
+        var codeFile = $(this).attr("codeFile");
  
-        localStorage.currentCodeFile = CPG_currentCodeFile = $(this).attr("codeFile");
-        $("#control-bar-current-file").text(CPG_currentCodeFile);
-        $("#control-bar-input input").val(CPG_currentCodeFile)
-        liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile].code);
+        if( codeFile !== "all" ) {
+            localStorage.currentCodeFile = CPG_currentCodeFile = codeFile;
+            $("#control-bar-current-file").text(CPG_currentCodeFile);
+            $("#control-bar-input input").val(CPG_currentCodeFile)
+            liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile].code);
+        } else {
+            showModalCodeFiles(function(button, files) {
+                switch( button ) {
+                    /////////////////////////////////////////////////
+                    // User selected "open"
+                    case "open":
+                        for( var i=0, openFiles=[] ; i<files.length ; i++ ) {
+                            if( CPG_codeFileList.indexOf(files[i]) !== -1 ) openFiles.push(files[i]);
+                        }
+
+                        var readFiles = function() {
+                            if( files.length ) {
+                                $WS.sendMessage({
+                                    command: "readJSFiles",
+                                    FileNames: files,
+                                }, function(message) {
+                                    for( var i=0 ; i<files.length ; i++ ) {
+                                        var fileName = files[i],
+                                            codeFile = message.CodeFiles[fileName];
+                                        if( codeFile ) {
+                                            CPG_codeFiles[fileName] = {
+                                                code: codeFile.Code,
+                                                timeStamp: codeFile.TimeStamp,
+                                            }
+                                            localStorage[fileName] = JSON.stringify(CPG_codeFiles[fileName]);
+                                            if( CPG_codeFileList.indexOf(fileName) === -1 ) CPG_codeFileList.push(fileName);
+                                        }
+                                    }
+                                    localStorage.codeFileList = JSON.stringify(CPG_codeFileList);
+
+                                    localStorage.currentCodeFile = CPG_currentCodeFile = files[0];
+                                    $("#control-bar-input input").val(CPG_currentCodeFile);
+                                    fillButtonControl();
+
+                                    liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile].code);
+                                });
+                            }
+                        }
+
+                        if( openFiles.length ) {
+                            showModalYesNo(openFiles.join("   "), openFiles.length === 1?"{{ .ControlBarModalAlreadyOpenS }}":"{{ .ControlBarModalAlreadyOpenP }}", function(yes) {
+                                if( !yes ) {
+                                    for( var i=0 ; i<openFiles.length ; i++ ) files.splice(files.indexOf(openFiles[i]),1);
+                                }
+
+                                readFiles();
+                            });
+                        } else {
+                            readFiles();
+                        }
+                        break;
+                    /////////////////////////////////////////////////
+                    // User selected "cancel" or closed the dialog
+                    case "cancel":
+                        break;
+                    /////////////////////////////////////////////////
+                    // User selected "delete"
+                    case "delete":
+                        if( files.length ) {
+                            showModalYesNo(files.join("   "), files.length === 1? "{{ .ControlBarModalFileDeleteS }}" : "{{ .ControlBarModalFileDeleteP }}", function(yes) {
+                                if( yes ) {
+                                    $WS.sendMessage({
+                                        command: "deleteJSFiles",
+                                        FileNames: files,
+                                    }, function(message) {
+
+                                        // Todo: Error message
+                                        //if( message.Error ) return;
+
+                                        for( var i=0 ; i<files.length ; i++ ) {
+                                            // hier wird ab und zu ein Wort nicht aus allFiles gelöscht ... (step debug!!)
+
+                                            CPG_codeFileList.splice(CPG_codeFileList.indexOf(files[i]),1);
+                                            for( var j=0, afl=CPG_allFileList ; j<afl.length ; j++ ) {
+                                                if( afl[j].name === files[i] ) {
+                                                    afl.splice(j,1);
+                                                    break;
+                                                }
+                                            } 
+                                            CPG_codeFiles[files[i]] = null;
+
+                                            if( files[i] === CPG_currentCodeFile ) localStorage.currentCodeFile = CPG_currentCodeFile = CPG_codeFileList[0] || "{{ .ControlBarNewFile }}"
+                                        }
+                                        localStorage.allFileList = JSON.stringify(CPG_allFileList);
+                                        localStorage.codeFileList = JSON.stringify(CPG_codeFileList);
+                                        localStorage[CPG_currentCodeFile] = JSON.stringify(CPG_codeFiles[CPG_currentCodeFile] || { code: "" });
+
+                                        fillButtonControl();
+                                        liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile]? CPG_codeFiles[CPG_currentCodeFile].code : "");
+                                    });
+                                }
+                            });
+                            return;
+
+                        }
+                        break;
+                }
+            });
+        }
     });
 };
 
@@ -339,7 +543,7 @@ $WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
 // Delete button
 $("#control-bar-delete").on('click', function() {
     if( CPG_currentCodeFile !== "{{ .ControlBarNewFile }}" ) {
-        showModal(CPG_currentCodeFile, "{{ .ControlBarFileDelete }}", function(yes) {
+        showModalYesNo(CPG_currentCodeFile, "{{ .ControlBarModalFileDeleteS }}", function(yes) {
             if( yes ) {
                 $WS.sendMessage({
                     command: "deleteJSFiles",
@@ -348,21 +552,23 @@ $("#control-bar-delete").on('click', function() {
 
                     // weiter mit go command deleteJSFiles
                     CPG_codeFileList.splice(CPG_codeFileList.indexOf(CPG_currentCodeFile),1);
-                    CPG_allFileList.splice(CPG_allFileList.indexOf(CPG_currentCodeFile),1);
+                    for( var i=0, afl=CPG_allFileList ; i<afl.length ; i++ ) {
+                        if( afl[i].name === CPG_currentCodeFile ) afl.splice(i,1);
+                        break;
+                    } 
                     CPG_codeFiles[CPG_currentCodeFile] = null;
 
                     localStorage.currentCodeFile = CPG_currentCodeFile = CPG_codeFileList[0] || "{{ .ControlBarNewFile }}"
                     localStorage.codeFileList = JSON.stringify(CPG_codeFileList);
+                    localStorage.allFileList = JSON.stringify(CPG_allFileList);
                     localStorage[CPG_currentCodeFile] = JSON.stringify(CPG_codeFiles[CPG_currentCodeFile] || { code: "" });
 
                     fillButtonControl();
                     liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile]? CPG_codeFiles[CPG_currentCodeFile].code : "");
                 });
-            } else {
             }
         });
         return;
-
     }
 });
 
@@ -399,7 +605,7 @@ var saveCodeFile = function(filename) {
             Images   : [image], 
         }, function(message) {
             if( message.Error ) {
-                showModal("{{ .ControlBarFileExists }}", message.Error, function(yes) {
+                showModalYesNo("{{ .ControlBarModalFileExists }}", message.Error, function(yes) {
                     if( yes ) {
                         CPG_currentCodeFile = filename;
                         saveCodeFile(filename);
@@ -407,13 +613,23 @@ var saveCodeFile = function(filename) {
                         $("#control-bar-label").text("{{ .ControlBarLabel }}");
                     }
                 });
-                return;
+                return false;
             } else if( CPG_currentCodeFile !== filename ) {
 
                 CPG_codeFiles[CPG_currentCodeFile].code = CPG_currentCodeFile !== "{{ .ControlBarNewFile }}"? liveEditor.editor.text() : "";
-                localStorage[CPG_currentCodeFile] = JSON.stringify( CPG_codeFiles[CPG_currentCodeFile] );
                 
                 CPG_codeFileList.push(filename);
+                for( var i=0, filenameExists=false, afl=CPG_allFileList ; i<afl.length ; i++ ) {
+                    if( afl[i].name === filename ) {
+                        filenameExists = true;
+                        break;
+                    }
+                }
+                if( !filenameExists ) CPG_allFileList.push({
+                    name: filename,
+                    timeStamp: CPG_codeFiles[CPG_currentCodeFile].timeStamp
+                });
+                localStorage[CPG_currentCodeFile] = JSON.stringify( CPG_codeFiles[CPG_currentCodeFile] );
                 localStorage.codeFileList = JSON.stringify( CPG_codeFileList );
                 localStorage.currentCodeFile = CPG_currentCodeFile = filename;
             }
@@ -429,12 +645,9 @@ var saveCodeFile = function(filename) {
             setTimeout(function() { $("#control-bar-label").text("{{ .ControlBarLabel }}"); }, 2000);
         });
     });
-
-    // Ask the frame for a screenshot
-    postFrame({ screenshot: true });
 };
 
-$("#control-bar-save").on('click', function() {
+$("#control-bar-save").on('click', function(e) {
     var input = $("#control-bar-input input"),
         filename = input.val();
 
@@ -444,6 +657,8 @@ $("#control-bar-save").on('click', function() {
         saveCodeFile(filename);
         input.fadeOut();
     }
+
+    return false;
 });
 
 $("#control-bar-saveas").on('click', function() {
@@ -479,6 +694,21 @@ window.onbeforeunload = function() {
     storeCurrentCodeFile();
     //return "You have attempted to leave this page.  If you have made any changes to the fields without clicking the Save button, your changes will be lost.  Are you sure you want to exit this page?";
 }
+
+$("#cpg-live-editor").blur(function(e) {
+    console.log("Going away to next tab");
+    // Do Blur Actions Here
+});
+
+$("#cpg-live-editor").focus(function(e) {
+    console.log("Coming back from other tab.");
+    // Do Focus Actions Here
+});
+
+$(window).on('hashchange', function(e){
+    console.log("URL changed.");
+    // do something...
+});
 
 setInterval(storeCurrentCodeFile, 30000)
 
