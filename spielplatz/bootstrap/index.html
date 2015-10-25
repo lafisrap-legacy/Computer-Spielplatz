@@ -19,17 +19,20 @@
     var processing = new Processing(canvas, function(processing) {
         processing.size(1140, 800);
         processing.background(0,0,0,0);
+        processing.frameRate(20);
+        processing.sbShow = false;
 
         var mouseIsPressed = false;
-        $(".container").on("mousedown", function(e) {
+        $(".container").on("mousedown touchstart", function(e) {
             mouseIsPressed = true;
             processing.mouseX = e.pageX;
             processing.mouseY = e.pageY;
-        }).on("mouseup", function(e) {
+            processing.sbShow = false;
+        }).on("mouseup touchend", function(e) {
             mouseIsPressed = false;
             processing.mouseX = e.pageX;
             processing.mouseY = e.pageY;
-        }).on("mousemove", function(e) {
+        }).on("mousemove touchmove", function(e) {
             processing.mouseX = e.pageX;
             processing.mouseY = e.pageY;
         });
@@ -52,18 +55,6 @@
         }
 
         with (processing) {
-            ///////////////////////////////////////////////////////////////////////////////
-            // ALFONS Computerspielplatz-Figur
-            // 
-            // Alle Koordinaten sind normalisiert auf 100 x 100 pixel.
-            //
-            // alfons(x, y, w, h, options);
-            //  x, y, w, h: like ellipse or rect
-            //  options: object {
-            //      
-            //
-
-
             var y = 0,
                 dy = 5,
                 angle = 0,
@@ -71,6 +62,8 @@
                 dsc = 0.01;
 
             rectMode(CENTER);
+            textMode(CENTER);
+            textAlign(CENTER, BOTTOM);
 
             ////////////////////////////////////////////////////////
             // ALFONS
@@ -164,11 +157,11 @@
             alfons.eyeDim = function(lookAt, left) {
                 var x = lookAt? constrain(lookAt.x,-100,100) : 0,
                     y = lookAt? constrain(lookAt.y,-100,100) : 0,
-                    p = alfons[left?"leftPupil":"rightPupil"];
+                    p = left? alfons.leftPupil : alfons.rightPupil;
 
                 x = x/100 * p[x<0?"x1":"x2"];
                 y = y/100 * p[y<0?"y1":"y2"];
-                
+              
                 return {
                     angle: atan2(x,y),
                     radius: sqrt(x*x+y*y),
@@ -291,6 +284,85 @@
                 bezier(20,-43,-30,-63,33,-33,28,-41);
             };
 
+
+
+            ////////////////////////////////////////////////////
+            // SPEECH BUBBLE
+            var speechBubble = function(message, x, y, width, height, tSize, bx1, by1, bx2, by2, show) {
+
+                if( !show && !speechBubble.scaleX ) return;
+
+                translate(x,y);
+                strokeWeight(1.3);
+                
+                var sx = speechBubble.scaleX,
+                    sy = speechBubble.scaleY;
+                if( !show ) {
+                    speechBubble.scaleX = max(sx - speechBubble.hideSpeed, 0); 
+                    speechBubble.scaleY = max(sy - speechBubble.hideSpeed*height/width, 0);
+                } else {
+                    speechBubble.scaleX = min(sx + speechBubble.showSpeed, width/100); 
+                    speechBubble.scaleY = min(sy + speechBubble.showSpeed*height/width, height/100); 
+                }
+                scale(speechBubble.scaleX, speechBubble.scaleY);
+                fill(255);
+                beginShape();
+                vertex(-36.67, 24.67);
+                bezierVertex(-56,18,-59.15,11.47,-50.33,-9);
+                bezierVertex(-51,-28.33,-41.33,-30.33,-25.35,-34.7);
+                bezierVertex(-15.39,-42.55,0.6,-41.64,16.3,-35.61);
+                bezierVertex(32.89,-36.21,43.76,-31.69,45.26,-22.93);
+                bezierVertex(57.33,-15.99,56.43,-5.13,50.67,5);
+                bezierVertex(50.39,28.06,41.04,27.76,35,29.33);
+                bezierVertex(29.33,36.67,21,37.33,11,32.67);
+                bezierVertex(-10.33,42,-20,36.33,-36.67,24.67);
+                endShape();
+                resetMatrix();
+
+                strokeWeight(1.0);
+                translate(bx2, by2);
+                scale(speechBubble.scaleX, speechBubble.scaleY);
+                if( speechBubble.scaleX >= width/100 ) {
+                    scale(0);
+                }
+                beginShape();
+                vertex(-3.33, 7.33);
+                bezierVertex(-12.33,13.67,-15.33,0.67,-8,-0.33);
+                bezierVertex(-8.66,-6.33,-2,-9,0,-1.67);
+                bezierVertex(10.95,-1.67,11.67,1,4.67,5.67);
+                bezierVertex(4.72,10.05,0.34,11.67,-3.33,7.33);
+                endShape();
+                resetMatrix();
+                
+                strokeWeight(1.0);
+                translate(bx1, by1);
+                scale(speechBubble.scaleX, speechBubble.scaleY);
+                if( speechBubble.scaleX >= width/100 ) {
+                    scale(0);
+                }
+                beginShape();
+                vertex(-4, 4.2);
+                bezierVertex(-7.8,5.8,-12.4,-0.4,-5.53,-1.53);
+                bezierVertex(-7,-7,2.6,-6.6,0.13,-1.2);
+                bezierVertex(7,-3,4.4,1.8,1.8,4.13);
+                bezierVertex(3.6,7.8,-2.6,9.2,-4,4.2);
+                endShape();
+                resetMatrix();
+
+                fill(0, 0, 0);
+                textSize(tSize/width*100*speechBubble.scaleX);
+                var w = 90*speechBubble.scaleX,
+                    h = 60*speechBubble.scaleY;
+                text(message, x-w/2, y-h/2, w, h);
+            };
+
+            speechBubble.showSpeed = 0.6;
+            speechBubble.hideSpeed = 1.2;
+            speechBubble.scaleX = 0;
+            speechBubble.scaleY = 0;
+            sbText = "";
+            sbX = sbY = sbW = sbH = sbFS = sbX1 = sbY1 = sbX2 = sbY2 = 0;
+
             var draw = function() {
                 background(255,255,255,0);
                 
@@ -304,6 +376,9 @@
                 });
                 console.log(mouseX+", "+mouseY);
 
+                //speechBubble("Hallo Welt! dies ist ein bisschen mehr Text, der in mehrere Zeilen gehen sollte. Noch mehr text!!!", 200, 100, 300, 280, 25, 190, 270, 232, 219, mouseIsPressed);
+                speechBubble(sbText, sbX, sbY, sbW, sbH, sbFS, sbX1, sbY1, sbX2, sbY2, sbShow);
+
                 angle+=0.0;
                 sc+=dsc;
                 if( sc > 3 || sc <= 0 ) {
@@ -314,6 +389,111 @@
         };
         if (typeof draw !== 'undefined') processing.draw = draw;
     });
+    
+    setTimeout(function() {
+        $(".btn-1").on("click", function(e) {
+            processing.sbText = "Grafik & Animation gibt es noch nicht. Hier wirst du bewegte Bilder für deine und andere Spiele machen können.";
+            processing.sbX = 500;
+            processing.sbY = 120;
+            processing.sbW = 450;
+            processing.sbH = 280;
+            processing.sbFS = 25;
+            processing.sbX1 = 180;
+            processing.sbY1 = 90;
+            processing.sbX2 = 260;
+            processing.sbY2 = 50;
+            processing.sbShow = true;
+
+            e.stopPropagation();
+            e.preventDefault();
+        });        
+
+        $(".btn-2").on("click", function(e) {
+            processing.sbText = "Sound & Musik! Hier wirst du Sounds und Musik für deine Spiele finden, oder für andere welche machen. ";
+            processing.sbX = 600;
+            processing.sbY = 120;
+            processing.sbW = 450;
+            processing.sbH = 240;
+            processing.sbFS = 25;
+            processing.sbX1 = 210;
+            processing.sbY1 = 90;
+            processing.sbX2 = 320;
+            processing.sbY2 = 50;
+            processing.sbShow = true;
+
+            e.stopPropagation();
+            e.preventDefault();
+        });        
+
+        $(".btn-3").on("click", function(e) {
+            processing.sbText = "Willst du Texte schreiben? Dialoge, Hilfe-Texte, Übersetzungen in andere Sprachen. Das wirst du hier können.";
+            processing.sbX = 650;
+            processing.sbY = 120;
+            processing.sbW = 450;
+            processing.sbH = 240;
+            processing.sbFS = 25;
+            processing.sbX1 = 230;
+            processing.sbY1 = 90;
+            processing.sbX2 = 360;
+            processing.sbY2 = 50;
+            processing.sbShow = true;
+
+            e.stopPropagation();
+            e.preventDefault();
+        });        
+
+        $(".btn-4").on("click", function(e) {
+            processing.sbText = "Ein Storyboard? Für ein neues Spiel. Das wirst du hier finden oder eines schreiben können.";
+            processing.sbX = 700;
+            processing.sbY = 120;
+            processing.sbW = 450;
+            processing.sbH = 240;
+            processing.sbFS = 25;
+            processing.sbX1 = 250;
+            processing.sbY1 = 90;
+            processing.sbX2 = 400;
+            processing.sbY2 = 50;
+            processing.sbShow = true;
+
+            e.stopPropagation();
+            e.preventDefault();
+        });        
+
+        $(".btn-5").on("click", function(e) {
+            processing.sbText = "Du willst 20 Spieler mit deinem Spiel spielen lassen? Oder einen 30 cm großen und 10 kg schweren Schießknopf integrieren. Dann helfen dir Raspberry Pis oder Websockets. Hmmm...";
+            processing.sbX = 750;
+            processing.sbY = 120;
+            processing.sbW = 450;
+            processing.sbH = 240;
+            processing.sbFS = 25;
+            processing.sbX1 = 270;
+            processing.sbY1 = 90;
+            processing.sbX2 = 440;
+            processing.sbY2 = 50;
+            processing.sbShow = true;
+
+            e.stopPropagation();
+            e.preventDefault();
+        });        
+
+        $(".btn-6").on("click", function(e) {
+            processing.sbText = "Du willst deiner Fantasie freien Lauf lassen? Dinge anderes verwenden, als der Erfinder dachte? Dann hier: Hacken!";
+            processing.sbX = 800;
+            processing.sbY = 120;
+            processing.sbW = 450;
+            processing.sbH = 240;
+            processing.sbFS = 25;
+            processing.sbX1 = 300;
+            processing.sbY1 = 90;
+            processing.sbX2 = 480;
+            processing.sbY2 = 50;
+            processing.sbShow = true;
+
+            e.stopPropagation();
+            e.preventDefault();
+        });        
+    },1)
+
     </script>
     <div class="login-area">
         {{if not .UserName }}
@@ -330,7 +510,7 @@
     </div>
     <ul class="nav nav-tabs kuenste">
         {{range $i, $art := .Arts}}
-            <li><a href="{{$art.Page}}" class="btn btn-default btn-{{$art.Size}}">{{$art.Name}}</a></li>
+            <li><a href="{{$art.Page}}" class="btn btn-default btn-{{$art.Size}} btn-{{ $i }}">{{$art.Name}}</a></li>
         {{end}}                       
     </ul>
     {{if .UserId }}
