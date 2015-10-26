@@ -30,6 +30,7 @@
 	"control_bar_modal_yes"             : "Ja",
 	"control_bar_modal_no"              : "Nein",
 	"control_bar_modal_file_exists"     : "Der Dateiname wird schon verwendet",
+	"control_bar_modal_file_outdated"   : "Die gespeicherte Version der Datei ist neuer. Überscheiben?",
 	"control_bar_modal_file_delete_s"   : "Willst du die Datei wirklich löschen?",
 	"control_bar_modal_file_delete_p"   : "Willst du die Dateien wirklich löschen?",
 	"control_bar_modal_already_open_s"	: "Die Datei ist schon geöffnet. Willst du sie trotzdem laden?",

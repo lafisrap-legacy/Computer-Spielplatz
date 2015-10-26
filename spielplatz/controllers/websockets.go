@@ -49,12 +49,13 @@ type Message struct {
 	Command    string
 	returnChan chan Data
 
-	FileName  string
-	FileNames []string
-	CodeFiles []string
-	Images    []string
-	SortedBy  string
-	Range     Range
+	FileName   string
+	FileNames  []string
+	TimeStamps []int64
+	CodeFiles  []string
+	Images     []string
+	SortedBy   string
+	Range      Range
 
 	Overwrite bool
 }
@@ -180,7 +181,7 @@ func serveMessages(messageChan chan Message) {
 		case "readJSDir":
 			data = readJSDir(s)
 		case "writeJSFiles":
-			data = writeJSFiles(s, message.FileNames, message.CodeFiles, message.Images, message.Overwrite)
+			data = writeJSFiles(s, message.FileNames, message.CodeFiles, message.TimeStamps, message.Images, message.Overwrite)
 		case "deleteJSFiles":
 			data = deleteJSFiles(s, message.FileNames)
 		case "commitJSFiles":
@@ -197,7 +198,7 @@ func serveMessages(messageChan chan Message) {
 	}
 }
 
-func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string, Images []string, overwrite bool) Data {
+func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string, timeStamps []int64, Images []string, overwrite bool) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -207,7 +208,10 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 	T := models.T
 	name := s.Get("UserName").(string)
 	dir := beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::jsfiles")
-	timeStamps := []int64{}
+	savedFiles := []string{}
+	savedTimeStamps := []int64{}
+	outdatedFiles := []string{}
+	outdatedTimeStamps := []int64{}
 
 	for i := 0; i < len(fileNames); i++ {
 		var (
@@ -218,20 +222,28 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 		fileName := dir + fileNames[i]
 
 		/////////////////////////////////////////
-		// Check if file exists
+		// Don't overwrite if file exists
+		fileStat, err := os.Stat(fileName)
 		if !overwrite {
-			if _, err := os.Stat(fileName); !os.IsNotExist(err) {
+			if !os.IsNotExist(err) {
 				beego.Warning("no such file or directory:", fileName)
 				return Data{
 					"Error": T["websockets_file_exists"],
 				}
+			}
+		} else if err == nil {
+			time := fileStat.ModTime().UnixNano() / int64(time.Millisecond)
+			if i < len(timeStamps) && time > timeStamps[i] {
+				outdatedFiles = append(outdatedFiles, fileNames[i])
+				outdatedTimeStamps = append(outdatedTimeStamps, time)
+				continue
 			}
 		}
 
 		/////////////////////////////////////////
 		// Create/overwrite file
 		if file, err = os.Create(fileName); err != nil {
-			beego.Error("Cannot create or overwrite file")
+			beego.Error("Cannot create or overwrite file", fileName)
 			return Data{}
 		}
 		defer file.Close()
@@ -239,8 +251,14 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 
 		////////////////////////////////////////
 		// Record timestamps for web app
-		fileStat, _ := file.Stat()
-		timeStamps = append(timeStamps, fileStat.ModTime().UnixNano()/int64(time.Millisecond))
+		if err == nil {
+			fileStat, _ = file.Stat()
+			savedFiles = append(savedFiles, fileNames[i])
+			savedTimeStamps = append(savedTimeStamps, fileStat.ModTime().UnixNano()/int64(time.Millisecond))
+		} else {
+			beego.Error("Cannot write to file", fileName)
+			return Data{}
+		}
 
 		////////////////////////////////////////
 		// Write image file
@@ -279,8 +297,12 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 			}
 		}
 	}
+
 	return Data{
-		"TimeStamps": timeStamps,
+		"SavedTimeStamps":    savedTimeStamps,
+		"SavedFiles":         savedFiles,
+		"OutdatedTimeStamps": outdatedTimeStamps,
+		"OutdatedFiles":      outdatedFiles,
 	}
 }
 

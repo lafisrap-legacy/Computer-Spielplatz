@@ -302,6 +302,7 @@ func (c *LiveEditorController) Get() {
 	c.Data["ControlBarModalYes"] = T["control_bar_modal_yes"]
 	c.Data["ControlBarModalNo"] = T["control_bar_modal_no"]
 	c.Data["ControlBarModalFileExists"] = T["control_bar_modal_file_exists"]
+	c.Data["ControlBarModalFileOutdated"] = T["control_bar_modal_file_outdated"]
 	c.Data["ControlBarModalFileDeleteS"] = T["control_bar_modal_file_delete_s"]
 	c.Data["ControlBarModalFileDeleteP"] = T["control_bar_modal_file_delete_p"]
 	c.Data["ControlBarModalAlreadyOpenS"] = T["control_bar_modal_already_open_s"]
