@@ -19,7 +19,6 @@
     var processing = new Processing(canvas, function(processing) {
         processing.size(1140, 800);
         processing.background(0,0,0,0);
-        processing.frameRate(20);
         processing.sbShow = false;
 
         var mouseIsPressed = false;
@@ -64,6 +63,7 @@
             rectMode(CENTER);
             textMode(CENTER);
             textAlign(CENTER, BOTTOM);
+            frameRate(20);
 
             ////////////////////////////////////////////////////////
             // ALFONS
@@ -290,8 +290,6 @@
             // SPEECH BUBBLE
             var speechBubble = function(message, x, y, width, height, tSize, bx1, by1, bx2, by2, show) {
 
-                if( !show && !speechBubble.scaleX ) return;
-
                 translate(x,y);
                 strokeWeight(1.3);
                 
@@ -360,14 +358,19 @@
             speechBubble.hideSpeed = 1.2;
             speechBubble.scaleX = 0;
             speechBubble.scaleY = 0;
+
+
+            ////////////////////////////////////////////////////////
+            // Website specific
             sbText = "";
             sbX = sbY = sbW = sbH = sbFS = sbX1 = sbY1 = sbX2 = sbY2 = 0;
 
+            var angle = -10;
             var draw = function() {
                 background(255,255,255,0);
                 
                 translate(90, 180);
-                rotate(-10);
+                rotate(angle);
                 //scale(sc);
                 alfons(0,0,200,200, {
                     lookAt: { x: (mouseX-90)/3, y: (mouseY-180)/3 },
@@ -377,9 +380,9 @@
                 console.log(mouseX+", "+mouseY);
 
                 //speechBubble("Hallo Welt! dies ist ein bisschen mehr Text, der in mehrere Zeilen gehen sollte. Noch mehr text!!!", 200, 100, 300, 280, 25, 190, 270, 232, 219, mouseIsPressed);
-                speechBubble(sbText, sbX, sbY, sbW, sbH, sbFS, sbX1, sbY1, sbX2, sbY2, sbShow);
+                if( sbShow || speechBubble.scaleX ) speechBubble(sbText, sbX, sbY, sbW, sbH, sbFS, sbX1, sbY1, sbX2, sbY2, sbShow);
 
-                angle+=0.0;
+                angle+=1.0;
                 sc+=dsc;
                 if( sc > 3 || sc <= 0 ) {
                     dsc = -dsc;

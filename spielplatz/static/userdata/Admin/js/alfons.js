@@ -9,7 +9,6 @@
 //      
 //
 
-
 var y = 0,
     dy = 5,
     angle = 0,
@@ -19,6 +18,7 @@ var y = 0,
 rectMode(CENTER);
 textMode(CENTER);
 textAlign(CENTER, BOTTOM);
+frameRate(20);
 
 ////////////////////////////////////////////////////////
 // ALFONS
@@ -244,6 +244,7 @@ alfons.hair = function() {
 ////////////////////////////////////////////////////
 // SPEECH BUBBLE
 var speechBubble = function(message, x, y, width, height, tSize, bx1, by1, bx2, by2, show) {
+
     translate(x,y);
     strokeWeight(1.3);
     
@@ -308,8 +309,8 @@ var speechBubble = function(message, x, y, width, height, tSize, bx1, by1, bx2, 
     text(message, x-w/2, y-h/2, w, h);
 };
 
-speechBubble.showSpeed = 0.1;
-speechBubble.hideSpeed = 0.2;
+speechBubble.showSpeed = 0.6;
+speechBubble.hideSpeed = 1.2;
 speechBubble.scaleX = 0;
 speechBubble.scaleY = 0;
 
