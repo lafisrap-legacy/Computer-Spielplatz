@@ -358,7 +358,7 @@ var fillButtonControl = function() {
                         if( openFiles.length ) {
                             showModalYesNo(openFiles.join("   "), openFiles.length === 1?"{{ .ControlBarModalAlreadyOpenS }}":"{{ .ControlBarModalAlreadyOpenP }}", function(yes) {
                                 if( !yes ) {
-                                    for( var i=0 ; i<openFiles.length ; i++ ) selFiles.splice(selFiles.indexOf(openFiles[i]),1);
+                                    for( var i=openFiles.length-1 ; i>=0 ; i-- ) selFiles.splice(selFiles.indexOf(openFiles[i]),1);
                                 }
 
                                 readFiles();
@@ -385,11 +385,11 @@ var fillButtonControl = function() {
                                         // Todo: Error message
                                         //if( message.Error ) return;
 
-                                        for( var i=0 ; i<selFiles.length ; i++ ) {
+                                        for( var i=selFiles.length-1 ; i>=0 ; i-- ) {
                                             // hier wird ab und zu ein Wort nicht aus allFiles gelöscht ... (step debug!!)
 
                                             CPG_codeFileList.splice(CPG_codeFileList.indexOf(selFiles[i]),1);
-                                            for( var j=0, afl=CPG_allFilesList ; j<afl.length ; j++ ) {
+                                            for( var afl=CPG_allFilesList, j=afl.length-1 ; j>=0 ; j-- ) {
                                                 if( afl[j].name === selFiles[i] ) {
                                                     afl.splice(j,1);
                                                     break;
