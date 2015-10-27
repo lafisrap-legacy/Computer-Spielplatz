@@ -87,6 +87,7 @@
                 </ul>
         </span>
         <button id="control-bar-delete" class="btn btn-primary btn-sm">{{ .ControlBarDelete }}</button>
+        <button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ControlBarRestart }}</button>
         <span class="dropdown" style="float: right">
             <button class="btn btn-primary dropdown-toggle btn-md" type="button" data-toggle="dropdown">
                 <span id="control-bar-label">{{ .ControlBarLabel }}</span> 
@@ -103,7 +104,7 @@
                  <input class="form-control" type="text" name="filename" value="{{ .ControlBarNewFile }}" placeholder="Description" style="display:none"/>
              </div>
         </form>
-  </div>
+    </div>
   {{ else }}
     <div id="bottom-control-bar">
         <span class="label label-info">{{ .ControlBarNoUser }}</span>
@@ -130,6 +131,8 @@ window.liveEditor = new LiveEditor({
     //imagesDir: "../build/images/",
     jshintFile: "../build/external/jshint/jshint.js"
 });
+
+$( ".scratchpad-toolbar" ).hide();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Live Editor page logic
@@ -204,7 +207,26 @@ var showModalCodeFiles = function(cb) {
             "</div>"
         );
     }
+    
+    // Correct font size of filenames
     $(".modal-body", modal ).html(files);
+    modal.one('shown.bs.modal', function() {
+
+        for( var i=0 ; i<afl.length ; i++ ) {
+            var filename = $(".file"+i+" .filename", files),
+                maxWidth = filename.width(),
+                realWidth = filename[0].scrollWidth;
+
+            if( realWidth > maxWidth ) {
+                var fontSize = parseFloat(filename.css("font-size"));
+
+                for( var j=1 ; j<10 ; j++ ) {
+                    filename.css("font-size", (fontSize - j));
+                    if( filename[0].scrollWidth <= maxWidth ) break;
+                }
+            }
+        }
+    });
 
     /*
     $(".file .middle", modal).one("dblclick", function(e) {
@@ -713,6 +735,12 @@ $("#control-bar-input").submit(function(e) {
 
     return false;
 });
+
+
+$("#control-bar-restart").on("click", function(e) {
+    window.liveEditor.restartCode();
+});
+
 
 $("#logout-button").on('click', function() {
     localStorage.userName = "";

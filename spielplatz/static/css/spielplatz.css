@@ -170,6 +170,13 @@ body {
 #control-bar-codefile-modal .modal-body .bottom {
   background-color: #e8e8e8;
   border-top: 1px solid #c8c8c8;
+  height: 28px;
+}
+
+#modal-codefiles .filename {
+  font-size: 1.2em;
+  display: inline-block;
+  width: 120px;
 }
 
 #control-bar-caret {

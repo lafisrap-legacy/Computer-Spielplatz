@@ -23,6 +23,7 @@
     "control_bar_history"               : "Alte Version laden",
     "control_bar_new"                   : "Neu",
     "control_bar_delete"                : "Löschen",
+    "control_bar_restart"               : "Neu starten",
     "control_bar_saved"                 : "Gespeichert",
     "control_bar_new_file"              : "unbekannt.js",
 	"control_bar_all_files"             : "Alle Dateien",
