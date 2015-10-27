@@ -16,7 +16,8 @@
 <script src="build/js/live-editor.core_deps.js"></script>
 <script src="build/js/live-editor.editor_ace_deps.js"></script>
 <script src="build/js/live-editor.audio.js"></script>
-<script src="build/js/live-editor.shared.js"></script>
+<!-- script src="build/js/live-editor.shared.js"></script -->
+<script src="static/js/live-editor.shared.js"></script -->
 <script src="build/js/live-editor.tooltips.js"></script>
 <script src="build/js/live-editor.ui.js"></script>
 <script src="build/js/live-editor.editor_ace.js"></script>
@@ -125,7 +126,8 @@ window.liveEditor = new LiveEditor({
     workersDir: "../build/workers/",
     execFile: "external/output.html",
     externalsDir: "../build/external/",
-    imagesDir: "../build/images/",
+    imagesDir: "static/userdata/Admin/images/",
+    //imagesDir: "../build/images/",
     jshintFile: "../build/external/jshint/jshint.js"
 });
 
@@ -261,8 +263,10 @@ var showModalCodeFiles = function(cb) {
 ////////////////////////////////////////////
 // storeCurrentCodeFile syncs the current code file with the global variable and the local storage
 var storeCurrentCodeFile = function() {
-    CPG_codeFiles[CPG_currentCodeFile].code = liveEditor.editor.text();
-    sessionStorage[CPG_currentCodeFile] = JSON.stringify(CPG_codeFiles[CPG_currentCodeFile]);    
+    if( CPG_currentCodeFile ) {
+        CPG_codeFiles[CPG_currentCodeFile].code = liveEditor.editor.text();
+        sessionStorage[CPG_currentCodeFile] = JSON.stringify(CPG_codeFiles[CPG_currentCodeFile]);            
+    }
 };
 
 /////////////////////////////////////////////
