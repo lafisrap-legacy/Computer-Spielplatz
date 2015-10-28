@@ -3,6 +3,7 @@ window.AllImages = [{
     groupName: "Spielplatz",
     images: ["Bus", "Fahrrad", "GelberBall", "GrünerBall", "Katze", "OrangerBall", "RoterPunkt", "Schnecke", "Vogel"]
 }];
+
 if (!$._) {
     $._ = function (msg) {
         return msg;
@@ -11,6 +12,7 @@ if (!$._) {
 
 // The master list of acceptable images
 // Build a list of all the available images
+
 window.OutputImages = [{
     groupName: "Spielplatz",
     images: ["Bus", "Fahrrad", "GelberBall", "GrünerBall", "Katze", "OrangerBall", "RoterPunkt", "Schnecke", "Vogel"]

@@ -1,12 +1,16 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/session"
 	"github.com/lavisrap/Computer-Spielplatz/spielplatz/models"
 	"html/template"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"regexp"
 	"time"
 )
 
@@ -81,6 +85,17 @@ type LiveEditorBuildController struct {
 type ErrorController struct {
 	beego.Controller
 }
+
+///////////////////////////////
+// imageGroup stores png images of one group
+type imageGroup struct {
+	GroupName string   `json:"groupName"`
+	Images    []string `json:"images"`
+}
+
+///////////////////////////////
+// Regexp for detecting filename and folder of image files
+var imageRegexp *regexp.Regexp = regexp.MustCompile(`images\/([^\/]+)\/([^\.]+)\.png`)
 
 ///////////////////////////////////////////////////////
 // init function
@@ -274,7 +289,28 @@ func (c *SignupController) setupAccount(userName string) {
 
 	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::jsfiles")
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		beego.Error("Cannot create directory.")
+		beego.Error("Cannot create directory", dir)
+	}
+	dir = beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::imagefiles") + beego.AppConfig.String("userdata::imageexamples")
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		beego.Error("Cannot create directory", dir)
+	}
+
+	adminName := beego.AppConfig.String("userdata::admin")
+	dir1 := beego.AppConfig.String("userdata::location") + adminName + "/" + beego.AppConfig.String("userdata::imagefiles") + beego.AppConfig.String("userdata::imageexamples")
+	dir2 := dir
+
+	beego.Trace("MOUNT --BIND", dir1, dir2)
+
+	cmd := exec.Command("sudo", "mount", "--bind", dir1, dir2)
+	err := cmd.Run()
+	if err != nil {
+		beego.Error("Cannot mount --bind ", dir2, err.Error())
+	}
+	cmd = exec.Command("sudo", "mount", "-o", "remount,ro", dir2)
+	err = cmd.Run()
+	if err != nil {
+		beego.Error("Cannot remount ", dir2, err.Error())
 	}
 }
 
@@ -285,8 +321,12 @@ func (c *SignupController) setupAccount(userName string) {
 func (c *LiveEditorController) Get() {
 	T := models.T
 	s := c.StartSession()
+	userName := ""
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+	}
 
-	c.Data["UserName"] = s.Get("UserName")
+	c.Data["UserName"] = userName
 	c.Data["ControlBarLabel"] = T["control_bar_label"]
 	c.Data["ControlBarSave"] = T["control_bar_save"]
 	c.Data["ControlBarSaveAs"] = T["control_bar_save_as"]
@@ -315,6 +355,7 @@ func (c *LiveEditorController) Get() {
 	c.Data["LoginLogin"] = T["login_login"]
 	c.Data["LoginSignup"] = T["login_signup"]
 	c.Data["LoginLogout"] = T["login_logout"]
+	c.Data["AllImages"] = c.getImageInfo(userName)
 	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
 
 	file := c.Ctx.Input.Param(":file")
@@ -323,6 +364,44 @@ func (c *LiveEditorController) Get() {
 	} else {
 		//c.TplNames = "live-editor.html"
 		c.TplNames = "live-editor.html"
+	}
+}
+
+func (c *LiveEditorController) getImageInfo(userName string) string {
+	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::imagefiles")
+	imageInfo := make([]imageGroup, 0, 21)
+
+	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
+		matches := imageRegexp.FindSubmatch([]byte(path))
+		if matches != nil {
+			folder := string(matches[1])
+			file := string(matches[2])
+			found := false
+			var i int
+
+			for i = 0; i < len(imageInfo); i++ {
+				if folder == imageInfo[i].GroupName {
+					found = true
+					break
+				}
+			}
+			if found == false {
+				imageInfo = append(imageInfo, imageGroup{
+					GroupName: folder,
+					Images:    []string{file},
+				})
+			} else {
+				imageInfo[i].Images = append(imageInfo[i].Images, file)
+			}
+		}
+		return nil
+	})
+
+	if err == nil {
+		ret, _ := json.Marshal(imageInfo)
+		return string(ret)
+	} else {
+		return ""
 	}
 }
 

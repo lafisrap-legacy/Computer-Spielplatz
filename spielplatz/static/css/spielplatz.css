@@ -120,6 +120,24 @@ body {
   padding: 5px;
 }
 
+.control-bar-file span {
+  padding: 0px 5px;
+  display: inline-block;
+  overflow: hidden;
+  width: 86%;
+}
+
+.control-bar-file .timestamp {
+  position: absolute;
+  text-align: right;
+  right: 3px;
+  font-size: 0.7em;
+}
+
+#control-bar-files {
+  width: 222px;
+}
+
 #control-bar-files li {
   padding: 3px 0px;
 }
@@ -131,12 +149,6 @@ body {
 #control-bar-files .border-top {
   border-top: 1px solid grey;
   margin-top: 5px;
-}
-
-.control-bar-file .timestamp {
-  position: absolute;
-  right: 10px;
-  font-size: 0.7em;
 }
 
 #control-bar-codefile-modal .file {

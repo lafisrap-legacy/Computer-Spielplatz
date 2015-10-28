@@ -117,6 +117,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Live-Editor !
+window.AllImages = JSON.parse({{ .AllImages }});
+window.OutputImages = JSON.parse({{ .AllImages }});
 window.liveEditor = new LiveEditor({
     el: $("#cpg-live-editor"),
     code: window.localStorage["test-code"] || "",
@@ -127,7 +129,7 @@ window.liveEditor = new LiveEditor({
     workersDir: "../build/workers/",
     execFile: "external/output.html",
     externalsDir: "../build/external/",
-    imagesDir: "static/userdata/Admin/images/",
+    imagesDir: "static/userdata/{{ .UserName }}/images/",
     //imagesDir: "../build/images/",
     jshintFile: "../build/external/jshint/jshint.js"
 });
@@ -315,7 +317,7 @@ var fillButtonControl = function() {
     cbf.html("");
     for( var i=0 ; i<fileList.length ; i++ ) {
 
-        cbf.append('<li class="control-bar-file" codefile="'+fileList[i].fileName+'"><span>'+fileList[i].fileName+'<span class="timestamp">'+getFormatedDate(fileList[i].timeStamp)+'</span></span></li>')
+        cbf.append('<li class="control-bar-file" codefile="'+fileList[i].fileName+'"><span>'+fileList[i].fileName+'</span><span class="timestamp">'+getFormatedDate(fileList[i].timeStamp)+'</span></li>')
             .width(width + 20); 
     }
 

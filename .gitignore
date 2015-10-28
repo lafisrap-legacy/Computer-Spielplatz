@@ -1,1 +1,6 @@
 spielplatz/conf/app.conf
+spielplatz/spielplatz
+spielplatz/log
+spielplatz/static/userdata
+!spielplatz/static/userdata/Admin
+
