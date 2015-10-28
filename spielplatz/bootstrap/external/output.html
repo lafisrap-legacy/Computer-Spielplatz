@@ -21,6 +21,8 @@
 //        useDebugger = typeof ProcessingDebugger === "function";
 //    }
     
+    window.AllImages = JSON.parse({{ .AllImages }});
+    window.OutputImages = JSON.parse({{ .AllImages }});
     new LiveEditorOutput({
         el: $("#live-editor-output")[0],
         useDebugger: useDebugger
