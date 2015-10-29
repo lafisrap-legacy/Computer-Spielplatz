@@ -322,47 +322,51 @@ func (c *LiveEditorController) Get() {
 	T := models.T
 	s := c.StartSession()
 	userName := ""
+	userNameForImages := "Admin"
+
 	if s.Get("UserName") != nil {
 		userName = s.Get("UserName").(string)
+		userNameForImages = userName
 	}
 
-	c.Data["UserName"] = userName
-	c.Data["ControlBarLabel"] = T["control_bar_label"]
-	c.Data["ControlBarSave"] = T["control_bar_save"]
-	c.Data["ControlBarSaveAs"] = T["control_bar_save_as"]
-	c.Data["ControlBarSaved"] = T["control_bar_saved"]
-	c.Data["ControlBarVersion"] = T["control_bar_version"]
-	c.Data["ControlBarHistory"] = T["control_bar_history"]
-	c.Data["ControlBarNew"] = T["control_bar_new"]
-	c.Data["ControlBarDelete"] = T["control_bar_delete"]
-	c.Data["ControlBarRestart"] = T["control_bar_restart"]
-	c.Data["ControlBarNewFile"] = T["control_bar_new_file"]
-	c.Data["ControlBarNoUser"] = T["control_bar_no_user"]
-	c.Data["ControlBarAllFiles"] = T["control_bar_all_files"]
-	c.Data["ControlBarFileDelete"] = T["control_bar_file_delete"]
-	c.Data["ControlBarModalYes"] = T["control_bar_modal_yes"]
-	c.Data["ControlBarModalNo"] = T["control_bar_modal_no"]
-	c.Data["ControlBarModalFileExists"] = T["control_bar_modal_file_exists"]
-	c.Data["ControlBarModalFileOutdated"] = T["control_bar_modal_file_outdated"]
-	c.Data["ControlBarModalFileDeleteS"] = T["control_bar_modal_file_delete_s"]
-	c.Data["ControlBarModalFileDeleteP"] = T["control_bar_modal_file_delete_p"]
-	c.Data["ControlBarModalAlreadyOpenS"] = T["control_bar_modal_already_open_s"]
-	c.Data["ControlBarModalAlreadyOpenP"] = T["control_bar_modal_already_open_p"]
-	c.Data["ControlBarModalCodefileTitle"] = T["control_bar_modal_codefile_title"]
-	c.Data["ControlBarModalDelete"] = T["control_bar_modal_delete"]
-	c.Data["ControlBarModalCancel"] = T["control_bar_modal_cancel"]
-	c.Data["ControlBarModalOpen"] = T["control_bar_modal_open"]
-	c.Data["LoginLogin"] = T["login_login"]
-	c.Data["LoginSignup"] = T["login_signup"]
-	c.Data["LoginLogout"] = T["login_logout"]
-	c.Data["AllImages"] = c.getImageInfo(userName)
-	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
+	c.Data["AllImages"] = c.getImageInfo(userNameForImages)
+	c.Data["UserNameForImages"] = userNameForImages
 
 	file := c.Ctx.Input.Param(":file")
 	if file != "" {
 		c.TplNames = "external/" + c.Ctx.Input.Param(":file")
 	} else {
-		//c.TplNames = "live-editor.html"
+		c.Data["UserName"] = userName
+		c.Data["ControlBarLabel"] = T["control_bar_label"]
+		c.Data["ControlBarSave"] = T["control_bar_save"]
+		c.Data["ControlBarSaveAs"] = T["control_bar_save_as"]
+		c.Data["ControlBarSaved"] = T["control_bar_saved"]
+		c.Data["ControlBarVersion"] = T["control_bar_version"]
+		c.Data["ControlBarHistory"] = T["control_bar_history"]
+		c.Data["ControlBarNew"] = T["control_bar_new"]
+		c.Data["ControlBarDelete"] = T["control_bar_delete"]
+		c.Data["ControlBarRestart"] = T["control_bar_restart"]
+		c.Data["ControlBarNewFile"] = T["control_bar_new_file"]
+		c.Data["ControlBarNoUser"] = T["control_bar_no_user"]
+		c.Data["ControlBarAllFiles"] = T["control_bar_all_files"]
+		c.Data["ControlBarFileDelete"] = T["control_bar_file_delete"]
+		c.Data["ControlBarModalYes"] = T["control_bar_modal_yes"]
+		c.Data["ControlBarModalNo"] = T["control_bar_modal_no"]
+		c.Data["ControlBarModalFileExists"] = T["control_bar_modal_file_exists"]
+		c.Data["ControlBarModalFileOutdated"] = T["control_bar_modal_file_outdated"]
+		c.Data["ControlBarModalFileDeleteS"] = T["control_bar_modal_file_delete_s"]
+		c.Data["ControlBarModalFileDeleteP"] = T["control_bar_modal_file_delete_p"]
+		c.Data["ControlBarModalAlreadyOpenS"] = T["control_bar_modal_already_open_s"]
+		c.Data["ControlBarModalAlreadyOpenP"] = T["control_bar_modal_already_open_p"]
+		c.Data["ControlBarModalCodefileTitle"] = T["control_bar_modal_codefile_title"]
+		c.Data["ControlBarModalDelete"] = T["control_bar_modal_delete"]
+		c.Data["ControlBarModalCancel"] = T["control_bar_modal_cancel"]
+		c.Data["ControlBarModalOpen"] = T["control_bar_modal_open"]
+		c.Data["LoginLogin"] = T["login_login"]
+		c.Data["LoginSignup"] = T["login_signup"]
+		c.Data["LoginLogout"] = T["login_logout"]
+		c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
+
 		c.TplNames = "live-editor.html"
 	}
 }
