@@ -209,6 +209,7 @@ func (c *LoginController) Post() {
 		if u, err = models.Login(&uf); err == nil {
 			s.Set("UserName", u.Name)
 			s.Set("Email", u.Email)
+			mountAdminData(u.Name)
 			c.Ctx.Redirect(302, dest)
 			return
 		}
@@ -296,22 +297,30 @@ func (c *SignupController) setupAccount(userName string) {
 		beego.Error("Cannot create directory", dir)
 	}
 
+	mountAdminData(userName)
+}
+
+func mountAdminData(userName string) error {
+
 	adminName := beego.AppConfig.String("userdata::admin")
 	dir1 := beego.AppConfig.String("userdata::location") + adminName + "/" + beego.AppConfig.String("userdata::imagefiles") + beego.AppConfig.String("userdata::imageexamples")
-	dir2 := dir
+	dir2 := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::imagefiles") + beego.AppConfig.String("userdata::imageexamples")
 
-	beego.Trace("MOUNT --BIND", dir1, dir2)
+	_, err := os.Stat(dir2)
+	if !os.IsNotExist(err) {
+		cmd := exec.Command("sudo", "mount", "--bind", dir1, dir2)
+		err := cmd.Run()
+		if err != nil {
+			beego.Error("Cannot mount --bind ", dir2, err.Error())
+		}
+		cmd = exec.Command("sudo", "mount", "-o", "remount,ro", dir2)
+		err = cmd.Run()
+		if err != nil {
+			beego.Error("Cannot remount ", dir2, err.Error())
+		}
+	}
 
-	cmd := exec.Command("sudo", "mount", "--bind", dir1, dir2)
-	err := cmd.Run()
-	if err != nil {
-		beego.Error("Cannot mount --bind ", dir2, err.Error())
-	}
-	cmd = exec.Command("sudo", "mount", "-o", "remount,ro", dir2)
-	err = cmd.Run()
-	if err != nil {
-		beego.Error("Cannot remount ", dir2, err.Error())
-	}
+	return nil
 }
 
 //////////////////////////////////////////////////////////

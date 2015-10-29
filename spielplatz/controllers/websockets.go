@@ -152,7 +152,6 @@ func translateMessages(s socket) {
 			continue
 		}
 
-		beego.Trace("... processing ...", message)
 		message.Xsrf = ""
 		message.Session = sx.Session
 		message.returnChan = make(chan Data)
@@ -379,7 +378,6 @@ func readJSDir(s session.SessionStore) Data {
 
 	data["Files"] = files
 
-	beego.Warning("readJSDir", files)
 	return data
 }
 
