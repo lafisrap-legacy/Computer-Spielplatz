@@ -23,9 +23,11 @@
     
     window.AllImages = JSON.parse({{ .AllImages }});
     window.OutputImages = JSON.parse({{ .AllImages }});
+    window.OutputSounds = JSON.parse({{ .OutputSounds }});
     new LiveEditorOutput({
         el: $("#live-editor-output")[0],
-        useDebugger: useDebugger
+        useDebugger: useDebugger,
+        soundsDir: "../static/userdata/{{ .UserNameForImages }}/sounds/",
     });
     </script>
 </body>

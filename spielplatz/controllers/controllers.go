@@ -94,8 +94,20 @@ type imageGroup struct {
 }
 
 ///////////////////////////////
+// soundGroup stores mp3 files of one group
+type soundGroup struct {
+	GroupName string   `json:"groupName"`
+	Sounds    []string `json:"sounds"`
+}
+type outputSounds struct {
+	ClassName string       `json:"className"`
+	Groups    []soundGroup `json:"groups"`
+}
+
+///////////////////////////////
 // Regexp for detecting filename and folder of image files
 var imageRegexp *regexp.Regexp = regexp.MustCompile(`images\/([^\/]+)\/([^\.]+)\.png`)
+var soundRegexp *regexp.Regexp = regexp.MustCompile(`sounds\/([^\/]+)\/([^\.]+)\.mp3`)
 
 ///////////////////////////////////////////////////////
 // init function
@@ -292,7 +304,11 @@ func (c *SignupController) setupAccount(userName string) {
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		beego.Error("Cannot create directory", dir)
 	}
-	dir = beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::imagefiles") + beego.AppConfig.String("userdata::imageexamples")
+	dir = beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::imagefiles") + beego.AppConfig.String("userdata::examples")
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		beego.Error("Cannot create directory", dir)
+	}
+	dir = beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::soundfiles") + beego.AppConfig.String("userdata::examples")
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		beego.Error("Cannot create directory", dir)
 	}
@@ -302,21 +318,24 @@ func (c *SignupController) setupAccount(userName string) {
 
 func mountAdminData(userName string) error {
 
-	adminName := beego.AppConfig.String("userdata::admin")
-	dir1 := beego.AppConfig.String("userdata::location") + adminName + "/" + beego.AppConfig.String("userdata::imagefiles") + beego.AppConfig.String("userdata::imageexamples")
-	dir2 := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::imagefiles") + beego.AppConfig.String("userdata::imageexamples")
+	resources := []string{"image", "sound"}
+	for _, res := range resources {
+		adminName := beego.AppConfig.String("userdata::admin")
+		dir1 := beego.AppConfig.String("userdata::location") + adminName + "/" + beego.AppConfig.String("userdata::"+res+"files") + beego.AppConfig.String("userdata::examples")
+		dir2 := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::"+res+"files") + beego.AppConfig.String("userdata::examples")
 
-	_, err := os.Stat(dir2)
-	if !os.IsNotExist(err) {
-		cmd := exec.Command("sudo", "mount", "--bind", dir1, dir2)
-		err := cmd.Run()
-		if err != nil {
-			beego.Error("Cannot mount --bind ", dir2, err.Error())
-		}
-		cmd = exec.Command("sudo", "mount", "-o", "remount,ro", dir2)
-		err = cmd.Run()
-		if err != nil {
-			beego.Error("Cannot remount ", dir2, err.Error())
+		_, err := os.Stat(dir2)
+		if !os.IsNotExist(err) {
+			cmd := exec.Command("sudo", "mount", "--bind", dir1, dir2)
+			err := cmd.Run()
+			if err != nil {
+				beego.Error("Cannot mount --bind ", dir2, err.Error())
+			}
+			cmd = exec.Command("sudo", "mount", "-o", "remount,ro", dir2)
+			err = cmd.Run()
+			if err != nil {
+				beego.Error("Cannot remount ", dir2, err.Error())
+			}
 		}
 	}
 
@@ -339,6 +358,8 @@ func (c *LiveEditorController) Get() {
 	}
 
 	c.Data["AllImages"] = c.getImageInfo(userNameForImages)
+	c.Data["OutputSounds"] = c.getSoundInfo(userNameForImages)
+	beego.Warning("!!!!!!!!!", c.Data["OutputSounds"])
 	c.Data["UserNameForImages"] = userNameForImages
 
 	file := c.Ctx.Input.Param(":file")
@@ -371,9 +392,11 @@ func (c *LiveEditorController) Get() {
 		c.Data["ControlBarModalDelete"] = T["control_bar_modal_delete"]
 		c.Data["ControlBarModalCancel"] = T["control_bar_modal_cancel"]
 		c.Data["ControlBarModalOpen"] = T["control_bar_modal_open"]
+		c.Data["ControlBarModalSoundTitle"] = T["control_bar_modal_sound_title"]
 		c.Data["LoginLogin"] = T["login_login"]
 		c.Data["LoginSignup"] = T["login_signup"]
 		c.Data["LoginLogout"] = T["login_logout"]
+
 		c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
 
 		c.TplNames = "live-editor.html"
@@ -385,8 +408,10 @@ func (c *LiveEditorController) getImageInfo(userName string) string {
 	imageInfo := make([]imageGroup, 0, 21)
 
 	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
+		beego.Warning("!!!", path)
 		matches := imageRegexp.FindSubmatch([]byte(path))
 		if matches != nil {
+			beego.Warning("!!!!", matches)
 			folder := string(matches[1])
 			file := string(matches[2])
 			found := false
@@ -412,6 +437,51 @@ func (c *LiveEditorController) getImageInfo(userName string) string {
 
 	if err == nil {
 		ret, _ := json.Marshal(imageInfo)
+		return string(ret)
+	} else {
+		return ""
+	}
+}
+
+func (c *LiveEditorController) getSoundInfo(userName string) string {
+	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::soundfiles")
+	soundInfo := make([]soundGroup, 0, 21)
+
+	beego.Warning(dir)
+	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
+		matches := soundRegexp.FindSubmatch([]byte(path))
+		beego.Warning("!!!", path)
+		if matches != nil {
+			beego.Warning("!!!!", matches)
+			folder := string(matches[1])
+			file := string(matches[2])
+			found := false
+			var i int
+
+			for i = 0; i < len(soundInfo); i++ {
+				if folder == soundInfo[i].GroupName {
+					found = true
+					break
+				}
+			}
+			if found == false {
+				soundInfo = append(soundInfo, soundGroup{
+					GroupName: folder,
+					Sounds:    []string{file},
+				})
+			} else {
+				soundInfo[i].Sounds = append(soundInfo[i].Sounds, file)
+			}
+		}
+		return nil
+	})
+
+	outputSounds := []outputSounds{{
+		ClassName: "Sound-Effekte",
+		Groups:    soundInfo,
+	}}
+	if err == nil {
+		ret, _ := json.Marshal(outputSounds)
 		return string(ret)
 	} else {
 		return ""

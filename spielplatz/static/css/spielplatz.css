@@ -191,6 +191,40 @@ body {
   width: 120px;
 }
 
+#control-bar-sound-modal .modal-dialog {
+  overflow-y: initial !important
+}
+
+#control-bar-sound-modal .modal-body {
+  height: 450px;
+  overflow-y: auto;
+  background-color: #f8f8f8;
+}
+
+#control-bar-sound-modal .modal-body .bottom {
+  background-color: #e8e8e8;
+  border-top: 1px solid #c8c8c8;
+  height: 28px;
+}
+
+#control-bar-sound-modal .sound-name {
+  font-size: 1.2em;
+  display: inline-block;
+  vertical-align: top;
+  padding: 4px 10px 0px 10px;
+  width: 240px;
+  border: 1px solid transparent;
+}
+
+#control-bar-sound-modal .sound-name.active {
+  border: 1px solid grey;
+}
+
+#control-bar-sound-modal .sound-name.selected {
+  background-color: lightgrey;
+  font-weight: bold;
+}
+
 #control-bar-caret {
   margin-left: 10px;
 }

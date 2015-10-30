@@ -5,12 +5,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="static/css/bootstrap.min.css">
-<link rel="stylesheet" href="static/css/bootstrap-theme.min.css">
 <link rel="stylesheet" href="static/css/spielplatz.css">
 <link rel="stylesheet" href="build/css/live-editor.core_deps.css"/>
 <link rel="stylesheet" href="build/css/live-editor.audio.css"/>
 <link rel="stylesheet" href="build/css/live-editor.tooltips.css"/>
 <link rel="stylesheet" href="build/css/live-editor.ui.css"/>
+
+<link rel="stylesheet" type="text/css" href="static/css/scratchpads-shared-package.css">
+<link rel="stylesheet" type="text/css" href="static/css/scratchpads-package.css">
+ 
 <script src="static/js/jquery-2.1.4.min.js"></script>
 <!-- Live editor script files-->
 <script src="build/js/live-editor.core_deps.js"></script>
@@ -40,6 +43,23 @@
           <div class="modal-footer">
             <button type="button" class="modal-yes btn btn-default" data-dismiss="modal">{{ .ControlBarModalYes }}</button>
             <button type="button" class="modal-no btn btn-primary" data-dismiss="modal">{{ .ControlBarModalNo }}</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->    
+
+    <div id="control-bar-sound-modal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">{{ .ControlBarModalSoundTitle }}</h4>
+          </div>
+          <div class="modal-body">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="modal-cancel btn btn-default" data-dismiss="modal">{{ .ControlBarModalCancel }}</button>
+            <button type="button" class="modal-open btn btn-primary" data-dismiss="modal">{{ .ControlBarModalOpen }}</button>
           </div>
         </div><!-- /.modal-content -->
       </div><!-- /.modal-dialog -->
@@ -119,6 +139,7 @@
 // Live-Editor !
 window.AllImages = JSON.parse({{ .AllImages }});
 window.OutputImages = JSON.parse({{ .AllImages }});
+window.OutputSounds = JSON.parse({{ .OutputSounds }});
 window.liveEditor = new LiveEditor({
     el: $("#cpg-live-editor"),
     code: window.localStorage["test-code"] || "",
@@ -130,6 +151,7 @@ window.liveEditor = new LiveEditor({
     execFile: "external/output.html",
     externalsDir: "../build/external/",
     imagesDir: "static/userdata/{{ .UserNameForImages }}/images/",
+    soundsDir: "../static/userdata/{{ .UserNameForImages }}/sounds/",
     //imagesDir: "../build/images/",
     jshintFile: "../build/external/jshint/jshint.js"
 });
@@ -183,6 +205,64 @@ var showModalYesNo = function(title, body, cb) {
         if( cb ) cb(false);
     });
 };
+
+
+///////////////////////////////////////////
+// showModalSound displays a modal dialog to select sounds
+var showModalSound = window.showModalSound = function(cb) {
+    var modal = $("#control-bar-sound-modal");
+
+    var soundGroups = window.OutputSounds[0].groups,
+        groups = $("<div id='modal-sound-groups'>");
+
+    for( var i=0 ; i<soundGroups.length ; i++ ) {
+        var gr = soundGroups[i],
+            sounds = $("<div class='soundgroup'>");
+        sounds.append("<div class='title'>"+gr.groupName+"</div>");
+        for( var j=0 ; j<gr.sounds.length ; j++ ) {
+            sound = gr.sounds[j];
+            sounds.append(
+                "<div class='sound'>"+
+                "   <audio src='static/userdata/{{ .UserNameForImages }}/sounds/"+gr.groupName+"/"+sound+".mp3' controls></audio>"+
+                "   <span class='sound-name' path='"+gr.groupName+"/"+sound+"'>"+sound+"</span>"+
+                "</div>"
+            );
+        }
+
+        groups.append(sounds);
+    }
+
+    $(".modal-body", modal).html(groups);
+
+    $(".modal-open", modal).off("click").one("click", function(e) {
+        modal.modal('hide');
+        if( cb ) cb($(".sound-name.selected").attr("path"));
+    });
+
+    $(".modal-cancel", modal).off("click").one("click", function(e) {
+        // cb is called on hide event
+        modal.modal('hide');
+    });
+
+    $(".sound-name", modal).hover(function(e) {
+        $(this).addClass("active");
+    }, function(e) {
+        $(this).removeClass("active");   
+    }).on("click", function(e) {
+        if( $(this).hasClass("selected") ) {
+            $(".modal-open", modal).trigger("click");
+        }
+        $(".sound-name", modal).removeClass("selected");
+        $(this).addClass("selected");
+    });
+
+    modal.modal('show');
+
+    modal.one('hidden.bs.modal', function(e) {
+        if( cb ) cb();
+    });
+};
+
 
 ///////////////////////////////////////////
 // showModalCodeFiles shows the code file info and modification dialog

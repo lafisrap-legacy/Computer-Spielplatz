@@ -1,0 +1,2767 @@
+
+        .mediapicker-modal {
+            position: fixed;
+            z-index: 1050;
+            margin: 0 auto !important;
+            background-color: #fff;
+            border: 1px solid #999;
+            border: 1px solid rgba(0, 0, 0, 0.3);
+            *border: 1px solid #999;
+            border-radius: 6px;
+            box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+            background-clip: padding-box;
+            outline: 0;
+            top: 50px !important;
+            bottom: auto;
+        }
+        .mediapicker-modal.fade {
+            -webkit-transition: opacity .3s linear, top .3s ease-out;
+            transition: opacity .3s linear, top .3s ease-out;
+            _top: -25%
+        }
+        .mediapicker-modal.fade.in {
+            _top: 10%
+        }
+        .mediapicker-modal .modal-header {
+            padding: 9px 15px;
+            border-bottom: 1px solid #eee
+        }
+        .mediapicker-modal .modal-header .close {
+            margin-top: 2px
+        }
+        .mediapicker-modal .modal-header h3 {
+            margin: 0;
+            line-height: 30px
+        }
+        .mediapicker-modal .modal-body {
+            position: relative;
+            overflow-y: auto;
+            max-height: 400px;
+            padding: 15px
+        }
+        .mediapicker-modal .modal-form {
+            margin-bottom: 0
+        }
+        .mediapicker-modal .modal-footer {
+            padding: 14px 15px 15px;
+            margin-bottom: 0;
+            text-align: right;
+            background-color: #f5f5f5;
+            border-top: 1px solid #ddd;
+            border-radius: 0 0 6px 6px;
+            box-shadow: inset 0 1px 0 #fff;
+            *zoom: 1
+        }
+        .mediapicker-modal .modal-footer:before,
+        .mediapicker-modal .modal-footer:after {
+            display: table;
+            content: "";
+            line-height: 0
+        }
+        .mediapicker-modal .modal-footer:after {
+            clear: both
+        }
+        .mediapicker-modal .modal-footer .btn+.btn {
+            margin-left: 5px;
+            margin-bottom: 0
+        }
+        .mediapicker-modal .modal-footer .btn-group .btn+.btn {
+            margin-left: -1px
+        }
+        .mediapicker-modal .modal-footer .btn-block+.btn-block {
+            margin-left: 0
+        }
+        .hide {
+            display: none
+        }
+        .mediapicker-modal .modal {
+            color: #555;
+            margin: 0;
+            padding: 15px
+        }
+        .mediapicker-modal.modal-fullscreen {
+            bottom: 30px;
+            left: 30px;
+            min-height: 440px;
+            min-width: 940px;
+            position: fixed;
+            right: 30px;
+            top: 30px;
+            width: auto
+        }
+        .mediapicker-modal.modal-default,
+        .mediapicker-modal.modal-wide,
+        .mediapicker-modal.modal-extra-wide {
+            top: 0;
+            margin-top: 60px;
+            margin-bottom: 30px;
+            position: absolute
+        }
+        .mediapicker-modal.modal-default {
+            width: 560px;
+            margin-left: -280px
+        }
+        .mediapicker-modal.modal-wide {
+            width: 700px;
+            margin-left: -350px
+        }
+        .mediapicker-modal.modal-extra-wide {
+            width: 1000px;
+            margin-left: -500px
+        }
+        .mediapicker-modal.modal-force-top {
+            z-index: 2000
+        }
+        .mediapicker-modal h2,
+        .mediapicker-modal h4 {
+            font-family: 'Proxima Nova', sans-serif;
+            color: #555
+        }
+        .mediapicker-modal .lte7 {
+            border: 1px solid #999
+        }
+        .mediapicker-modal .modal-backdrop,
+        .mediapicker-modal .modal-backdrop.fade.in {
+            opacity: .85;
+            background: #314453
+        }
+        .mediapicker-modal .modal-backdrop.modal-force-top,
+        .mediapicker-modal .modal-backdrop.fade.in.modal-force-top {
+            z-index: 1900
+        }
+        .mediapicker-modal .modal-header {
+            border-bottom: 1px solid #ddd;
+            padding: 0 0 9px 0
+        }
+        .mediapicker-modal .modal-header h2,
+        .mediapicker-modal .modal-header h4 {
+            margin-bottom: 0;
+            padding-top: 9px
+        }
+        .mediapicker-modal .modal-body {
+            margin: 0;
+            max-height: none;
+            padding: 20px 0 9px 0
+        }
+        .mediapicker-modal .modal-footer {
+            background-color: #fff;
+            padding: 15px 0 0 0;
+            text-align: right
+        }
+        .mediapicker-modal .modal.generic-dialog {
+            margin: 0 0 0 -250px;
+            top: 50px;
+            width: 500px
+        }
+        .mediapicker-modal .modal.generic-dialog .modal-body {
+            padding: 0
+        }
+        .ka-modal .error-message {
+            color: red;
+            font-size: 16px;
+            padding: 10px 30px
+        }
+        .ka-modal .tabs {
+            font-size: 16px;
+            height: 32px;
+            width: 100%;
+            margin-bottom: 5px;
+            margin-top: 10px;
+            border: 1px solid #eee;
+            border-width: 0 0 2px 0
+        }
+        .ka-modal .tabs li {
+            display: inline-block;
+            text-align: center;
+            margin-left: -5px;
+            padding: 5px 20px;
+            border: 1px solid #eee;
+            border-width: 0 0 2px 0;
+            background-color: #fff
+        }
+        .ka-modal .tabs li:hover,
+        .ka-modal .tabs li.active {
+            border-color: #76a005;
+            background-color: #eee;
+            cursor: pointer
+        }
+        */
+
+        .kui-button {
+            background: transparent;
+            border: 1px solid;
+            border-radius: 19px;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            font: inherit;
+            line-height: 18px;
+            margin: 5px 0;
+            padding: 10px 30px;
+            position: relative
+        }
+        .kui-button:hover {
+            -webkit-transition: all .2s ease;
+            transition: all .2s ease
+        }
+        .kui-button:not(.kui-button-disabled) {
+            cursor: pointer
+        }
+        .kui-button-borderless {
+            border: 0
+        }
+        .kui-button-small {
+            padding: 7px 20px;
+            margin: 0
+        }
+        .kui-button-borderless {
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2)
+        }
+        .kui-button-primary.kui-button-plain:not(.kui-button-white) {
+            color: #56861f
+        }
+        .kui-button-primary.kui-button-plain:not(.kui-button-white):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-primary.kui-button-plain:not(.kui-button-white).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-primary.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-primary.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background-color: rgba(86, 134, 31, 0.15);
+            color: #56861f
+        }
+        .kui-button-primary.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(86, 134, 31, 0.15);
+            color: #56861f
+        }
+        .kui-button-primary.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):active {
+            color: #21340c
+        }
+        .kui-button-primary.kui-button-plain:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-primary.kui-button-plain:not(.kui-button-white):focus:before {
+            border: 1px solid #56861f;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-primary.kui-button-submit:not(.kui-button-white) {
+            background: #56861f;
+            background: -webkit-linear-gradient(#70b029, #56861f);
+            background: linear-gradient(#70b029, #56861f);
+            color: #fff
+        }
+        .kui-button-primary.kui-button-submit:not(.kui-button-white).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-primary.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-primary.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background: #49721a;
+            background: -webkit-linear-gradient(#639b24, #49721a);
+            background: linear-gradient(#639b24, #49721a);
+            color: #fff
+        }
+        .kui-button-primary.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):active {
+            background: #49721a;
+            background: -webkit-linear-gradient(#49721a, #639b24);
+            background: linear-gradient(#49721a, #639b24);
+            color: #fff
+        }
+        .kui-button-primary.kui-button-submit:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-primary.kui-button-submit:not(.kui-button-white):focus:before {
+            border: 1px solid #56861f;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-primary.kui-button-white:not(.kui-button-transparent) {
+            background: #fff;
+            background: -webkit-linear-gradient(#fff, #fff);
+            background: linear-gradient(#fff, #fff);
+            color: #56861f
+        }
+        .kui-button-primary.kui-button-white:not(.kui-button-transparent).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-primary.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):hover,
+        .kui-button-primary.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):focus {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #56861f
+        }
+        .kui-button-primary.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):active {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #56861f
+        }
+        .kui-button-primary.kui-button-white:not(.kui-button-transparent):focus {
+            outline: 0
+        }
+        .kui-button-primary.kui-button-white:not(.kui-button-transparent):focus:before {
+            border: 1px solid #fff;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-secondary.kui-button-plain:not(.kui-button-white) {
+            color: #283743
+        }
+        .kui-button-secondary.kui-button-plain:not(.kui-button-white):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-secondary.kui-button-plain:not(.kui-button-white).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-secondary.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-secondary.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background-color: rgba(40, 55, 67, 0.15);
+            color: #283743
+        }
+        .kui-button-secondary.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(40, 55, 67, 0.15);
+            color: #283743
+        }
+        .kui-button-secondary.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):active {
+            color: #020203
+        }
+        .kui-button-secondary.kui-button-plain:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-secondary.kui-button-plain:not(.kui-button-white):focus:before {
+            border: 1px solid #283743;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-secondary.kui-button-submit:not(.kui-button-white) {
+            background: #283743;
+            background: -webkit-linear-gradient(#445e73, #283743);
+            background: linear-gradient(#445e73, #283743);
+            color: #fff
+        }
+        .kui-button-secondary.kui-button-submit:not(.kui-button-white).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-secondary.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-secondary.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background: #1e2a33;
+            background: -webkit-linear-gradient(#3a5163, #1e2a33);
+            background: linear-gradient(#3a5163, #1e2a33);
+            color: #fff
+        }
+        .kui-button-secondary.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):active {
+            background: #1e2a33;
+            background: -webkit-linear-gradient(#1e2a33, #3a5163);
+            background: linear-gradient(#1e2a33, #3a5163);
+            color: #fff
+        }
+        .kui-button-secondary.kui-button-submit:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-secondary.kui-button-submit:not(.kui-button-white):focus:before {
+            border: 1px solid #283743;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-secondary.kui-button-white:not(.kui-button-transparent) {
+            background: #fff;
+            background: -webkit-linear-gradient(#fff, #fff);
+            background: linear-gradient(#fff, #fff);
+            color: #283743
+        }
+        .kui-button-secondary.kui-button-white:not(.kui-button-transparent).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-secondary.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):hover,
+        .kui-button-secondary.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):focus {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #283743
+        }
+        .kui-button-secondary.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):active {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #283743
+        }
+        .kui-button-secondary.kui-button-white:not(.kui-button-transparent):focus {
+            outline: 0
+        }
+        .kui-button-secondary.kui-button-white:not(.kui-button-transparent):focus:before {
+            border: 1px solid #fff;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-gray {
+            color: #aaa
+        }
+        .kui-button-gray:not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-gray.kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-gray:not(.kui-button-disabled):hover,
+        .kui-button-gray:not(.kui-button-disabled):focus {
+            background-color: rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-gray:not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-gray:not(.kui-button-disabled):active {
+            color: #777
+        }
+        .kui-button-gray:focus {
+            outline: 0
+        }
+        .kui-button-gray:focus:before {
+            border: 1px solid #aaa;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-white.kui-button-transparent {
+            color: #fff
+        }
+        .kui-button-white.kui-button-transparent:not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-white.kui-button-transparent.kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-white.kui-button-transparent:not(.kui-button-disabled):hover,
+        .kui-button-white.kui-button-transparent:not(.kui-button-disabled):focus {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #fff
+        }
+        .kui-button-white.kui-button-transparent:not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.15);
+            color: #fff
+        }
+        .kui-button-white.kui-button-transparent:not(.kui-button-disabled):active {
+            color: #ccc
+        }
+        .kui-button-white.kui-button-transparent:focus {
+            outline: 0
+        }
+        .kui-button-white.kui-button-transparent:focus:before {
+            border: 1px solid #fff;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-white:not(.kui-button-transparent) {
+            background: #fff;
+            background: -webkit-linear-gradient(#fff, #fff);
+            background: linear-gradient(#fff, #fff);
+            color: #444
+        }
+        .kui-button-white:not(.kui-button-transparent).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):hover,
+        .kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):focus {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #444
+        }
+        .kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):active {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #444
+        }
+        .kui-button-white:not(.kui-button-transparent):focus {
+            outline: 0
+        }
+        .kui-button-white:not(.kui-button-transparent):focus:before {
+            border: 1px solid #fff;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain.kui-button-plain:not(.kui-button-white) {
+            color: #314453
+        }
+        .kui-button-domain.kui-button-plain:not(.kui-button-white):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain.kui-button-plain:not(.kui-button-white).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background-color: rgba(49, 68, 83, 0.15);
+            color: #314453
+        }
+        .kui-button-domain.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(49, 68, 83, 0.15);
+            color: #314453
+        }
+        .kui-button-domain.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):active {
+            color: #0b0f13
+        }
+        .kui-button-domain.kui-button-plain:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain.kui-button-plain:not(.kui-button-white):focus:before {
+            border: 1px solid #314453;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain.kui-button-submit:not(.kui-button-white) {
+            background: #314453;
+            background: -webkit-linear-gradient(#4d6779, #314453);
+            background: linear-gradient(#4d6779, #314453);
+            color: #fff
+        }
+        .kui-button-domain.kui-button-submit:not(.kui-button-white).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background: #283743;
+            background: -webkit-linear-gradient(#435a69, #283743);
+            background: linear-gradient(#435a69, #283743);
+            color: #fff
+        }
+        .kui-button-domain.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):active {
+            background: #283743;
+            background: -webkit-linear-gradient(#283743, #435a69);
+            background: linear-gradient(#283743, #435a69);
+            color: #fff
+        }
+        .kui-button-domain.kui-button-submit:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain.kui-button-submit:not(.kui-button-white):focus:before {
+            border: 1px solid #314453;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain.kui-button-white:not(.kui-button-transparent) {
+            background: #fff;
+            background: -webkit-linear-gradient(#fff, #fff);
+            background: linear-gradient(#fff, #fff);
+            color: #314453
+        }
+        .kui-button-domain.kui-button-white:not(.kui-button-transparent).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):hover,
+        .kui-button-domain.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):focus {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #314453
+        }
+        .kui-button-domain.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):active {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #314453
+        }
+        .kui-button-domain.kui-button-white:not(.kui-button-transparent):focus {
+            outline: 0
+        }
+        .kui-button-domain.kui-button-white:not(.kui-button-transparent):focus:before {
+            border: 1px solid #fff;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain.kui-button-plain:not(.kui-button-complete) {
+            color: #aaa
+        }
+        .kui-button-domain.kui-button-plain:not(.kui-button-complete):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain.kui-button-plain:not(.kui-button-complete).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):hover,
+        .kui-button-domain.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            background-color: rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):active {
+            color: #777
+        }
+        .kui-button-domain.kui-button-plain:not(.kui-button-complete):focus {
+            outline: 0
+        }
+        .kui-button-domain.kui-button-plain:not(.kui-button-complete):focus:before {
+            border: 1px solid #aaa;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-white) {
+            color: #94424f
+        }
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-white):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-white).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background-color: rgba(148, 66, 79, 0.15);
+            color: #94424f
+        }
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(148, 66, 79, 0.15);
+            color: #94424f
+        }
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):active {
+            color: #4d2329
+        }
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-white):focus:before {
+            border: 1px solid #94424f;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-science.kui-button-submit:not(.kui-button-white) {
+            background: #94424f;
+            background: -webkit-linear-gradient(#9d4a5a, #94424f);
+            background: linear-gradient(#9d4a5a, #94424f);
+            color: #fff
+        }
+        .kui-button-domain-science.kui-button-submit:not(.kui-button-white).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-science.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-science.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background: #823a46;
+            background: -webkit-linear-gradient(#8c4250, #823a46);
+            background: linear-gradient(#8c4250, #823a46);
+            color: #fff
+        }
+        .kui-button-domain-science.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):active {
+            background: #823a46;
+            background: -webkit-linear-gradient(#823a46, #8c4250);
+            background: linear-gradient(#823a46, #8c4250);
+            color: #fff
+        }
+        .kui-button-domain-science.kui-button-submit:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-science.kui-button-submit:not(.kui-button-white):focus:before {
+            border: 1px solid #94424f;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-science.kui-button-white:not(.kui-button-transparent) {
+            background: #fff;
+            background: -webkit-linear-gradient(#fff, #fff);
+            background: linear-gradient(#fff, #fff);
+            color: #94424f
+        }
+        .kui-button-domain-science.kui-button-white:not(.kui-button-transparent).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-science.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):hover,
+        .kui-button-domain-science.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):focus {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #94424f
+        }
+        .kui-button-domain-science.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):active {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #94424f
+        }
+        .kui-button-domain-science.kui-button-white:not(.kui-button-transparent):focus {
+            outline: 0
+        }
+        .kui-button-domain-science.kui-button-white:not(.kui-button-transparent):focus:before {
+            border: 1px solid #fff;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-complete) {
+            color: #aaa
+        }
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-complete):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-complete).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):hover,
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            background-color: rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):active {
+            color: #777
+        }
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-complete):focus {
+            outline: 0
+        }
+        .kui-button-domain-science.kui-button-plain:not(.kui-button-complete):focus:before {
+            border: 1px solid #aaa;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-white) {
+            color: #ad3434
+        }
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-white):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-white).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background-color: rgba(173, 52, 52, 0.15);
+            color: #ad3434
+        }
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(173, 52, 52, 0.15);
+            color: #ad3434
+        }
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):active {
+            color: #5f1c1c
+        }
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-white):focus:before {
+            border: 1px solid #ad3434;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-humanities.kui-button-submit:not(.kui-button-white) {
+            background: #ad3434;
+            background: -webkit-linear-gradient(#c13b31, #ad3434);
+            background: linear-gradient(#c13b31, #ad3434);
+            color: #fff
+        }
+        .kui-button-domain-humanities.kui-button-submit:not(.kui-button-white).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-humanities.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-humanities.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background: #992e2e;
+            background: -webkit-linear-gradient(#ad352c, #992e2e);
+            background: linear-gradient(#ad352c, #992e2e);
+            color: #fff
+        }
+        .kui-button-domain-humanities.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):active {
+            background: #992e2e;
+            background: -webkit-linear-gradient(#992e2e, #ad352c);
+            background: linear-gradient(#992e2e, #ad352c);
+            color: #fff
+        }
+        .kui-button-domain-humanities.kui-button-submit:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-humanities.kui-button-submit:not(.kui-button-white):focus:before {
+            border: 1px solid #ad3434;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-humanities.kui-button-white:not(.kui-button-transparent) {
+            background: #fff;
+            background: -webkit-linear-gradient(#fff, #fff);
+            background: linear-gradient(#fff, #fff);
+            color: #ad3434
+        }
+        .kui-button-domain-humanities.kui-button-white:not(.kui-button-transparent).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-humanities.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):hover,
+        .kui-button-domain-humanities.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):focus {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #ad3434
+        }
+        .kui-button-domain-humanities.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):active {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #ad3434
+        }
+        .kui-button-domain-humanities.kui-button-white:not(.kui-button-transparent):focus {
+            outline: 0
+        }
+        .kui-button-domain-humanities.kui-button-white:not(.kui-button-transparent):focus:before {
+            border: 1px solid #fff;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-complete) {
+            color: #aaa
+        }
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-complete):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-complete).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):hover,
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            background-color: rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):active {
+            color: #777
+        }
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-complete):focus {
+            outline: 0
+        }
+        .kui-button-domain-humanities.kui-button-plain:not(.kui-button-complete):focus:before {
+            border: 1px solid #aaa;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-white) {
+            color: #b77033
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-white):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-white).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background-color: rgba(183, 112, 51, 0.15);
+            color: #b77033
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(183, 112, 51, 0.15);
+            color: #b77033
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):active {
+            color: #673f1d
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-white):focus:before {
+            border: 1px solid #b77033;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-submit:not(.kui-button-white) {
+            background: #b77033;
+            background: -webkit-linear-gradient(#bf7b34, #b77033);
+            background: linear-gradient(#bf7b34, #b77033);
+            color: #fff
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-submit:not(.kui-button-white).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-economics-finance-domain.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background: #a3642d;
+            background: -webkit-linear-gradient(#ab6e2f, #a3642d);
+            background: linear-gradient(#ab6e2f, #a3642d);
+            color: #fff
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):active {
+            background: #a3642d;
+            background: -webkit-linear-gradient(#a3642d, #ab6e2f);
+            background: linear-gradient(#a3642d, #ab6e2f);
+            color: #fff
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-submit:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-submit:not(.kui-button-white):focus:before {
+            border: 1px solid #b77033;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-white:not(.kui-button-transparent) {
+            background: #fff;
+            background: -webkit-linear-gradient(#fff, #fff);
+            background: linear-gradient(#fff, #fff);
+            color: #b77033
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-white:not(.kui-button-transparent).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):hover,
+        .kui-button-domain-economics-finance-domain.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):focus {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #b77033
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):active {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #b77033
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-white:not(.kui-button-transparent):focus {
+            outline: 0
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-white:not(.kui-button-transparent):focus:before {
+            border: 1px solid #fff;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-complete) {
+            color: #aaa
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-complete):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-complete).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):hover,
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            background-color: rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):active {
+            color: #777
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-complete):focus {
+            outline: 0
+        }
+        .kui-button-domain-economics-finance-domain.kui-button-plain:not(.kui-button-complete):focus:before {
+            border: 1px solid #aaa;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-white) {
+            color: #437a39
+        }
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-white):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-white).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background-color: rgba(67, 122, 57, 0.15);
+            color: #437a39
+        }
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(67, 122, 57, 0.15);
+            color: #437a39
+        }
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):active {
+            color: #1d3419
+        }
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-white):focus:before {
+            border: 1px solid #437a39;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-cs.kui-button-submit:not(.kui-button-white) {
+            background: #437a39;
+            background: -webkit-linear-gradient(#53893e, #437a39);
+            background: linear-gradient(#53893e, #437a39);
+            color: #fff
+        }
+        .kui-button-domain-cs.kui-button-submit:not(.kui-button-white).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-cs.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-cs.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background: #396931;
+            background: -webkit-linear-gradient(#487736, #396931);
+            background: linear-gradient(#487736, #396931);
+            color: #fff
+        }
+        .kui-button-domain-cs.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):active {
+            background: #396931;
+            background: -webkit-linear-gradient(#396931, #487736);
+            background: linear-gradient(#396931, #487736);
+            color: #fff
+        }
+        .kui-button-domain-cs.kui-button-submit:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-cs.kui-button-submit:not(.kui-button-white):focus:before {
+            border: 1px solid #437a39;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-cs.kui-button-white:not(.kui-button-transparent) {
+            background: #fff;
+            background: -webkit-linear-gradient(#fff, #fff);
+            background: linear-gradient(#fff, #fff);
+            color: #437a39
+        }
+        .kui-button-domain-cs.kui-button-white:not(.kui-button-transparent).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-cs.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):hover,
+        .kui-button-domain-cs.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):focus {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #437a39
+        }
+        .kui-button-domain-cs.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):active {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #437a39
+        }
+        .kui-button-domain-cs.kui-button-white:not(.kui-button-transparent):focus {
+            outline: 0
+        }
+        .kui-button-domain-cs.kui-button-white:not(.kui-button-transparent):focus:before {
+            border: 1px solid #fff;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-complete) {
+            color: #aaa
+        }
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-complete):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-complete).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):hover,
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            background-color: rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):active {
+            color: #777
+        }
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-complete):focus {
+            outline: 0
+        }
+        .kui-button-domain-cs.kui-button-plain:not(.kui-button-complete):focus:before {
+            border: 1px solid #aaa;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-white) {
+            color: #437a39
+        }
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-white):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-white).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background-color: rgba(67, 122, 57, 0.15);
+            color: #437a39
+        }
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(67, 122, 57, 0.15);
+            color: #437a39
+        }
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):active {
+            color: #1d3419
+        }
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-white):focus:before {
+            border: 1px solid #437a39;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-hour-of-code.kui-button-submit:not(.kui-button-white) {
+            background: #437a39;
+            background: -webkit-linear-gradient(#53893e, #437a39);
+            background: linear-gradient(#53893e, #437a39);
+            color: #fff
+        }
+        .kui-button-domain-hour-of-code.kui-button-submit:not(.kui-button-white).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-hour-of-code.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-hour-of-code.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background: #396931;
+            background: -webkit-linear-gradient(#487736, #396931);
+            background: linear-gradient(#487736, #396931);
+            color: #fff
+        }
+        .kui-button-domain-hour-of-code.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):active {
+            background: #396931;
+            background: -webkit-linear-gradient(#396931, #487736);
+            background: linear-gradient(#396931, #487736);
+            color: #fff
+        }
+        .kui-button-domain-hour-of-code.kui-button-submit:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-hour-of-code.kui-button-submit:not(.kui-button-white):focus:before {
+            border: 1px solid #437a39;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-hour-of-code.kui-button-white:not(.kui-button-transparent) {
+            background: #fff;
+            background: -webkit-linear-gradient(#fff, #fff);
+            background: linear-gradient(#fff, #fff);
+            color: #437a39
+        }
+        .kui-button-domain-hour-of-code.kui-button-white:not(.kui-button-transparent).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-hour-of-code.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):hover,
+        .kui-button-domain-hour-of-code.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):focus {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #437a39
+        }
+        .kui-button-domain-hour-of-code.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):active {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #437a39
+        }
+        .kui-button-domain-hour-of-code.kui-button-white:not(.kui-button-transparent):focus {
+            outline: 0
+        }
+        .kui-button-domain-hour-of-code.kui-button-white:not(.kui-button-transparent):focus:before {
+            border: 1px solid #fff;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-complete) {
+            color: #aaa
+        }
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-complete):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-complete).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):hover,
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            background-color: rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):active {
+            color: #777
+        }
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-complete):focus {
+            outline: 0
+        }
+        .kui-button-domain-hour-of-code.kui-button-plain:not(.kui-button-complete):focus:before {
+            border: 1px solid #aaa;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-white) {
+            color: #437a39
+        }
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-white):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-white).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background-color: rgba(67, 122, 57, 0.15);
+            color: #437a39
+        }
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(67, 122, 57, 0.15);
+            color: #437a39
+        }
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):active {
+            color: #1d3419
+        }
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-white):focus:before {
+            border: 1px solid #437a39;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-computer-programming.kui-button-submit:not(.kui-button-white) {
+            background: #437a39;
+            background: -webkit-linear-gradient(#53893e, #437a39);
+            background: linear-gradient(#53893e, #437a39);
+            color: #fff
+        }
+        .kui-button-domain-computer-programming.kui-button-submit:not(.kui-button-white).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-computer-programming.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-computer-programming.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background: #396931;
+            background: -webkit-linear-gradient(#487736, #396931);
+            background: linear-gradient(#487736, #396931);
+            color: #fff
+        }
+        .kui-button-domain-computer-programming.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):active {
+            background: #396931;
+            background: -webkit-linear-gradient(#396931, #487736);
+            background: linear-gradient(#396931, #487736);
+            color: #fff
+        }
+        .kui-button-domain-computer-programming.kui-button-submit:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-computer-programming.kui-button-submit:not(.kui-button-white):focus:before {
+            border: 1px solid #437a39;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-computer-programming.kui-button-white:not(.kui-button-transparent) {
+            background: #fff;
+            background: -webkit-linear-gradient(#fff, #fff);
+            background: linear-gradient(#fff, #fff);
+            color: #437a39
+        }
+        .kui-button-domain-computer-programming.kui-button-white:not(.kui-button-transparent).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-computer-programming.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):hover,
+        .kui-button-domain-computer-programming.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):focus {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #437a39
+        }
+        .kui-button-domain-computer-programming.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):active {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #437a39
+        }
+        .kui-button-domain-computer-programming.kui-button-white:not(.kui-button-transparent):focus {
+            outline: 0
+        }
+        .kui-button-domain-computer-programming.kui-button-white:not(.kui-button-transparent):focus:before {
+            border: 1px solid #fff;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-complete) {
+            color: #aaa
+        }
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-complete):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-complete).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):hover,
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            background-color: rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):active {
+            color: #777
+        }
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-complete):focus {
+            outline: 0
+        }
+        .kui-button-domain-computer-programming.kui-button-plain:not(.kui-button-complete):focus:before {
+            border: 1px solid #aaa;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-white) {
+            color: #437a39
+        }
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-white):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-white).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background-color: rgba(67, 122, 57, 0.15);
+            color: #437a39
+        }
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(67, 122, 57, 0.15);
+            color: #437a39
+        }
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):active {
+            color: #1d3419
+        }
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-white):focus:before {
+            border: 1px solid #437a39;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-computing.kui-button-submit:not(.kui-button-white) {
+            background: #437a39;
+            background: -webkit-linear-gradient(#53893e, #437a39);
+            background: linear-gradient(#53893e, #437a39);
+            color: #fff
+        }
+        .kui-button-domain-computing.kui-button-submit:not(.kui-button-white).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-computing.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-computing.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background: #396931;
+            background: -webkit-linear-gradient(#487736, #396931);
+            background: linear-gradient(#487736, #396931);
+            color: #fff
+        }
+        .kui-button-domain-computing.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):active {
+            background: #396931;
+            background: -webkit-linear-gradient(#396931, #487736);
+            background: linear-gradient(#396931, #487736);
+            color: #fff
+        }
+        .kui-button-domain-computing.kui-button-submit:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-computing.kui-button-submit:not(.kui-button-white):focus:before {
+            border: 1px solid #437a39;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-computing.kui-button-white:not(.kui-button-transparent) {
+            background: #fff;
+            background: -webkit-linear-gradient(#fff, #fff);
+            background: linear-gradient(#fff, #fff);
+            color: #437a39
+        }
+        .kui-button-domain-computing.kui-button-white:not(.kui-button-transparent).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-computing.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):hover,
+        .kui-button-domain-computing.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):focus {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #437a39
+        }
+        .kui-button-domain-computing.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):active {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #437a39
+        }
+        .kui-button-domain-computing.kui-button-white:not(.kui-button-transparent):focus {
+            outline: 0
+        }
+        .kui-button-domain-computing.kui-button-white:not(.kui-button-transparent):focus:before {
+            border: 1px solid #fff;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-complete) {
+            color: #aaa
+        }
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-complete):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-complete).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):hover,
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            background-color: rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):active {
+            color: #777
+        }
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-complete):focus {
+            outline: 0
+        }
+        .kui-button-domain-computing.kui-button-plain:not(.kui-button-complete):focus:before {
+            border: 1px solid #aaa;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-white) {
+            color: #218270
+        }
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-white):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-white).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background-color: rgba(33, 130, 112, 0.15);
+            color: #218270
+        }
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(33, 130, 112, 0.15);
+            color: #218270
+        }
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):active {
+            color: #0c312a
+        }
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-white):focus:before {
+            border: 1px solid #218270;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-partner-content.kui-button-submit:not(.kui-button-white) {
+            background: #218270;
+            background: -webkit-linear-gradient(#2c8d7b, #218270);
+            background: linear-gradient(#2c8d7b, #218270);
+            color: #fff
+        }
+        .kui-button-domain-partner-content.kui-button-submit:not(.kui-button-white).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-partner-content.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-partner-content.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background: #1c6e5e;
+            background: -webkit-linear-gradient(#267a6a, #1c6e5e);
+            background: linear-gradient(#267a6a, #1c6e5e);
+            color: #fff
+        }
+        .kui-button-domain-partner-content.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):active {
+            background: #1c6e5e;
+            background: -webkit-linear-gradient(#1c6e5e, #267a6a);
+            background: linear-gradient(#1c6e5e, #267a6a);
+            color: #fff
+        }
+        .kui-button-domain-partner-content.kui-button-submit:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-partner-content.kui-button-submit:not(.kui-button-white):focus:before {
+            border: 1px solid #218270;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-partner-content.kui-button-white:not(.kui-button-transparent) {
+            background: #fff;
+            background: -webkit-linear-gradient(#fff, #fff);
+            background: linear-gradient(#fff, #fff);
+            color: #218270
+        }
+        .kui-button-domain-partner-content.kui-button-white:not(.kui-button-transparent).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-partner-content.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):hover,
+        .kui-button-domain-partner-content.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):focus {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #218270
+        }
+        .kui-button-domain-partner-content.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):active {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #218270
+        }
+        .kui-button-domain-partner-content.kui-button-white:not(.kui-button-transparent):focus {
+            outline: 0
+        }
+        .kui-button-domain-partner-content.kui-button-white:not(.kui-button-transparent):focus:before {
+            border: 1px solid #fff;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-complete) {
+            color: #aaa
+        }
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-complete):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-complete).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):hover,
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            background-color: rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):active {
+            color: #777
+        }
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-complete):focus {
+            outline: 0
+        }
+        .kui-button-domain-partner-content.kui-button-plain:not(.kui-button-complete):focus:before {
+            border: 1px solid #aaa;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-white) {
+            color: #1c758a
+        }
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-white):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-white).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background-color: rgba(28, 117, 138, 0.15);
+            color: #1c758a
+        }
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(28, 117, 138, 0.15);
+            color: #1c758a
+        }
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):active {
+            color: #0b2d35
+        }
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-white):focus:before {
+            border: 1px solid #1c758a;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-math.kui-button-submit:not(.kui-button-white) {
+            background: #1c758a;
+            background: -webkit-linear-gradient(#46a8bf, #1c758a);
+            background: linear-gradient(#46a8bf, #1c758a);
+            color: #fff
+        }
+        .kui-button-domain-math.kui-button-submit:not(.kui-button-white).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-math.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-math.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background: #186375;
+            background: -webkit-linear-gradient(#3d99af, #186375);
+            background: linear-gradient(#3d99af, #186375);
+            color: #fff
+        }
+        .kui-button-domain-math.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):active {
+            background: #186375;
+            background: -webkit-linear-gradient(#186375, #3d99af);
+            background: linear-gradient(#186375, #3d99af);
+            color: #fff
+        }
+        .kui-button-domain-math.kui-button-submit:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-math.kui-button-submit:not(.kui-button-white):focus:before {
+            border: 1px solid #1c758a;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-math.kui-button-white:not(.kui-button-transparent) {
+            background: #fff;
+            background: -webkit-linear-gradient(#fff, #fff);
+            background: linear-gradient(#fff, #fff);
+            color: #1c758a
+        }
+        .kui-button-domain-math.kui-button-white:not(.kui-button-transparent).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-math.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):hover,
+        .kui-button-domain-math.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):focus {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #1c758a
+        }
+        .kui-button-domain-math.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):active {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #1c758a
+        }
+        .kui-button-domain-math.kui-button-white:not(.kui-button-transparent):focus {
+            outline: 0
+        }
+        .kui-button-domain-math.kui-button-white:not(.kui-button-transparent):focus:before {
+            border: 1px solid #fff;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-complete) {
+            color: #aaa
+        }
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-complete):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-complete).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):hover,
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            background-color: rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):active {
+            color: #777
+        }
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-complete):focus {
+            outline: 0
+        }
+        .kui-button-domain-math.kui-button-plain:not(.kui-button-complete):focus:before {
+            border: 1px solid #aaa;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-white) {
+            color: #644172
+        }
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-white):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-white).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background-color: rgba(100, 65, 114, 0.15);
+            color: #644172
+        }
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(100, 65, 114, 0.15);
+            color: #644172
+        }
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):active {
+            color: #2b1c31
+        }
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-white):focus:before {
+            border: 1px solid #644172;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-test-prep.kui-button-submit:not(.kui-button-white) {
+            background: #644172;
+            background: -webkit-linear-gradient(#7e5f8e, #644172);
+            background: linear-gradient(#7e5f8e, #644172);
+            color: #fff
+        }
+        .kui-button-domain-test-prep.kui-button-submit:not(.kui-button-white).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-test-prep.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-test-prep.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background: #563862;
+            background: -webkit-linear-gradient(#70557f, #563862);
+            background: linear-gradient(#70557f, #563862);
+            color: #fff
+        }
+        .kui-button-domain-test-prep.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):active {
+            background: #563862;
+            background: -webkit-linear-gradient(#563862, #70557f);
+            background: linear-gradient(#563862, #70557f);
+            color: #fff
+        }
+        .kui-button-domain-test-prep.kui-button-submit:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-test-prep.kui-button-submit:not(.kui-button-white):focus:before {
+            border: 1px solid #644172;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-test-prep.kui-button-white:not(.kui-button-transparent) {
+            background: #fff;
+            background: -webkit-linear-gradient(#fff, #fff);
+            background: linear-gradient(#fff, #fff);
+            color: #644172
+        }
+        .kui-button-domain-test-prep.kui-button-white:not(.kui-button-transparent).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-test-prep.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):hover,
+        .kui-button-domain-test-prep.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):focus {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #644172
+        }
+        .kui-button-domain-test-prep.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):active {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #644172
+        }
+        .kui-button-domain-test-prep.kui-button-white:not(.kui-button-transparent):focus {
+            outline: 0
+        }
+        .kui-button-domain-test-prep.kui-button-white:not(.kui-button-transparent):focus:before {
+            border: 1px solid #fff;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-complete) {
+            color: #aaa
+        }
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-complete):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-complete).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):hover,
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            background-color: rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):active {
+            color: #777
+        }
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-complete):focus {
+            outline: 0
+        }
+        .kui-button-domain-test-prep.kui-button-plain:not(.kui-button-complete):focus:before {
+            border: 1px solid #aaa;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-white) {
+            color: #0084ce
+        }
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-white):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-white).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background-color: rgba(0, 132, 206, 0.15);
+            color: #0084ce
+        }
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(0, 132, 206, 0.15);
+            color: #0084ce
+        }
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-white):not(.kui-button-disabled):active {
+            color: #004368
+        }
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-white):focus:before {
+            border: 1px solid #0084ce;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        .kui-button-domain-sat.kui-button-submit:not(.kui-button-white) {
+            background: #0084ce;
+            background: -webkit-linear-gradient(#0084ce, #0084ce);
+            background: linear-gradient(#0084ce, #0084ce);
+            color: #fff
+        }
+        .kui-button-domain-sat.kui-button-submit:not(.kui-button-white).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-sat.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):hover,
+        .kui-button-domain-sat.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):focus {
+            background: #0074b5;
+            background: -webkit-linear-gradient(#0074b5, #0074b5);
+            background: linear-gradient(#0074b5, #0074b5);
+            color: #fff
+        }
+        .kui-button-domain-sat.kui-button-submit:not(.kui-button-white):not(.kui-button-disabled):active {
+            background: #0074b5;
+            background: -webkit-linear-gradient(#0074b5, #0074b5);
+            background: linear-gradient(#0074b5, #0074b5);
+            color: #fff
+        }
+        .kui-button-domain-sat.kui-button-submit:not(.kui-button-white):focus {
+            outline: 0
+        }
+        .kui-button-domain-sat.kui-button-submit:not(.kui-button-white):focus:before {
+            border: 1px solid #0084ce;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-sat.kui-button-white:not(.kui-button-transparent) {
+            background: #fff;
+            background: -webkit-linear-gradient(#fff, #fff);
+            background: linear-gradient(#fff, #fff);
+            color: #0084ce
+        }
+        .kui-button-domain-sat.kui-button-white:not(.kui-button-transparent).kui-button-disabled {
+            background: #d7d7d7;
+            background: -webkit-linear-gradient(#fdfdfd, #d7d7d7);
+            background: linear-gradient(#fdfdfd, #d7d7d7);
+            color: #aaa;
+            cursor: default;
+            opacity: .8
+        }
+        .kui-button-domain-sat.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):hover,
+        .kui-button-domain-sat.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):focus {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #0084ce
+        }
+        .kui-button-domain-sat.kui-button-white:not(.kui-button-transparent):not(.kui-button-disabled):active {
+            background: #f2f2f2;
+            background: -webkit-linear-gradient(#f2f2f2, #f2f2f2);
+            background: linear-gradient(#f2f2f2, #f2f2f2);
+            color: #0084ce
+        }
+        .kui-button-domain-sat.kui-button-white:not(.kui-button-transparent):focus {
+            outline: 0
+        }
+        .kui-button-domain-sat.kui-button-white:not(.kui-button-transparent):focus:before {
+            border: 1px solid #fff;
+            border-radius: 21px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -3px;
+            padding-bottom: 4px;
+            padding-right: 4px;
+            position: absolute;
+            top: -3px;
+            width: 100%
+        }
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-complete) {
+            color: #aaa
+        }
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-complete):not(.kui-button-transparent) {
+            background: #fff
+        }
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-complete).kui-button-disabled {
+            color: #aaa;
+            cursor: default;
+            opacity: .5
+        }
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):hover,
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            background-color: rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):focus {
+            box-shadow: 0 0 5px rgba(170, 170, 170, 0.15);
+            color: #aaa
+        }
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-complete):not(.kui-button-disabled):active {
+            color: #777
+        }
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-complete):focus {
+            outline: 0
+        }
+        .kui-button-domain-sat.kui-button-plain:not(.kui-button-complete):focus:before {
+            border: 1px solid #aaa;
+            border-radius: 23px;
+            content: "";
+            display: block;
+            height: 100%;
+            left: -4px;
+            padding-bottom: 6px;
+            padding-right: 6px;
+            position: absolute;
+            top: -4px;
+            width: 100%
+        }
+        a.kui-button {
+            display: inline-block;
+            text-align: center;
+            text-decoration: none
+        }
+        .kui-checkbox {
+            background-image: -webkit-linear-gradient(#fff, #ddd);
+            background-image: linear-gradient(#fff, #ddd);
+            border: 1px solid #aaa;
+            border-radius: 3px;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            display: inline-block;
+            height: 16px;
+            margin: 3px;
+            overflow: hidden;
+            position: relative;
+            vertical-align: -6px;
+            width: 16px
+        }
+        .kui-checkbox-checked:not(.kui-checkbox-disabled) {
+            background: #49721a;
+            color: #fff
+        }
+        .kui-checkbox-disabled {
+            color: #999;
+            opacity: .4
+        }
+        .kui-checkbox-disabled .kui-checkbox__input {
+            cursor: default
+        }
+        .kui-checkbox-focused {
+            box-shadow: 0 0 3px rgba(99, 155, 36, 0.8)
+        }
+        .kui-checkbox__check {
+            display: block;
+            font-size: 12px;
+            line-height: 15px;
+            text-align: center
+        }
+        .kui-checkbox__input {
+            cursor: pointer;
+            height: 100%;
+            left: 0;
+            margin: 0;
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            width: 100%
+        }
+        .kui-labeledfield {
+            line-height: 1.4;
+            margin-bottom: 20px
+        }
+        .kui-labeledfield__title {
+            color: #777;
+            cursor: default;
+            float: left;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase
+        }
+        .kui-labeledfield__error {
+            color: #c52717;
+            float: right;
+            margin-left: 20px;
+            text-align: right
+        }
+        .kui-labeledfield__input {
+            background: #fcfcfc;
+            border: 1px solid #ccc;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            clear: both;
+            font: inherit;
+            padding: 8px 10px;
+            margin: 5px 0 0;
+            vertical-align: baseline;
+            width: 100%
+        }
+        .kui-labeledfield__input:focus {
+            outline: 0;
+            box-shadow: 0 0 10px rgba(99, 155, 36, 0.8)
+        }
+        .kui-labeledfield__input-has-error {
+            background: #fbe2e0;
+            border-color: #c52717
+        }
+        .kui-labeledfield__input-has-error:focus {
+            box-shadow: 0 0 10px rgba(197, 39, 23, 0.4)
+        }
+        .kui-labeledfield__caption {
+            color: #999;
+            margin-top: 5px;
+            text-align: right
+        }
+        .kui-labeledtextarea {
+            line-height: 1.4;
+            margin-bottom: 20px
+        }
+        .kui-labeledtextarea__title {
+            color: #777;
+            cursor: default;
+            float: left;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase
+        }
+        .kui-labeledtextarea__error {
+            color: #c52717;
+            float: right;
+            margin-left: 20px;
+            text-align: right
+        }
+        .kui-labeledtextarea__input {
+            background: #fcfcfc;
+            border: 1px solid #ccc;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            clear: both;
+            font: inherit;
+            padding: 8px 10px;
+            margin: 5px 0 0;
+            vertical-align: baseline;
+            width: 100%
+        }
+        .kui-labeledtextarea__input:focus {
+            outline: 0;
+            box-shadow: 0 0 10px rgba(99, 155, 36, 0.8)
+        }
+        .kui-labeledtextarea__input-has-error {
+            background: #fbe2e0;
+            border-color: #c52717
+        }
+        .kui-labeledtextarea__input-has-error:focus {
+            box-shadow: 0 0 10px rgba(197, 39, 23, 0.4)
+        }
+        .kui-labeledtextarea__caption {
+            color: #999;
+            margin-top: 5px;
+            text-align: right
+        }
+        .kui-survey {
+            background-color: #ddd;
+            border-color: #fdfdfd;
+            border-radius: 14px 0 0 0;
+            border-style: solid;
+            border-width: 1px 1px 0 1px;
+            bottom: 0;
+            color: #111;
+            min-height: 10px;
+            right: 40px;
+            position: fixed;
+            width: 340px;
+            z-index: 1053
+        }
+        .kui-survey__handle {
+            background-color: #ddd;
+            border-color: #fdfdfd;
+            border-radius: 9px 9px 0 0;
+            border-style: solid;
+            border-width: 1px 1px 0 1px;
+            cursor: pointer;
+            height: 30px;
+            line-height: 30px;
+            min-width: 40px;
+            position: absolute;
+            right: -1px;
+            text-align: center;
+            top: -31px
+        }
+        .kui-survey__body {
+            bottom: 0;
+            left: 0;
+            margin: 0 20px;
+            position: absolute;
+            right: 0;
+            top: 0
+        }
+        .kui-survey__question {
+            margin: 10px 0
+        }
+        .kui-survey__message {
+            font-size: 22px;
+            text-align: center
+        }
+        .kui-survey__prompt {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px
+        }
+        .kui-survey__answer {
+            background-color: #639b24;
+            border-radius: 18px;
+            color: #fff;
+            cursor: pointer;
+            margin-bottom: 7px;
+            padding: 5px;
+            text-align: center
+        }
+        .kui-survey-preview-wrapper {
+            margin: 0 auto;
+            overflow-y: hidden;
+            padding: 35px 0 0 0;
+            width: 342px
+        }
+        .kui-survey-preview-wrapper>.kui-survey {
+            position: relative;
+            right: 0
+        }

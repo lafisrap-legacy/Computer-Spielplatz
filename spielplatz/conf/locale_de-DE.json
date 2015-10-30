@@ -40,6 +40,7 @@
 	"control_bar_modal_delete"		    : "Löschen",
 	"control_bar_modal_cancel"		    : "Abbrechen",
 	"control_bar_modal_open"		    : "Öffnen",
+	"control_bar_modal_sound_title"		: "Wähle einen Sound aus ...",
 
     "login_login"                       : "Anmelden",
     "login_signup"                      : "Neues Konto",
