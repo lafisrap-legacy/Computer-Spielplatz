@@ -359,7 +359,6 @@ func (c *LiveEditorController) Get() {
 
 	c.Data["AllImages"] = c.getImageInfo(userNameForImages)
 	c.Data["OutputSounds"] = c.getSoundInfo(userNameForImages)
-	beego.Warning("!!!!!!!!!", c.Data["OutputSounds"])
 	c.Data["UserNameForImages"] = userNameForImages
 
 	file := c.Ctx.Input.Param(":file")

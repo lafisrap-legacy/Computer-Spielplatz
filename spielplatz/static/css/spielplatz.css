@@ -201,6 +201,11 @@ body {
   background-color: #f8f8f8;
 }
 
+#control-bar-sound-modal .title {
+  font-size: 3.0em;
+  color: lightgrey;
+}
+
 #control-bar-sound-modal .modal-body .bottom {
   background-color: #e8e8e8;
   border-top: 1px solid #c8c8c8;
@@ -227,6 +232,11 @@ body {
 
 #control-bar-caret {
   margin-left: 10px;
+}
+
+audio:hover, audio:focus, audio:active
+{
+box-shadow: 5px 5px 8px rgba(0,0, 0, 0.4);
 }
 
 @media (max-width: 767px) {
