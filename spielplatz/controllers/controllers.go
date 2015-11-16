@@ -133,6 +133,7 @@ func (c *RootController) Get() {
 
 	//c.Data["Sid"] = s.SessionID()
 	c.Data["UserName"] = s.Get("UserName")
+	c.Data["LoginTime"] = s.Get("LoginTime")
 	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
 	c.TplNames = "index.html"
 	setTitleData(c.Data)
@@ -221,6 +222,7 @@ func (c *LoginController) Post() {
 		if u, err = models.Login(&uf); err == nil {
 			s.Set("UserName", u.Name)
 			s.Set("Email", u.Email)
+			s.Set("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
 			mountAdminData(u.Name)
 			c.Ctx.Redirect(302, dest)
 			return
@@ -242,6 +244,7 @@ func (c *LogoutController) Get() {
 	s := c.StartSession()
 
 	s.Delete("UserName")
+	s.Delete("LoginTime")
 	s.Delete("Email")
 
 	c.Ctx.Redirect(302, "/")
@@ -277,6 +280,7 @@ func (c *SignupController) Post() {
 		if uf.Pwd == uf.Pwd2 {
 			if u, err = models.Signup(&uf); err == nil {
 				s.Set("UserName", u.Name)
+				s.Set("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
 				s.Set("Email", u.Email)
 
 				c.setupAccount(u.Name)
@@ -371,6 +375,7 @@ func (c *LiveEditorController) Get() {
 		c.TplNames = "external/" + c.Ctx.Input.Param(":file")
 	} else {
 		c.Data["UserName"] = userName
+		c.Data["LoginTime"] = s.Get("LoginTime")
 		c.Data["ControlBarLabel"] = T["control_bar_label"]
 		c.Data["ControlBarSave"] = T["control_bar_save"]
 		c.Data["ControlBarSaveAs"] = T["control_bar_save_as"]

@@ -165,19 +165,23 @@ $( ".scratchpad-toolbar" ).hide();
 // Live Editor page logic
 //
 // If User changed: clear everything from localStorage
-if( localStorage.userName !== "{{ .UserName }}") {
+if( sessionStorage.loginTime !== "{{ .LoginTime }}") {
     var fileList = sessionStorage.codeFileList && JSON.parse(sessionStorage.codeFileList) || [];
     for( var i=0 ; i<fileList.length ; i++ ) sessionStorage.removeItem(fileList[i]);
     sessionStorage.removeItem("codeFileList");
     sessionStorage.removeItem("allFilesList");
     sessionStorage.removeItem("currentCodeFile");
-    localStorage.userName = "{{ .UserName }}";
+    localStorage.loginTime = sessionStorage.loginTime = "{{ .LoginTime }}";
 }
+
+$(window).focus(function(e) {
+    // Look if another Tab or window logged out (and maybe in again) in the meantime
+    if( sessionStorage.loginTime !== localStorage.loginTime ) location.reload(); 
+});
 
 //////////////////////////////////////////
 // Fill in the globals form local storage
-var CPG_userName = localStorage.userName,
-    CPG_codeFileList = sessionStorage.codeFileList && JSON.parse(sessionStorage.codeFileList) || [],
+var CPG_codeFileList = sessionStorage.codeFileList && JSON.parse(sessionStorage.codeFileList) || [],
     CPG_allFilesList = sessionStorage.allFilesList && JSON.parse(sessionStorage.allFilesList) || [],
     CPG_currentCodeFile = sessionStorage.currentCodeFile,
     CPG_codeFiles = {},
@@ -578,9 +582,10 @@ var selectFilename = function(input) {
 
 //////////////////////////////////////////
 // WS.connect connects to server and loads code files
-$WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
+//$WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
+$WS.connect("ws://10.230.37.228:8081/socket", "{{ .xsrfdata }}", function() {
 
-    if( !localStorage.userName || localStorage.userName === "" ) {
+    if( "{{ .UserName }}" === "" ) {
         
         liveEditor.editor.reset("");
         CPG_modified = false;
@@ -838,9 +843,8 @@ $("#control-bar-restart").on("click", function(e) {
     window.liveEditor.restartCode();
 });
 
-
-$("#logout-button").on('click', function() {
-    localStorage.userName = "";
+$("#logout-button").on("click", function(e) {
+    localStorage.loginTime = 0;
 });
 
 window.onbeforeunload = function() {
@@ -848,14 +852,9 @@ window.onbeforeunload = function() {
     if( CPG_modified ) return "{{ .ControlBarModalFileChanged }}";
 }
 
-$("#cpg-live-editor").blur(function(e) {
-    console.log("Going away to next tab");
+$(window).blur(function(e) {
+    //console.log("Going away to next tab");
     // Do Blur Actions Here
-});
-
-$("#cpg-live-editor").focus(function(e) {
-    console.log("Coming back from other tab.");
-    // Do Focus Actions Here
 });
 
 $(window).on('hashchange', function(e){

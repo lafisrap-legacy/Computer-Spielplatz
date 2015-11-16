@@ -15,6 +15,16 @@
 <div class="container" style="height: 1024px;">
     <canvas id="canvas" style="position: absolute; top: 0px; left:0; z-index: 10; pointer-events:none;"></canvas>
   <script>
+    ///////////////////////////////////////////////////////////////
+    // Check if user changed (logged in or out) and reload page if necessary
+    if( sessionStorage.loginTime !== "{{ .LoginTime }}") {
+        localStorage.loginTime = sessionStorage.loginTime = "{{ .LoginTime }}";
+    }
+    $(window).focus(function(e) {
+        // Look if another Tab or window logged out (and maybe in again) in the meantime
+        if( sessionStorage.loginTime !== localStorage.loginTime ) location.reload(); 
+    });
+
     var canvas = document.getElementById("canvas");
     var processing = new Processing(canvas, function(processing) {
         processing.size(1140, 800);
