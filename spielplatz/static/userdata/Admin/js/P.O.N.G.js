@@ -1,8 +1,11 @@
-///////////////////////////////////////////////
+  ///////////////////////////////////////////////
 // Spielsystem
-
 var currentScene = null;
-
+(function() {
+    imageMode(CENTER);
+    rectMode(CENTER);
+    textAlign(CENTER, CENTER);
+})();
 var Layer = function(zIndex, images, sounds) {
     this.zIndex = zIndex;
     this.images = images;
@@ -24,7 +27,6 @@ var Layer = function(zIndex, images, sounds) {
         this.isVisible = true;
         this.isPaused = false;
         if( this.init ) {
-            debug("Hello show!");
             this.init(options);
         }
     };
@@ -34,7 +36,6 @@ var Layer = function(zIndex, images, sounds) {
         this.isPaused = true;
     };
 };
-
 var Scene = function() {
     this.Layers = [];
     
@@ -66,7 +67,6 @@ var Scene = function() {
         });
     };
 };
-
 var setScene = function(scene) {
     currentScene = scene;
 
@@ -74,7 +74,6 @@ var setScene = function(scene) {
         scene.init();
     }
 };
-
 var mousePressed = function() {
     currentScene.each(function(layer) {
         if( layer.mousePressed && !layer.isPaused ) {
@@ -82,7 +81,6 @@ var mousePressed = function() {
         }
     });
 };
-
 var keyPressed = function() {
     currentScene.each(function(layer) {
         if( layer.keyPressed && !layer.isPaused ) {
@@ -90,11 +88,6 @@ var keyPressed = function() {
         }
     });
 };
-
-imageMode(CENTER);
-rectMode(CENTER);
-textAlign(CENTER, CENTER);
-
 var draw = function() {
     background(250);
     
@@ -102,7 +95,6 @@ var draw = function() {
         currentScene.draw();
     }
 };
-
 
 ////////////////////////////////////////////////
 // Szenen (Scenes) und Ebenen (Layers)
@@ -211,8 +203,15 @@ var Tooor = SpielSzene.addLayer(2);
 
 Tooor.init = function(Schütze) {
     Tooor.TextGr = 2;
-    Tooor.Zähler = 5;
+    Tooor.Zähler = 4;
     Tooor.Schütze = Schütze;
+    if( Schütze === "Rob" ) {
+        Figuren.Gefühl1 = 1;
+        Figuren.Gefühl2 = 2;
+    } else {
+        Figuren.Gefühl1 = 2;
+        Figuren.Gefühl2 = 1;
+    }
 };
 
 Tooor.draw = function(isPaused) {
@@ -231,6 +230,8 @@ Tooor.draw = function(isPaused) {
             Tooor.pause();
             Tooor.hide();
 
+            Figuren.Gefühl1 = 0;
+            Figuren.Gefühl2 = 0;
             if( SpielSzene.PunkteFred >= 3 ) {
                 Gewonnen.show("Fred");
             } else if(SpielSzene.PunkteRob >= 3 ) {
@@ -246,24 +247,26 @@ Tooor.draw = function(isPaused) {
 
 var Gewonnen = SpielSzene.addLayer(2);
 Gewonnen.init = function(Schütze) {
-    debug("Gewonnen init!");
     if( Schütze === "Rob" ) {
         Gewonnen.x = "x1";
         Gewonnen.y = "y1";
         Gewonnen.gr = "gr1";
         Gewonnen.xInc = (200-Figuren.x1)/60; 
         Gewonnen.yInc = (200-Figuren.y1)/60; 
+        Figuren.Gefühl1 = 1;
+        Figuren.Gefühl2 = 2;
     } else {
         Gewonnen.x = "x2";
         Gewonnen.y = "y2";
         Gewonnen.gr = "gr2";
         Gewonnen.xInc = (200-Figuren.x2)/60; 
         Gewonnen.yInc = (200-Figuren.y2)/60; 
+        Figuren.Gefühl1 = 2;
+        Figuren.Gefühl2 = 1;
     }   
 };
 
 Gewonnen.draw = function(isPaused) {
-    debug("Gewonnen draw!");
     if( round(Figuren[Gewonnen.x]) === 200 ) {
         textSize(28);
         fill(87, 35, 35);
@@ -281,8 +284,12 @@ Gewonnen.keyPressed = function() {
 };
 
 var Figuren = SpielSzene.addLayer(1,{
-        Fred: getImage("Spielplatz/Rob_wütend"),
-        Rob:  getImage("Spielplatz/Rob_cool"),
+        Fred:  [getImage("Spielplatz/Fred_anpackend"),
+                getImage("Spielplatz/Fred_lächelnd"),
+                getImage("Spielplatz/Fred_wütend")],
+        Rob:   [getImage("Spielplatz/Rob_cool"),
+                getImage("Spielplatz/Rob_cool"),
+                getImage("Spielplatz/Rob_cool")],
         Ball: getImage("Spielplatz/BlauerBall"),
     },{
         Tock: getSound("Spielplatz/Glas"),
@@ -301,25 +308,34 @@ Figuren.init = function() {
     Figuren.dYMax = 20;
     Figuren.KreisGr = 80;
     Figuren.BallGr = 30;
+    Figuren.BumperGr = 120;
+    Figuren.BumperOffset = 30;
     Figuren.CollisionTime = 0;
+    Figuren.Gefühl1 = 0;
+    Figuren.Gefühl2 = 0;
 };
 
 Figuren.draw = function(isPaused) {
     noFill();
     stroke(245, 108, 108);
-    image(Figuren.images.Fred, Figuren.x1, Figuren.y1, Figuren.gr1, Figuren.gr1*0.7);
+    image(Figuren.images.Fred[Figuren.Gefühl1], Figuren.x1, Figuren.y1, Figuren.gr1, Figuren.gr1*0.7);
     arc(Figuren.x1, Figuren.y1, Figuren.KreisGr, Figuren.KreisGr, -110, 110);
     stroke(132, 163, 201);
-    image(Figuren.images.Rob, Figuren.x2, Figuren.y2, Figuren.gr2, Figuren.gr2*0.7);
+    image(Figuren.images.Rob[Figuren.Gefühl2], Figuren.x2, Figuren.y2, Figuren.gr2, Figuren.gr2*0.7);
     arc(Figuren.x2, Figuren.y2, Figuren.KreisGr, Figuren.KreisGr, 70, 290);
     image(Figuren.images.Ball, Figuren.bx, Figuren.by, Figuren.BallGr, Figuren.BallGr);
+    stroke(200,200, 200);
+    ellipse(200, -Figuren.BumperGr/2+Figuren.BumperOffset, 
+            Figuren.BumperGr, Figuren.BumperGr);    
+    ellipse(200, 400+Figuren.BumperGr/2-Figuren.BumperOffset, 
+            Figuren.BumperGr, Figuren.BumperGr);    
 
     Figuren.dY1 -= Figuren.dY1/10;
     Figuren.dY2 -= Figuren.dY2/10;
     
     if( !isPaused ) {
-        Figuren.dBX *= 1.01;
-        Figuren.dBY *= 1.01;
+        Figuren.dBx *= 1.0005;
+        Figuren.dBy *= 1.0005;
     
         if( Figuren.y1 <= Figuren.KreisGr/2 || Figuren.y1 >= 400-Figuren.KreisGr/2 ) {
             Figuren.dY1 = -Figuren.dY1 * 1.1;
@@ -337,9 +353,12 @@ Figuren.draw = function(isPaused) {
             Figuren.dBy = -Figuren.dBy;
         }
         
-        Figuren.collide(Figuren.x1, Figuren.y1, Figuren.dY1);            
-        Figuren.collide(Figuren.x2, Figuren.y2, Figuren.dY2);            
-    
+        Figuren.collide(Figuren.x1, Figuren.y1, Figuren.dY1, Figuren.KreisGr);            
+        Figuren.collide(Figuren.x2, Figuren.y2, Figuren.dY2, Figuren.KreisGr);            
+        Figuren.collide(200, -Figuren.BumperGr/2+Figuren.BumperOffset, 0, Figuren.BumperGr);
+        Figuren.collide(200, 400+Figuren.BumperGr/2-Figuren.BumperOffset, 
+                        0, Figuren.BumperGr);            
+
         Figuren.y1 =constrain(Figuren.y1+Figuren.dY1,Figuren.BallGr/2,400-Figuren.BallGr/2);
         Figuren.y2 =constrain(Figuren.y2+Figuren.dY2,Figuren.BallGr/2,400-Figuren.BallGr/2);
         Figuren.bx =constrain(Figuren.bx+Figuren.dBx,Figuren.BallGr/2,400-Figuren.BallGr/2);
@@ -350,27 +369,31 @@ Figuren.draw = function(isPaused) {
 Figuren.keyPressed = function() {
     switch(key.code) {
         case 97: 
-            Figuren.dY1 -= 4;
             if( Figuren.dY1 > Figuren.dYMax ) {
-                Figuren.dY1 = Figuren.dYMax;
+                Figuren.dY1 = -Figuren.dY1;
+            } else {
+                Figuren.dY1 -= 6;
             }
             break;
         case 121: 
-            Figuren.dY1 += 4;
             if( Figuren.dY1 < -Figuren.dYMax ) {
-                Figuren.dY1 = -Figuren.dYMax;
+                Figuren.dY1 = -Figuren.dY1;
+            } else {
+                Figuren.dY1 += 6;
             }
             break;
         case 112: 
-            Figuren.dY2 -= 4;
             if( Figuren.dY2 > Figuren.dYMax ) {
-                Figuren.dY2 = Figuren.dYMax;
+                Figuren.dY2 = -Figuren.dY2;
+            } else {
+                Figuren.dY2 -= 6;
             }
             break;
         case 108: 
-            Figuren.dY2 += 4;
             if( Figuren.dY2 < -Figuren.dYMax ) {
-                Figuren.dY2 = -Figuren.dYMax;
+                Figuren.dY2 = -Figuren.dY2;
+            } else {
+                Figuren.dY2 += 6;
             }
             break;
     }
@@ -379,13 +402,14 @@ Figuren.keyPressed = function() {
 Figuren.mousePressed = function() {
 };
 
-Figuren.collide = function(x, y, dy) {
-    var minDist = (Figuren.KreisGr + Figuren.BallGr)/2,
+Figuren.collide = function(x, y, dy, größe) {
+    
+    var minDist = (größe + Figuren.BallGr)/2,
         geschw = sqrt(Figuren.dBx*Figuren.dBx+Figuren.dBy*Figuren.dBy);
 
-    var d = dist( Figuren.bx, Figuren.by, x, y );
+    var d = dist( Figuren.bx, Figuren.by, x, y+dy );
     
-    if( d <= minDist ) {
+    if( d < minDist ) {
         
         var bx = Figuren.bx,
             by = Figuren.by,
@@ -403,17 +427,19 @@ Figuren.collide = function(x, y, dy) {
         Figuren.dBy = sin(neuerWinkel) * geschw;
         
         Figuren.bx = bx + Figuren.dBx * overlapFactor;
-        Figuren.by = by + Figuren.dBy * overlapFactor + dy;
+        Figuren.by = by + Figuren.dBy * overlapFactor;
 
         playSound(Figuren.sounds.Tock);
     }
 };
 
 Figuren.setBall = function() {
+    var winkel = random(0,360);
+    
     Figuren.bx = 200;
     Figuren.by = 200;
-    Figuren.dBx = random(0,10)-5;
-    Figuren.dBy = sqrt(100-(sq(Figuren.dBx+5)))-5;
+    Figuren.dBx = cos(winkel)*5;
+    Figuren.dBy = sin(winkel)*5;
 };
 
 noCursor();

@@ -365,7 +365,7 @@
             sbText = "";
             sbX = sbY = sbW = sbH = sbFS = sbX1 = sbY1 = sbX2 = sbY2 = 0;
 
-            var angle = -10;
+            var angle = -5;
             var draw = function() {
                 background(255,255,255,0);
                 
@@ -382,7 +382,7 @@
                 //speechBubble("Hallo Welt! dies ist ein bisschen mehr Text, der in mehrere Zeilen gehen sollte. Noch mehr text!!!", 200, 100, 300, 280, 25, 190, 270, 232, 219, mouseIsPressed);
                 if( sbShow || speechBubble.scaleX ) speechBubble(sbText, sbX, sbY, sbW, sbH, sbFS, sbX1, sbY1, sbX2, sbY2, sbShow);
 
-                angle+=1.0;
+                angle+=0.0;
                 sc+=dsc;
                 if( sc > 3 || sc <= 0 ) {
                     dsc = -dsc;

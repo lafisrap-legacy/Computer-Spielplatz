@@ -1,14 +1,3 @@
-///////////////////////////////////////////////////////////////////////////////
-// ALFONS Computerspielplatz-Figur
-// 
-// Alle Koordinaten sind normalisiert auf 100 x 100 pixel.
-//
-// alfons(x, y, w, h, options);
-//  x, y, w, h: like ellipse or rect
-//  options: object {
-//      
-//
-
 var y = 0,
     dy = 5,
     angle = 0,
@@ -314,19 +303,22 @@ speechBubble.hideSpeed = 1.2;
 speechBubble.scaleX = 0;
 speechBubble.scaleY = 0;
 
+
+////////////////////////////////////////////////////////
+// Website specific
+var angle = 0;
 var draw = function() {
-    background(255);
+    background(255,255,255,0);
     
-    translate(80, 300);
+    translate(90, 270);
     rotate(angle);
-    //scale(sc);
     alfons(0,0,200,200, {
-        lookAt: { x: mouseX-200, y: mouseY-200 },
+        lookAt: { x: (mouseX-90)/3, y: (mouseY-180)/3 },
         raiseEyeBrow: mouseIsPressed? true : false,
-        smile: constrain(200-abs(mouseY-200),0,400)/20,
+        smile: (500-abs(constrain(mouseY,0,1000)-300))/50,
     });
-    
-    speechBubble("Hallo Welt! dies ist ein bisschen mehr Text, der in mehrere Zeilen gehen sollte. Noch mehr text!!!", 200, 100, 300, 280, 25, 190, 270, 232, 219, mouseIsPressed);
+
+    speechBubble("Hallo Welt! dies ist ein bisschen mehr Text, der in mehrere Zeilen gehen sollte. Noch mehr text!!!", 240, 80, 300, 280, 25, 190, 270, 232, 219, mouseIsPressed);
 
     angle+=0.0;
     sc+=dsc;

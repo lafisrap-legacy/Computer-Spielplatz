@@ -65,7 +65,7 @@
       </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->    
 
-    <div id="control-bar-codefile-modal" class="modal  fade">
+    <div id="control-bar-codefile-modal" class="modal fade">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
@@ -155,6 +155,9 @@ window.liveEditor = new LiveEditor({
     //imagesDir: "../build/images/",
     jshintFile: "../build/external/jshint/jshint.js"
 });
+window.liveEditor.editor.on("change", function () {
+    CPG_modified = true;
+});
 
 $( ".scratchpad-toolbar" ).hide();
 
@@ -177,7 +180,8 @@ var CPG_userName = localStorage.userName,
     CPG_codeFileList = sessionStorage.codeFileList && JSON.parse(sessionStorage.codeFileList) || [],
     CPG_allFilesList = sessionStorage.allFilesList && JSON.parse(sessionStorage.allFilesList) || [],
     CPG_currentCodeFile = sessionStorage.currentCodeFile,
-    CPG_codeFiles = {};
+    CPG_codeFiles = {},
+    CPG_modified = false;
 
 for( var i=0 ; i<CPG_codeFileList.length ; i++ ) CPG_codeFiles[CPG_codeFileList[i]] = sessionStorage[CPG_codeFileList[i]] && JSON.parse(sessionStorage[CPG_codeFileList[i]]) || {};
 CPG_codeFiles[{{ .ControlBarNewFile }}] = sessionStorage[{{ .ControlBarNewFile }}] && JSON.parse(sessionStorage[{{ .ControlBarNewFile }}]) || {};
@@ -420,6 +424,7 @@ var fillButtonControl = function() {
             $("#control-bar-current-file").text(CPG_currentCodeFile);
             $("#control-bar-input input").val(CPG_currentCodeFile)
             liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile].code);
+            CPG_modified = false;
         } else {
             showModalCodeFiles(function(button, selFiles) {
                 switch( button ) {
@@ -455,6 +460,7 @@ var fillButtonControl = function() {
                                     fillButtonControl();
 
                                     liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile].code);
+                                    CPG_modified = false;
                                 });
                             }
                         }
@@ -509,6 +515,7 @@ var fillButtonControl = function() {
 
                                         fillButtonControl();
                                         liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile]? CPG_codeFiles[CPG_currentCodeFile].code : "");
+                                        CPG_modified = false;
                                     });
                                 }
                             });
@@ -576,6 +583,7 @@ $WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
     if( !localStorage.userName || localStorage.userName === "" ) {
         
         liveEditor.editor.reset("");
+        CPG_modified = false;
 
     } else if( !sessionStorage.codeFileList || !sessionStorage.codeFileList.length) {
         $WS.sendMessage({
@@ -624,6 +632,7 @@ $WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
                     fillButtonControl();
 
                     liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile].code);
+                    CPG_modified = false;
                 });
             } else {
                 CPG_currentCodeFile = "{{ .ControlBarNewFile }}";
@@ -637,6 +646,7 @@ $WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
                 $("#control-bar-input input").val(CPG_currentCodeFile);
                 fillButtonControl();
                 liveEditor.editor.reset("");
+                CPG_modified = false;
             }
         });
     } else {
@@ -644,6 +654,7 @@ $WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
         fillButtonControl();
         
         liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile]? CPG_codeFiles[CPG_currentCodeFile].code : "");
+        CPG_modified = false;
     }
 
     console.log("Websockets connected!");
@@ -675,6 +686,7 @@ $("#control-bar-delete").on('click', function() {
 
                     fillButtonControl();
                     liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile]? CPG_codeFiles[CPG_currentCodeFile].code : "");
+                    CPG_modified = false;
                 });
             }
         });
@@ -693,6 +705,7 @@ $("#control-bar-new").on('click', function() {
     $("#control-bar-current-file").text(CPG_currentCodeFile);
     $("#control-bar-input input").val(CPG_currentCodeFile);
     liveEditor.editor.reset("");
+    CPG_modified = false;
 
     storeCurrentCodeFile();
 });
@@ -745,6 +758,7 @@ var saveCodeFile = function(filename) {
                 sessionStorage.codeFileList = JSON.stringify(CPG_codeFileList);
                 sessionStorage.allFilesList = JSON.stringify(CPG_allFilesList);
                 sessionStorage.currentCodeFile = CPG_currentCodeFile = filename;
+
             } else if(message.OutdatedTimeStamps.length > 0) {
                 showModalYesNo(filename, "{{ .ControlBarModalFileOutdated }}", function(yes) {
                     if( yes ) {
@@ -763,6 +777,7 @@ var saveCodeFile = function(filename) {
             };
             sessionStorage[filename] = JSON.stringify(CPG_codeFiles[filename]);
             fillButtonControl();
+            CPG_modified = false;
             $("#control-bar-label").text("{{ .ControlBarSaved }}").parent().removeClass("btn-primary").addClass("btn-success");
             $
             setTimeout(function() { 
@@ -829,8 +844,8 @@ $("#logout-button").on('click', function() {
 });
 
 window.onbeforeunload = function() {
-    storeCurrentCodeFile();
-    //return "You have attempted to leave this page.  If you have made any changes to the fields without clicking the Save button, your changes will be lost.  Are you sure you want to exit this page?";
+    //storeCurrentCodeFile();
+    if( CPG_modified ) return "{{ .ControlBarModalFileChanged }}";
 }
 
 $("#cpg-live-editor").blur(function(e) {

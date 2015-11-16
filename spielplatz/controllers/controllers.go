@@ -318,9 +318,14 @@ func (c *SignupController) setupAccount(userName string) {
 
 func mountAdminData(userName string) error {
 
+	adminName := beego.AppConfig.String("userdata::admin")
+
+	if userName == adminName {
+		return nil
+	}
+
 	resources := []string{"image", "sound"}
 	for _, res := range resources {
-		adminName := beego.AppConfig.String("userdata::admin")
 		dir1 := beego.AppConfig.String("userdata::location") + adminName + "/" + beego.AppConfig.String("userdata::"+res+"files") + beego.AppConfig.String("userdata::examples")
 		dir2 := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::"+res+"files") + beego.AppConfig.String("userdata::examples")
 
@@ -388,6 +393,7 @@ func (c *LiveEditorController) Get() {
 		c.Data["ControlBarModalAlreadyOpenS"] = T["control_bar_modal_already_open_s"]
 		c.Data["ControlBarModalAlreadyOpenP"] = T["control_bar_modal_already_open_p"]
 		c.Data["ControlBarModalCodefileTitle"] = T["control_bar_modal_codefile_title"]
+		c.Data["ControlBarModalFileChanged"] = T["control_bar_modal_file_changed"]
 		c.Data["ControlBarModalDelete"] = T["control_bar_modal_delete"]
 		c.Data["ControlBarModalCancel"] = T["control_bar_modal_cancel"]
 		c.Data["ControlBarModalOpen"] = T["control_bar_modal_open"]
