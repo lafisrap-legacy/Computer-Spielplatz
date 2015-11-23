@@ -27,6 +27,8 @@
 <!-- RIDDLE: Modal dialogs won't work if live-editor file are called after bootstrap.js -->
 <script src="static/js/bootstrap.min.js"></script>
 <script src="static/js/websockets.js"></script>
+<script src="static/js/cpg-sessions.js"></script>
+<script src="static/js/cpg-tooltips.js"></script>
 </head>
 <body>
 <div class="container">
@@ -91,6 +93,11 @@
         {{else}}
             <a href="/logout" id="logout-button" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>        
         {{end}}
+        <ul class="nav nav-tabs kuenste">
+        {{range $i, $art := .Arts}}
+            <li><a href="{{$art.Page}}" class="btn btn-default btn-sm btn-{{ $i }}">{{$art.Name}}</a></li>
+        {{end}}                       
+        </ul>
     </div>
     <div class="clearfix"></div>
     <div id="top-control-bar">
@@ -130,6 +137,466 @@
         <span class="label label-info">{{ .ControlBarNoUser }}</span>
     </div>  
   {{ end }}
+  <ul>
+<li>
+    <h4>rect(x, y, Breite, Höhe, Radius*)</h4>
+    <p>Zeichnet ein Rechteck, wobei die ersten beiden Koordinaten die linke obere Ecke bezeichnen und die beiden anderen die Breite und die Höhe. Um die Position zu ändern, siehe rectMode()</p>
+</li>
+<li>
+    <h4>ellipse(x, y, w, h)</h4>
+    <p>Zeichnet eine Ellipse, wobei die ersten beiden Koordinaten die Mitte der ellipse bezeichnen und die beiden anderen die Breite und die Höhe. Um die Position zu ändern, siehe rectMode().</p>
+</li>
+<li style="display:none">
+    <h4>triangle(x1, y1, x2, y2, x3, y3)</h4>
+    <p>Zeichnet ein Dreieck.</p>
+</li>
+<li>
+    <h4>line(x1, y1, x2, y2)</h4>
+    <p>Zeichnet eine Linie von Punkt x1/y1 zu Punkt x2/y2. Die Farbe der Linie wird durch den letzten vorangehenden stroke()-Aufruf bestimmt, die Dicke durch strokeWeight() und die Rundungen der Enden durch strokeCap().</p>
+</li>
+<li>
+    <h4>point(x, y)</h4>
+    <p>Zeichnet einen Punkt. Farbe der Linie wird durch den letzten vorangehenden stroke()-Aufruf bestimmt, die Dicke durch strokeWeight().</p>
+</li>
+<li>
+    <h4>arc(x, y, w, h, start, stop)</h4>
+    <p>Zeichnet einen Ellipsenabschnitt. Der Befehl ist sehr ähnlich wie ellipse(), fügt nur zwei Parameter für den Start- und den Endwinkel hinzu (0-360).</p>
+</li>
+<li style="display:none">
+    <h4>bezier(x1, y1, cx1, cy1, cx2, cy2, x2, y2)</h4>
+    <p>Draws a bezier curve. To extract points and tangents after drawing the curve, use bezierPoint() and bezierTangent.</p>
+</li>
+<li style="display:none">
+    <h4>quad(x1, y1, x2, y2, x3, y3, x4, y4)</h4>
+    <p>Draws any quadrilateral, with the points listed as parameters in a clockwise or counter-clockwise direction.</p>
+</li>
+<li style="display:none">
+    <h4>image(image, x, y, width*, height*)</h4>
+    <p>Draw an image on the canvas. The only allowed images are those that popup in the image picker when you use the getImage() method. The image is positioned using the x/y as the upper left corner. For alternate ways to position images, see imageMode.</p>
+</li>
+<li>
+    <h4>playSound(sound)</h4>
+    <p>Plays a short sound. The only allowed sounds are those that popup in the picker when you use the getSound() method.</p>
+</li>
+<li>
+    <h4>rectMode(MODE)</h4>
+    <p>Modifies the location from which rectangles draw.</p>
+</li>
+<li>
+    <h4>ellipseMode(MODE)</h4>
+    <p>Changes how ellipses are drawn.</p>
+</li>
+<li>
+    <h4>imageMode(MODE)</h4>
+    <p>Ändert den Bezugspunkt der Position eines Bildes. Mögliche Werte: CENTER, CORNERS, oder CORNER (Voreinstellung).</p>
+</li>
+<li style="display:none">
+    <h4>bezierPoint(a, b, c, d, t)</h4>
+    <p>Evaluates the Bezier at point t for points a, b, c, d. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the location of a bezier curve at t.</p>
+</li>
+<li style="display:none">
+    <h4>bezierTangent(a,b, c, d, t)</h4>
+    <p>Calculates the tangent of a point on a bezier curve. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the tangent of a bezier curve at t.</p>
+</li>
+<li style="display:none">
+    <h4>bezierVertex(cx1, cy1, cx2, cy2, x, y)</h4>
+    <p>Used in conjunction with beginShape() and endShape() to draw shapes with bezier curves for sides. Each call to bezierVertex() defines the position of two control points and one anchor point of a Bezier curve, adding a new segment to a line or shape. The first time bezierVertex() is used within a beginShape() call, it must be prefaced with a call to vertex() to set the first anchor point. When using this function, do *not* specify a mode in beginShape().</p>
+</li>
+<li style="display:none">
+    <h4>curve(x1, y1, x2, y2, x3, y3, x4, y4)</h4>
+    <p>Draws a curved line on the screen. The first and second parameters specify the first anchor point and the last two parameters specify the second anchor. The middle parameters specify the points for defining the shape of the curve. Longer curves can be created by putting a series of curve() functions together. An additional function called curveTightness() provides control for the visual quality of the curve. The curve() function is an implementation of Catmull-Rom splines.</p>
+</li>
+<li style="display:none">
+    <h4>curvePoint(a, b, c, d, t)</h4>
+    <p>Evalutes the curve at point t for points a, b, c, d. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the location of a curve at t.</p>
+</li>
+<li style="display:none">
+    <h4>curveTangent(a, b, c, d, t)</h4>
+    <p>Calculates the tangent at a point the curve. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the tangent of a curve at t.</p>
+</li>
+<li style="display:none">
+    <h4>curveTightness(tightness)</h4>
+    <p>Modifies the quality of forms created with curve() and curveVertex(). The tightness parameter determines how the curve fits to the vertex points.</p>
+</li>
+<li style="display:none">
+    <h4>curveVertex(x,y)</h4>
+    <p>Used in conjunction with beginShape() and endShape() to draw shapes with bezier curves for sides. The first and last points in a series of curveVertex() lines will be used to guide the beginning and end of a the curve.</p>
+</li>
+<li style="display:none">
+    <h4>beginShape(MODE*)</h4>
+    <p>Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().  Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().</p>
+</li>
+<li style="display:none">
+    <h4>endShape(MODE*)</h4>
+    <p>Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().  Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().</p>
+</li>
+<li style="display:none">
+    <h4>vertex(x, y)</h4>
+    <p>Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().  Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().</p>
+</li>
+<li>
+    <h4>background(r, g, b, a*)</h4>
+    <p>Setzt die Hintergrundfarbe (= zeichnet ein bildschirmfüllendes Rechteck in der aktuellen Füllfarbe).</p>
+</li>
+<li>
+    <h4>fill(r, g, b, a*)</h4>
+    <p>Setzt die Füllfarbe, Rot, Grün, Blau und die Deckkraft (0 = transparent, 255 = undurchsichtig).</p>
+</li>
+<li>
+    <h4>stroke(r, g, b, a*)</h4>
+    <p>Setzt die Linienfarbe, Rot, Grün, Blau und die Deckkraft (0 = transparent, 255 = undurchsichtig).</p></li>
+<li>
+    <h4>color(r, g, b, a*)</h4>
+    <p>This function lets you store all three color components in a single variable. You can then pass that one variable to functions like background(), stroke(), and fill().</p>
+</li>
+<li>
+    <h4>noFill()</h4>
+    <p>Setzt die Füllfarbe auf transparent.</p>
+</li>
+<li>
+    <h4>noStroke()</h4>
+    <p>Setzt die Linienfarbe auf transparent.</p>
+</li>
+<li>
+    <h4>strokeWeight(thickness)</h4>
+    <p>Sets the thickness of all lines and outlines drawn after the function call.</p>
+</li>
+<li style="display:none">
+    <h4>strokeJoin(MODE)</h4>
+    <p>Sets the style of the joints which connect line segments drawn with vertex(). These joints are either mitered, beveled, or rounded and specified with the corresponding parameters MITER, BEVEL, and ROUND.</p>
+</li>
+<li style="display:none">
+    <h4>strokeCap(MODE)</h4>
+    <p>Sets the style for rendering line endings. These ends are either squared, extended, or rounded and specified with the corresponding parameters SQUARE, PROJECT, and ROUND.</p>
+</li>
+<li style="display:none">
+    <h4>blendColor(c1, c2, MODE)</h4>
+    <p>Blends two color values together based on the blending mode given as the MODE parameter.</p>
+</li>
+<li style="display:none">
+    <h4>lerpColor(c1, c2, amount)</h4>
+    <p>Calculates a color or colors between two color at a specific increment. The amount parameter is the amount to interpolate between the two values where 0.0 equal to the first point, 0.1 is very near the first point, 0.5 is half-way in between, etc.</p>
+</li>
+<li style="display:none">
+    <h4>colorMode(MODE)</h4>
+    <p>Changes the way that color values are interpreted when set by fill()/stroke()/background().</p>
+</li>
+<li style="display:none">
+    <h4>red(color)</h4>
+    <p>Extracts the red value from a color, scaled to match current colorMode().</p>
+</li>
+<li style="display:none">
+    <h4>green(color)</h4>
+    <p>Extracts the green value from a color, scaled to match current colorMode().</p>
+</li>
+<li style="display:none">
+    <h4>blue(color)</h4>
+    <p>Extracts the blue value from a color, scaled to match current colorMode().</p>
+</li>
+<li style="display:none">
+    <h4>alpha(color)</h4>
+    <p>Extracts the alpha value from a color.</p>
+</li>
+<li style="display:none">
+    <h4>hue(color)</h4>
+    <p>Extracts the hue value from a color.</p>
+</li>
+<li style="display:none">
+    <h4>saturation(color)</h4>
+    <p>Extracts the saturation value from a color.</p>
+</li>
+<li style="display:none">
+    <h4>brightness(color)</h4>
+    <p>Extracts the brightness value from a color.</p>
+</li>
+<li>
+    <h4>text(message, x, y, width*, height*)</h4>
+    <p>Schreibt einen Text auf den Bildschirm.</p>
+</li>
+<li style="display:none">
+    <h4>textFont(font, size*)</h4>
+    <p>Using textFont() with createFont(), it's possible to change the font of text drawn.</p>
+</li>
+<li style="display:none">
+    <h4>createFont(name, size*)</h4>
+    <p>Using textFont() with createFont(), it's possible to change the font of text drawn.</p>
+</li>
+<li style="display:none">
+    <h4>textWidth(str)</h4>
+    <p>Calculates and returns the width of any string.</p>
+</li>
+<li style="display:none">
+    <h4>textAscent()</h4>
+    <p>Returns the ascent of the current font at its current size. This information is useful for determining the height of the font above the baseline. For example, adding the textAscent() and textDescent() values will give you the total height of the line</p>
+</li>
+<li style="display:none">
+    <h4>textDescent()</h4>
+    <p>Returns descent of the current font at its current size. This information is useful for determining the height of the font below the baseline. For example, adding the textAscent() and textDescent() values will give you the total height of the line</p>
+</li>
+<li style="display:none">
+    <h4>textLeading(dist)</h4>
+    <p>Sets the spacing between lines of text in units of pixels. This setting will be used in all subsequent calls to the text() function.</p>
+</li>
+<li>
+    <h4>textAlign(ALIGN, YALIGN)</h4>
+    <p>Setzt den Bezugspunkt für die Textposition, horizontal und vertikal. Mögliche Werte horizontal: LEFT (Voreinstellung), CENTER, oder RIGHT, vertikal: TOP (Voreinstellung), BOTTOM, CENTER, oder BASELINE.</p>
+</li>
+<li>
+    <h4>rotate(angle)</h4>
+    <p>Sets the rotation angle for any shapes drawn after the command. If called multiple times, the angle will be added to the previous angle (accumulative effect). To stop rotation, use pushMatrix()/popMatrix().</p>
+</li>
+<li>
+    <h4>scale(amount, amountY*)</h4>
+    <p>Increases the size of shapes drawn after the command, by expanding and contracting vertices. For example, scale(2) makes it increase in size by 200%. If called multiple times, the sizes will multiply (accumulative effect). It can be called with one parameter to resize the same in both dimensions, or with two parameters to size differently in each dimension.  To stop resizing shapes, use pushMatrix()/popMatrix().</p>
+</li>
+<li>
+    <h4>translate(x, y)</h4>
+    <p>Displaces the drawn shapes by a given amount in the x/y directions. If called multiple times, the offsets will be added to each other (accumulative effect). To stop translating shapes, use pushMatrix()/popMatrix().</p>
+</li>
+<li style="display:none">
+    <h4>pushMatrix()</h4>
+    <p>Remembers the current coordinate system (in the \"matrix stack\")</p>
+</li>
+<li style="display:none">
+    <h4>popMatrix()</h4>
+    <p>Restores the previous coordinate system (from the \"matrix stack\") - whatever was most recently pushed</p>
+</li>
+<li style="display:none">
+    <h4>resetMatrix()</h4>
+    <p>Replaces the current transformation matrix with the identity matrix. This effectively clears all transformation functions set before it</p>
+</li>
+<li style="display:none">
+    <h4>printMatrix()</h4>
+    <p>Prints the current transformation matrix to the console</p>
+</li>
+<li style="display:none">
+    <h4>frameRate(fps)</h4>
+    <p>Specifies the number of frames to be displayed every second. If the processor is not fast enough to maintain the specified rate, it will not be achieved. For fluid animation, at least 24 frames per second is recommended.</p>
+</li>
+<li style="display:none">
+    <h4>loop()</h4>
+    <p>Causes the program to continuously execute the code within draw(). If noLoop() is called, the code in draw() stops executing</p>
+</li>
+<li style="display:none">
+    <h4>noLoop()</h4>
+    <p>Stops the program from continuously executing the code within draw(). If loop() is called, the code in draw() begin to run continuously again</p>
+</li>
+<li>
+    <h4>random(min, max)</h4>
+    <p>Gibt eine Zufallszahl zwischen min und max zurück.</p>
+</li>
+<li style="display:none">
+    <h4>dist(x1, y1, x2, y2)</h4>
+    <p>Calculates the distance between two points, (x1, y1) and (x2, y2).</p>
+</li>
+<li style="display:none">
+    <h4>constrain(value, min, max)</h4>
+    <p>Constrains a value to not exceed a maximum and minimum value.</p>
+</li>
+<li style="display:none">
+    <h4>min(num1, num2)</h4>
+    <p>Returns the smallest value of all values passed in.</p>
+</li>
+<li style="display:none">
+    <h4>max(num1, num2)</h4>
+    <p>Returns the greatest value of all values passed in.</p>
+</li>
+<li style="display:none">
+    <h4>abs(num)</h4>
+    <p>Returns the absolute value of a number</p>
+</li>
+<li style="display:none">
+    <h4>log(num)</h4>
+    <p>Returns the the natural logarithm (base-e) of a number.</p>
+</li>
+<li style="display:none">
+    <h4>pow(num, exponent)</h4>
+    <p>Returns a number raised to an exponential power.</p>
+</li>
+<li style="display:none">
+    <h4>sq(num)</h4>
+    <p>Squares a number (multiplies a number by itself). The result is always a positive number, as multiplying two negative numbers always yields a positive result. For example, -1 * -1 = 1</p>
+</li>
+<li style="display:none">
+    <h4>sqrt(num)</h4>
+    <p>Calculates the square root of a number. The square root of a number is always positive, even though there may be a valid negative root. The square root s of number a is such that s*s = a. It is the opposite of squaring.</p>
+</li>
+<li style="display:none">
+    <h4>round(num)</h4>
+    <p>Calculates the closest whole number that is closest to the value of the parameter.</p>
+</li>
+<li style="display:none">
+    <h4>ceil(num)</h4>
+    <p>Calculates the closest whole number that is greater than or equal to the value of the parameter.</p>
+</li>
+<li style="display:none">
+    <h4>floor(num)</h4>
+    <p>Calculates the closest whole number that is less than or equal to the value of the parameter.</p>
+</li>
+<li style="display:none">
+    <h4>mag(x1, y1)</h4>
+    <p>Calculates the magnitude (or length) of a vector. A vector is a direction in space commonly used in computer graphics and linear algebra. Because it has no \"start\" position, the magnitude of a vector can be thought of as the distance from coordinate (0,0) to its (x,y) value. Therefore, mag() is a shortcut for writing dist(0, 0, x, y).</p>
+</li>
+<li style="display:none">
+    <h4>exp(num)</h4>
+    <p>Returns Euler's number e (2.71828...) raised to the power of the value parameter.</p>
+</li>
+<li style="display:none">
+    <h4>map(num, low1, high1, low2, high2)</h4>
+    <p>Re-maps a number from one range to another. Numbers outside the range are not clamped to 0 and 1, because out-of-range values are often intentional and useful.</p>
+</li>
+<li style="display:none">
+    <h4>norm(num, low, high)</h4>
+    <p>Normalizes a number from another range into a value between 0 and 1. This is the same as using the map function with the last two parameters set to 0 and 1, i.e: map(value, low, high, 0, 1); Numbers outside the range are not clamped to 0 and 1, because out-of-range values are often intentional and useful.</p>
+</li>
+<li style="display:none">
+    <h4>lerp(num1, num2, amount)</h4>
+    <p>Calculates a number between two numbers at a specific increment.</p>
+</li>
+<li style="display:none">
+    <h4>noise(x, y)</h4>
+    <p>Returns the Perlin noise value at specified coordinates. The resulting value will always be between 0.0 and 1.0</p>
+</li>
+<li style="display:none">
+    <h4>noiseDetail(octaves, falloff)</h4>
+    <p>Adjusts the character and level of detail produced by the Perlin noise function.</p>
+</li>
+<li style="display:none">
+    <h4>sin(degrees)</h4>
+    <p>Return the sine of an angle.</p>
+</li>
+<li style="display:none">
+    <h4>cos(degrees)</h4>
+    <p>Return the cosine of an angle.</p>
+</li>
+<li style="display:none">
+    <h4>tan(degrees)</h4>
+    <p>Return the tangent of an angle</p>
+</li>
+<li style="display:none">
+    <h4>acos(val)</h4>
+    <p>Returns the arc cosine (inverse cosine) of a value. Depending on the angle mode, it returns values from 0-180 or 0-PI.</p>
+</li>
+<li style="display:none">
+    <h4>asin(val)</h4>
+    <p>Returns the arc sine (inverse sine) of a value. Depending on the angle mode, it returns values from -90 to 90 or -PI/2 to PI/2.</p>
+</li>
+<li style="display:none">
+    <h4>atan(val)</h4>
+    <p>Returns the arc tangent (inverse tangent) of a value. Depending on the angle mode, it returns values from -90 to 90 or -PI/2 to PI/2.</p>
+</li>
+<li style="display:none">
+    <h4>radians(angle)</h4>
+    <p>Converts a degree measurement to its corresponding value in radians.</p>
+</li>
+<li style="display:none">
+    <h4>degrees(angle)</h4>
+    <p>Converts a radians measurement to its corresponding value in degrees.</p>
+</li>
+<li style="display:none">
+    <h4>day()</h4>
+    <p>Returns the current day of the month, between 1 and 31, according to the clock on the user's computer</p>
+</li>
+<li style="display:none">
+    <h4>month()</h4>
+    <p>Returns the current month of the year, between 1-12, according to the clock on the user's computer</p>
+</li>
+<li style="display:none">
+    <h4>year()</h4>
+    <p>Returns the current year according to the clock on the user's computer</p>
+</li>
+<li style="display:none">
+    <h4>hour()</h4>
+    <p>Returns the current hour as a value from 0 - 23, based on the user's computer clock</p>
+</li>
+<li style="display:none">
+    <h4>minute()</h4>
+    <p>Returns the current minute as a value from 0 - 59, based on the user's computer clock</p>
+</li>
+<li style="display:none">
+    <h4>second()</h4>
+    <p>Returns the current second as a value from 0 - 59, based on the user's computer clock</p>
+</li>
+<li style="display:none">
+    <h4>millis()</h4>
+    <p>Returns the number of milliseconds (thousandths of a second) since starting the program. Useful for cyclic animations</p>
+</li>
+<li style="display:none">
+    <h4>println(data)</h4>
+    <p>Prints a line of data to the console that pops up over the canvas. Click the X to close the console.</p>
+</li>
+<li style="display:none">
+    <h4>print(data)</h4>
+    <p>Prints data to the console that pops up over the canvas, without creating a new line (like println does).</p>
+</li>
+</ul>
+<div>
+<h2></h2>
+<h2>Rahmen für Animation von Figuren</h2>
+<code>
+<pre>
+// Programmhülle für Animation
+
+var x = 200,        // x-Position
+    y = 200,        // y-Position
+    dx = 10,         // Bewegungsrichtung und -geschwindigkeit von x
+    dy = -0.3;         // Bewegungsrichtung und -geschwindigkeit von y
+
+var Ludmilla = function() {
+    // hier kommen die Zeichenbefehle für Ludmilla hinein
+    // ...
+    ellipse(0, 0, 70, 70);
+};
+
+var draw = function() {
+    background(255);        // Hintergrund löschen
+    
+    resetMatrix();          // Koordinatensystem zurücksetzen
+    translate(x,y);         // Koordinatensystem nach x/y verschieben
+    Ludmilla();             // Figur zeichnen
+    
+    x = x + dx;             // x-Wert um dx verändern (jede 1/60 Sekunde)
+    y = y + dy;             // dgl. y-Wert
+    
+    if( x < 0 || x > 400 ) {    // Test ob x den Bildschirm verlässt
+        dx = -dx;           // Wenn ja: x-Richtung umkehren
+    }
+    
+    if( y < 0 || y > 400 ) {    // Text ob y den Bildschirm verlässt
+        dy = -dy;           // Wenn ja: y-Richtung umkehren
+    }
+};
+</pre>
+</code>
+<h2>Code von heute</h2>
+<code>
+<pre>
+
+var a = 123,
+    b = 124,
+    c = a / b,
+    x = 200,
+    bild = getImage("Spielplatz/Oskar");
+
+var draw1 = function() {
+    background(255);
+
+    x = mouseX;
+
+    fill(255, 0, 0);
+    text(c, x, 10);
+};
+
+
+var draw = function() {
+    draw1();
+    
+    image(bild, x, 100);
+};
+
+</pre>
+</code>
+</div>
 </div>
 
 <script>
@@ -164,31 +631,18 @@ $( ".scratchpad-toolbar" ).hide();
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Live Editor page logic
 //
-// If User changed: clear everything from localStorage
-if( sessionStorage.loginTime !== "{{ .LoginTime }}") {
-    var fileList = sessionStorage.codeFileList && JSON.parse(sessionStorage.codeFileList) || [];
-    for( var i=0 ; i<fileList.length ; i++ ) sessionStorage.removeItem(fileList[i]);
-    sessionStorage.removeItem("codeFileList");
-    sessionStorage.removeItem("allFilesList");
-    sessionStorage.removeItem("currentCodeFile");
-    localStorage.loginTime = sessionStorage.loginTime = "{{ .LoginTime }}";
-}
-
-$(window).focus(function(e) {
-    // Look if another Tab or window logged out (and maybe in again) in the meantime
-    if( sessionStorage.loginTime !== localStorage.loginTime ) location.reload(); 
-});
+refreshSession("{{ .LoginTime }}");
 
 //////////////////////////////////////////
 // Fill in the globals form local storage
 var CPG_codeFileList = sessionStorage.codeFileList && JSON.parse(sessionStorage.codeFileList) || [],
     CPG_allFilesList = sessionStorage.allFilesList && JSON.parse(sessionStorage.allFilesList) || [],
-    CPG_currentCodeFile = sessionStorage.currentCodeFile,
+    CPG_currentCodeFile = sessionStorage.currentCodeFile || "{{ .ControlBarNewFile }}";
     CPG_codeFiles = {},
     CPG_modified = false;
 
 for( var i=0 ; i<CPG_codeFileList.length ; i++ ) CPG_codeFiles[CPG_codeFileList[i]] = sessionStorage[CPG_codeFileList[i]] && JSON.parse(sessionStorage[CPG_codeFileList[i]]) || {};
-CPG_codeFiles[{{ .ControlBarNewFile }}] = sessionStorage[{{ .ControlBarNewFile }}] && JSON.parse(sessionStorage[{{ .ControlBarNewFile }}]) || {};
+CPG_codeFiles[{{ .ControlBarNewFile }}] = sessionStorage[{{ .ControlBarNewFile }}] && JSON.parse(sessionStorage[{{ .ControlBarNewFile }}]) || { code: "" };
 
 ///////////////////////////////////////////
 // showModalYesNo displays a modal dialog with answers yes and no
@@ -582,12 +1036,12 @@ var selectFilename = function(input) {
 
 //////////////////////////////////////////
 // WS.connect connects to server and loads code files
-//$WS.connect("ws://localhost:4000/socket", "{{ .xsrfdata }}", function() {
-$WS.connect("ws://10.230.37.228:8081/socket", "{{ .xsrfdata }}", function() {
+$WS.connect("ws://localhost:8081/socket", "{{ .xsrfdata }}", function() {
+//$WS.connect("ws://192.168.0.177:8081/socket", "{{ .xsrfdata }}", function() {
 
     if( "{{ .UserName }}" === "" ) {
         
-        liveEditor.editor.reset("");
+        liveEditor.editor.reset(CPG_codeFiles[{{ .ControlBarNewFile }}].code || "");
         CPG_modified = false;
 
     } else if( !sessionStorage.codeFileList || !sessionStorage.codeFileList.length) {
@@ -701,21 +1155,33 @@ $("#control-bar-delete").on('click', function() {
 
 $("#control-bar-new").on('click', function() {
 
-    if( CPG_currentCodeFile !== "{{ .ControlBarNewFile }}" ) {
-        storeCurrentCodeFile();
+    var newFile = function() {
+        sessionStorage.currentCodeFile = CPG_currentCodeFile = "{{ .ControlBarNewFile }}";
+
+        $("#control-bar-current-file").text(CPG_currentCodeFile);
+        $("#control-bar-input input").val(CPG_currentCodeFile);
+        liveEditor.editor.reset("");
+        CPG_modified = false;
+
+        storeCurrentCodeFile();        
+    };
+
+    if( CPG_modified && CPG_currentCodeFile !== "{{ .ControlBarNewFile }}" ) {
+       showModalYesNo({{ .ControlBarModalFileChanged }}, {{ .ControlBarModalFileChanged2 }}, function(yes) {
+            if( yes ) {
+                saveCodeFile(CPG_currentCodeFile, function() { newFile(); } ); 
+            } else {
+                newFile();
+            }
+        });
+
+        return false;
     }
 
-    sessionStorage.currentCodeFile = CPG_currentCodeFile = "{{ .ControlBarNewFile }}";
-
-    $("#control-bar-current-file").text(CPG_currentCodeFile);
-    $("#control-bar-input input").val(CPG_currentCodeFile);
-    liveEditor.editor.reset("");
-    CPG_modified = false;
-
-    storeCurrentCodeFile();
+    newFile();
 });
 
-var saveCodeFile = function(filename) {
+var saveCodeFile = function(filename, cb) {
     $("#control-bar-label").text("...");
     var code = liveEditor.editor.text();
     // Unbind any handlers this function may have set for previous
@@ -783,6 +1249,7 @@ var saveCodeFile = function(filename) {
             sessionStorage[filename] = JSON.stringify(CPG_codeFiles[filename]);
             fillButtonControl();
             CPG_modified = false;
+            if( cb ) cb(); // call callback function after saving the file
             $("#control-bar-label").text("{{ .ControlBarSaved }}").parent().removeClass("btn-primary").addClass("btn-success");
             $
             setTimeout(function() { 
@@ -845,6 +1312,11 @@ $("#control-bar-restart").on("click", function(e) {
 
 $("#logout-button").on("click", function(e) {
     localStorage.loginTime = 0;
+});
+
+$(".kuenste a").on("click tap", function(e) {
+    storeCurrentCodeFile();
+    CPG_modified = false;
 });
 
 window.onbeforeunload = function() {

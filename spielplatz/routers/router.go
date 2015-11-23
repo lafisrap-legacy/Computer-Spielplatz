@@ -23,6 +23,7 @@ func init() {
 	beego.Router("/logout", &controllers.LogoutController{})
 	beego.Router("/signup/?:dest", &controllers.SignupController{})
 	beego.Router("/live-editor", &controllers.LiveEditorController{})
+	beego.Router("/graphics-animation", &controllers.GraphicsController{})
 	beego.Router("/external/:file", &controllers.LiveEditorController{})
 
 	beego.SetStaticPath("/build", "bootstrap/live-editor/build")

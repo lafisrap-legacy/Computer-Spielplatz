@@ -24,6 +24,11 @@
         {{else}}
             <a href="/logout" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>        
         {{end}}
+        <ul class="nav nav-tabs kuenste">
+        {{range $i, $art := .Arts}}
+            <li><a href="{{$art.Page}}" class="btn btn-default btn-sm btn-{{ $i }}">{{$art.Name}}</a></li>
+        {{end}}                       
+        </ul>
     </div>
     <ul class="nav nav-tabs">
         <li id="nav-bar-images" rel="page-images" class="nav-bar-page"><a href="#">Bilder</a></li>

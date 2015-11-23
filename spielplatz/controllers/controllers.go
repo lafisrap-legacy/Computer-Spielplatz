@@ -63,9 +63,21 @@ type SignupController struct {
 }
 
 //////////////////////////////
+// SignupController serves the signup redirction page
+type CPGController struct {
+	beego.Controller
+}
+
+//////////////////////////////
 // LiveEditorController brings the Khan-Academy Live-Editor to life
 type LiveEditorController struct {
-	beego.Controller
+	CPGController
+}
+
+//////////////////////////////
+// GraphicsController let the user handle graphics and animations
+type GraphicsController struct {
+	CPGController
 }
 
 //////////////////////////////
@@ -145,37 +157,30 @@ func setTitleData(data map[interface{}]interface{}) {
 	data["Arts"] = []models.Art{{
 		Name: T["arts_programming"],
 		Size: "lg",
-		File: "programmieren.html",
 		Page: "live-editor.html",
 	}, {
 		Name: T["arts_graphics"],
 		Size: "lg",
-		File: "grafik.html",
-		Page: "#",
+		Page: "graphics-animation.html",
 	}, {
 		Name: T["arts_sound"],
 		Size: "lg",
-		File: "sound.html",
 		Page: "#",
 	}, {
 		Name: T["arts_texts"],
 		Size: "lg",
-		File: "texte.html",
 		Page: "#",
 	}, {
 		Name: T["arts_gamedesign"],
 		Size: "lg",
-		File: "erfinden.html",
 		Page: "#",
 	}, {
 		Name: T["arts_controllers"],
 		Size: "lg",
-		File: "steuerung.html",
 		Page: "#",
 	}, {
 		Name: T["arts_hacking"],
 		Size: "lg",
-		File: "hacken.html",
 		Page: "#",
 	}}
 	data["LoginLogin"] = T["login_login"]
@@ -399,6 +404,7 @@ func (c *LiveEditorController) Get() {
 		c.Data["ControlBarModalAlreadyOpenP"] = T["control_bar_modal_already_open_p"]
 		c.Data["ControlBarModalCodefileTitle"] = T["control_bar_modal_codefile_title"]
 		c.Data["ControlBarModalFileChanged"] = T["control_bar_modal_file_changed"]
+		c.Data["ControlBarModalFileChanged2"] = T["control_bar_modal_file_changed_2"]
 		c.Data["ControlBarModalDelete"] = T["control_bar_modal_delete"]
 		c.Data["ControlBarModalCancel"] = T["control_bar_modal_cancel"]
 		c.Data["ControlBarModalOpen"] = T["control_bar_modal_open"]
@@ -409,11 +415,13 @@ func (c *LiveEditorController) Get() {
 
 		c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
 
+		setTitleData(c.Data)
+
 		c.TplNames = "live-editor.html"
 	}
 }
 
-func (c *LiveEditorController) getImageInfo(userName string) string {
+func (c *CPGController) getImageInfo(userName string) string {
 	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::imagefiles")
 	imageInfo := make([]imageGroup, 0, 21)
 
@@ -453,7 +461,7 @@ func (c *LiveEditorController) getImageInfo(userName string) string {
 	}
 }
 
-func (c *LiveEditorController) getSoundInfo(userName string) string {
+func (c *CPGController) getSoundInfo(userName string) string {
 	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::soundfiles")
 	soundInfo := make([]soundGroup, 0, 21)
 
@@ -521,6 +529,37 @@ func (c *LiveEditorController) StartSession() session.SessionStore {
 func (c *LiveEditorBuildController) Get() {
 	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
 	c.TplNames = "live-editor/build/js/" + c.Ctx.Input.Param(":file")
+}
+
+//////////////////////////////////////////////////////////
+// GraphicsController
+//
+// Get
+func (c *GraphicsController) Get() {
+	T := models.T
+	s := c.StartSession()
+	userName := ""
+	userNameForImages := "Admin"
+
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+		userNameForImages = userName
+	}
+
+	c.Data["AllImages"] = c.getImageInfo(userNameForImages)
+	c.Data["OutputSounds"] = c.getSoundInfo(userNameForImages)
+	c.Data["UserNameForImages"] = userNameForImages
+
+	c.Data["UserName"] = userName
+	c.Data["LoginTime"] = s.Get("LoginTime")
+	c.Data["LoginLogin"] = T["login_login"]
+	c.Data["LoginSignup"] = T["login_signup"]
+	c.Data["LoginLogout"] = T["login_logout"]
+
+	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
+
+	setTitleData(c.Data)
+	c.TplNames = "graphics-animation.html"
 }
 
 /////////////////////////////////////////////////////////////

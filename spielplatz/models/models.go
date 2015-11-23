@@ -30,7 +30,6 @@ type UserForm struct {
 type Art struct {
 	Name string
 	Size string
-	File string
 	Page string
 }
 

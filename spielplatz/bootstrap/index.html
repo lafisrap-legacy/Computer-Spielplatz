@@ -10,21 +10,14 @@
 <script src="static/js/jquery-2.1.4.min.js"></script>
 <script src="static/js/bootstrap.min.js"></script>
 <script src="static/js/processing.js"></script>
+<script src="static/js/cpg-sessions.js"></script>
 </head>
 <body>
 <div class="container" style="height: 1024px;">
     <canvas id="canvas" style="position: absolute; top: 0px; left:0; z-index: 10; pointer-events:none;"></canvas>
   <script>
-    ///////////////////////////////////////////////////////////////
-    // Check if user changed (logged in or out) and reload page if necessary
-    if( sessionStorage.loginTime !== "{{ .LoginTime }}") {
-        localStorage.loginTime = sessionStorage.loginTime = "{{ .LoginTime }}";
-    }
-    $(window).focus(function(e) {
-        // Look if another Tab or window logged out (and maybe in again) in the meantime
-        if( sessionStorage.loginTime !== localStorage.loginTime ) location.reload(); 
-    });
-
+    refreshSession("{{ .LoginTime }}");
+    
     var canvas = document.getElementById("canvas");
     var processing = new Processing(canvas, function(processing) {
         processing.size(1140, 800);
@@ -404,23 +397,6 @@
     });
     
     setTimeout(function() {
-        $(".btn-1").on("click", function(e) {
-            processing.sbText = "Grafik & Animation gibt es noch nicht. Hier wirst du bewegte Bilder für deine und andere Spiele machen können.";
-            processing.sbX = 500;
-            processing.sbY = 120;
-            processing.sbW = 450;
-            processing.sbH = 280;
-            processing.sbFS = 25;
-            processing.sbX1 = 180;
-            processing.sbY1 = 90;
-            processing.sbX2 = 260;
-            processing.sbY2 = 50;
-            processing.sbShow = true;
-
-            e.stopPropagation();
-            e.preventDefault();
-        });        
-
         $(".btn-2").on("click", function(e) {
             processing.sbText = "Sound & Musik! Hier wirst du Sounds und Musik für deine Spiele finden, oder für andere welche machen. ";
             processing.sbX = 600;
