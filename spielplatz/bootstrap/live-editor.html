@@ -1036,8 +1036,8 @@ var selectFilename = function(input) {
 
 //////////////////////////////////////////
 // WS.connect connects to server and loads code files
-$WS.connect("ws://localhost:8081/socket", "{{ .xsrfdata }}", function() {
-//$WS.connect("ws://192.168.0.177:8081/socket", "{{ .xsrfdata }}", function() {
+//$WS.connect("ws://localhost:8081/socket", "{{ .xsrfdata }}", function() {
+$WS.connect("ws://192.168.0.177:8081/socket", "{{ .xsrfdata }}", function() {
 
     if( "{{ .UserName }}" === "" ) {
         
