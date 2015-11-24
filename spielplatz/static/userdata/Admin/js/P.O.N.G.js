@@ -1,4 +1,4 @@
-  ///////////////////////////////////////////////
+///////////////////////////////////////////////
 // Spielsystem
 var currentScene = null;
 (function() {
@@ -206,11 +206,11 @@ Tooor.init = function(Schütze) {
     Tooor.Zähler = 4;
     Tooor.Schütze = Schütze;
     if( Schütze === "Rob" ) {
-        Figuren.Gefühl1 = 1;
-        Figuren.Gefühl2 = 2;
-    } else {
         Figuren.Gefühl1 = 2;
-        Figuren.Gefühl2 = 1;
+        Figuren.Gefühl2 = 4;
+    } else {
+        Figuren.Gefühl1 = 4;
+        Figuren.Gefühl2 = 2;
     }
 };
 
@@ -241,7 +241,13 @@ Tooor.draw = function(isPaused) {
                 Figuren.resume();
                 Spielfeld.resume();
             }
-        }
+        } else if( Tooor.Zähler < 3 ) {
+            if( Tooor.Schütze === "Rob" ) {
+                Figuren.Gefühl1 = 3;
+            } else {
+                Figuren.Gefühl2 = 3;
+            }
+        }   
     }
 };
 
@@ -253,16 +259,16 @@ Gewonnen.init = function(Schütze) {
         Gewonnen.gr = "gr1";
         Gewonnen.xInc = (200-Figuren.x1)/60; 
         Gewonnen.yInc = (200-Figuren.y1)/60; 
-        Figuren.Gefühl1 = 1;
-        Figuren.Gefühl2 = 2;
+        Figuren.Gefühl1 = 3;
+        Figuren.Gefühl2 = 4;
     } else {
         Gewonnen.x = "x2";
         Gewonnen.y = "y2";
         Gewonnen.gr = "gr2";
         Gewonnen.xInc = (200-Figuren.x2)/60; 
         Gewonnen.yInc = (200-Figuren.y2)/60; 
-        Figuren.Gefühl1 = 2;
-        Figuren.Gefühl2 = 1;
+        Figuren.Gefühl1 = 4;
+        Figuren.Gefühl2 = 3;
     }   
 };
 
@@ -284,10 +290,14 @@ Gewonnen.keyPressed = function() {
 };
 
 var Figuren = SpielSzene.addLayer(1,{
-        Fred:  [getImage("Spielplatz/Fred_anpackend"),
+        Fred:  [getImage("Spielplatz/Fred_stehend"),
+                getImage("Spielplatz/Fred_anpackend"),
+                getImage("Spielplatz/Fred_Yeah"),
                 getImage("Spielplatz/Fred_lächelnd"),
                 getImage("Spielplatz/Fred_wütend")],
         Rob:   [getImage("Spielplatz/Rob_cool"),
+                getImage("Spielplatz/Rob_cool"),
+                getImage("Spielplatz/Rob_cool"),
                 getImage("Spielplatz/Rob_cool"),
                 getImage("Spielplatz/Rob_cool")],
         Ball: getImage("Spielplatz/BlauerBall"),
@@ -363,6 +373,14 @@ Figuren.draw = function(isPaused) {
         Figuren.y2 =constrain(Figuren.y2+Figuren.dY2,Figuren.BallGr/2,400-Figuren.BallGr/2);
         Figuren.bx =constrain(Figuren.bx+Figuren.dBx,Figuren.BallGr/2,400-Figuren.BallGr/2);
         Figuren.by =constrain(Figuren.by+Figuren.dBy,Figuren.BallGr/2,400-Figuren.BallGr/2);
+
+        if( Figuren.bx < 200 && Figuren.Gefühl1 < 2 ) {
+            Figuren.Gefühl1 = 1;
+            Figuren.Gefühl2 = 0;
+        } else {
+            Figuren.Gefühl1 = 0;
+            Figuren.Gefühl2 = 1;
+        }
     }
 };
 

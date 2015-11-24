@@ -1,30 +1,26 @@
-var x = 261,
-    y = 200,
-    dy = 0,
-    höhe = 78,
-    breite = 119,
-    pling = getSound("Spielplatz/Metallscheibe");
 
+
+var ludmilla = function() {
+    
+    // Kopf
+    fill(255);
+    ellipse(0, 0, 120, 180);
+    
+    // Augen
+    ellipse(-20, -22, 30, 20);
+    ellipse(20, -22, 30, 20);
+    
+    fill(13, 1, 1);
+    ellipse(-20, -22, 15, 15);
+    ellipse(20, -22, 15, 15);
+};
 
 
 var draw = function() {
     
-    background(255);
-    
-    x = x + (mouseX-x)/50;
-    //y = y + (mouseY-y)/50;
-    
-    stroke(255, 0, 0);
-    fill(252, 242, 245);
-    ellipse(x, y, breite, höhe);
-    
-    y = y + dy;
-    
-    
-    if( y > 400-höhe/2 || y < höhe/2 ) {
-        dy = -dy;
-        playSound(pling);
-    } else {
-        dy += 0.3;
-    }
 };
+
+
+
+translate(200, 200);
+ludmilla();

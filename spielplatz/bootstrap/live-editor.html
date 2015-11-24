@@ -93,7 +93,7 @@
         {{else}}
             <a href="/logout" id="logout-button" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>        
         {{end}}
-        <ul class="nav nav-tabs kuenste">
+        <ul class="nav nav-tabs kuenste" style="display:none;">
         {{range $i, $art := .Arts}}
             <li><a href="{{$art.Page}}" class="btn btn-default btn-sm btn-{{ $i }}">{{$art.Name}}</a></li>
         {{end}}                       
