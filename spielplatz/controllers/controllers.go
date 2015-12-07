@@ -157,11 +157,11 @@ func setTitleData(data map[interface{}]interface{}) {
 	data["Arts"] = []models.Art{{
 		Name: T["arts_programming"],
 		Size: "lg",
-		Page: "live-editor.html",
+		Page: "live-editor",
 	}, {
 		Name: T["arts_graphics"],
 		Size: "lg",
-		Page: "graphics-animation.html",
+		Page: "graphics-animation",
 	}, {
 		Name: T["arts_sound"],
 		Size: "lg",

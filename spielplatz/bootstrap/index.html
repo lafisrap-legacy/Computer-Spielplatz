@@ -45,8 +45,11 @@
         processing.keyPressed = function () { keyIsPressed = true; };
         processing.keyReleased = function () { keyIsPressed = false; };
 
+        function getSound() {
+        }
+
         function getImage(s) {
-            var url = "https://www.kasandbox.org/programming-images/" + s + ".png";
+            var url = "http://c2064/schm9/bilder/" + s + ".png";
             processing.externals.sketch.imageCache.add(url);
             return processing.loadImage(url);
         }

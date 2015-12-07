@@ -24,6 +24,8 @@ var Layer = function(zIndex, images, sounds) {
     };
     
     this.show = function(options) {
+        debug("Hello! 2");
+
         this.isVisible = true;
         this.isPaused = false;
         if( this.init ) {
@@ -135,56 +137,25 @@ TitelSzene.init = function() {
 var Titel = TitelSzene.addLayer(0, {
         // Liste der verwendeten Bilder
         Kaktus1: getImage("Spielplatz/Kaktus1"),
-        Kaktus2: getImage("Spielplatz/Kaktus2"),
-        Spinne: getImage("Spielplatz/Spinne"),
     },{
         // Liste der verwendeten Sounds
         Klingel: getSound("Spielplatz/Türglocke"),
     });
 
 Titel.init = function() {
-    Titel.x = 600;
-    Titel.dx = -10;
-    Titel.ux = -100;
-    Titel.dux = 5;
-    Titel.Größe = 0;
-    Titel.uFarbe = color(3, 0, 3);
-    Titel.SpinneY = -250;
 };
 
 Titel.draw = function(isPaused) {
-    background(148, 212, 242);
+    background(205, 234, 247);
     fill(74, 15, 74);
-    textSize(Titel.Größe);
-    text("Ein Spiel", Titel.x, 170); 
-    fill(Titel.uFarbe);
+    textSize(70);
+    text("Ein Spiel", 200, 170); 
+    fill(54, 11, 54);
     textSize(25);
-    image(Titel.images.Kaktus1, 340,325, 90, 150);
-    
-    strokeWeight(2);
-    stroke(0);
-    line(82, Titel.SpinneY, 82, 0 );
-    image(Titel.images.Spinne, 80, Titel.SpinneY, 50, 50);
-    
-    if( !isPaused ) {
-        text("Drücke eine Taste ...", Titel.ux, 235); 
 
-        Titel.x += Titel.dx;
-        if( Titel.x <= 200 ) {
-            Titel.dx = 0;
-        }
-        Titel.ux += Titel.dux;
-        if( Titel.ux >= 200 ) {
-            Titel.dux = 0;
-        }
-        Titel.SpinneY += 2;
-        if( Titel.SpinneY >= 125 ) {
-            Titel.SpinneY = 125;
-        }
-        Titel.Größe+=0.9;
-        if( Titel.Größe > 70 ) {
-            Titel.Größe = 70;
-        }
+    if( !isPaused ) {
+        text("Drücke eine Taste ...", 200, 235); 
+
     }
 };
 
@@ -216,31 +187,25 @@ SpielSzene.init = function() {
 };
 
 var Spielfeld = SpielSzene.addLayer(0,{
-        Spinne: getImage("Spielplatz/Spinne"),
+        Rob: getImage("Spielplatz/Rob_entspannt"),
     },{
         Tooor: getSound("Spielplatz/Schlagzeug"),
     });
 
 Spielfeld.init = function() {
-    Spielfeld.x = random(50,350);
-    Spielfeld.y = 0;
-    Spielfeld.dy = 1;
+    Spielfeld.x = 0;
+    Spielfeld.y = random(100,300);
 };
 
 Spielfeld.draw = function(isPaused) {
     if( !isPaused ) {
         noStroke();
+    
+        ellipse(Spielfeld.x, Spielfeld.y, 40, 40);
         
-        translate(Spielfeld.x, Spielfeld.y);
-        //scale(0.5);
-        //rotate(0);
-        fill(0);
-        ellipse(0,0,50,50);
-        resetMatrix();
-            
-        Spielfeld.y += Spielfeld.dy;
-            
-        if( Spielfeld.y > 400 ) {
+        Spielfeld.x += 5;
+        
+        if( Spielfeld.x > 400 ) {
             Spielfeld.pause();
             Verloren.show();
         }
@@ -254,7 +219,7 @@ Spielfeld.keyReleased = function() {
 };
 
 Spielfeld.mousePressed = function() {
-    if( dist(mouseX, mouseY, Spielfeld.x, Spielfeld.y) < 25) {
+    if( dist(mouseX, mouseY, Spielfeld.x, Spielfeld.y) < 20) {
         Spielfeld.pause();
         Gewonnen.show();
     }
@@ -266,13 +231,13 @@ Spielfeld.mouseMoved = function() {
 Spielfeld.mouseReleased = function() {
 };
 
+
 var Gewonnen = SpielSzene.addLayer(2);
 
 Gewonnen.init = function() {
 };
 
 Gewonnen.draw = function(isPaused) {
-    fill(62, 145, 29);
     textSize(50);
     text("Gewonnen!", 200, 200);
 };
@@ -300,7 +265,6 @@ Verloren.init = function() {
 };
 
 Verloren.draw = function(isPaused) {
-    fill(255, 0, 0);
     textSize(50);
     text("Verloren ...", 200, 200);
 };

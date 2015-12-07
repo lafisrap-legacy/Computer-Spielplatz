@@ -532,6 +532,131 @@
 </ul>
 <div>
 <h2></h2>
+<h2>Code-Schnipsel 2 "Spinne (gedreht) statt Ellipse"</h2>
+<code>
+<pre>
+Spielfeld.draw = function(isPaused) {
+    if( !isPaused ) {
+        noStroke();
+
+        // Folgende vier Zeilen einfügen    
+        translate(Spielfeld.x, Spielfeld.y);
+        rotate(90);
+        image(Spielfeld.images.Spinne, 0, 0, 40, 40);
+        resetMatrix();
+        
+        Spielfeld.x += 5;
+        
+        if( Spielfeld.x > 400 ) {
+            Spielfeld.pause();
+            Verloren.show();
+        }
+    }
+};
+</pre>
+</code>
+<h2>Code-Schnipsel 1 "Ludmilla statt Ellipse"</h2>
+<code>
+<pre>
+
+var ludmilla = function(farbe) {
+    
+    // Kopf
+    fill(255);
+    strokeWeight(1);
+    stroke(0);
+    rect(0, -2, 110, 206, 60);
+    
+    // Augen
+    ellipse(-24, -26, 37, 19);
+    ellipse(20, -27, 36, 23);
+    fill(13, 7, 7);
+    ellipse(20, -27, 12, 12);
+    ellipse(-24, -27, 12, 12);
+    
+    // Augenbrauen
+    noFill();
+    arc(-24, -33, 37, 19, 225, 315);
+    arc(20, -34, 36, 23, 225, 315);
+    
+    // Nase
+    strokeWeight(4);
+    line(0,0,3,24);
+    
+    // Mund
+    noFill();
+    stroke(255, 0, 0);
+    strokeWeight(4);
+    arc(0, 30, 70, 73, 45, 135);
+    
+    // Hut
+    translate(12, -86);
+    rotate(17);
+    fill(farbe);
+    stroke(color(red(farbe)-30,green(farbe)-30,blue(farbe)-30));
+    ellipse(0, 0, 195, 40);
+    noStroke();
+    rect(0, -31, 80, 48);
+    stroke(color(red(farbe)-30,green(farbe)-30,blue(farbe)-30));
+    strokeWeight(1);
+    arc(0, 0, 60, 11,18,172);
+    resetMatrix();
+};
+
+Spielfeld.draw = function(isPaused) {
+    if( !isPaused ) {
+        noStroke();
+
+        // Die Folgenden vier Zeilen integrieren Ludmilla    
+        translate(Spielfeld.x, Spielfeld.y);
+        scale(0.5);
+        ludmilla(color(255, 0, 0));
+        resetMatrix();
+        
+        Spielfeld.x += 5;
+        
+        if( Spielfeld.x > 400 ) {
+            Spielfeld.pause();
+            Verloren.show();
+        }
+    }
+};
+
+</pre>
+</code>
+<h2>Ellipsen-Schweif</h2>
+<code>
+<pre>
+
+var xa = [],
+    ya = [],
+    n = 10;
+    
+for( var i=0 ; i < n ; i++ ) {
+    xa[i] = 200;
+    ya[i] = 200;
+}
+
+var draw = function() {
+    background(255);
+    
+    for( var i=0 ; i < n ; i++ ) {
+        if( i===0 ) {
+            xa[i] += (mouseX-xa[i])/10;
+            ya[i] += (bmouseY-ya[i])/10;
+        } else {
+            xa[i] += (xa[i-1]-xa[i])/10;
+            ya[i] += (ya[i-1]-ya[i])/10;
+        }
+        
+        fill(255, 0, 0, 255-i*255/n);
+        stroke(128, 0, 0, 255-i*255/n);
+        ellipse(xa[i], ya[i], 20, 20);
+    }
+};
+
+</pre>
+</code>
 <h2>Rahmen für Animation von Figuren</h2>
 <code>
 <pre>
@@ -568,30 +693,120 @@ var draw = function() {
 };
 </pre>
 </code>
-<h2>Code von heute</h2>
+<h2>Sonnensystem</h2>
 <code>
 <pre>
 
-var a = 123,
-    b = 124,
-    c = a / b,
-    x = 200,
-    bild = getImage("Spielplatz/Oskar");
 
-var draw1 = function() {
-    background(255);
 
-    x = mouseX;
+var Sonne = {
+    Durchmesser     : 80,
+    Mutter          : null,
+    Farbe           : color(204, 172, 14),
+    Umlaufbahn      : 0,
+    Geschwindigkeit : 0.2,
+    Winkel          : 0,
+    x               : 0,
+    y               : 0,
+    Name            : "Sonne"
+};
 
-    fill(255, 0, 0);
-    text(c, x, 10);
+var Erde = {
+    Durchmesser     : 10,
+    Mutter          : Sonne,
+    Farbe           : color(38, 38, 224),
+    Umlaufbahn      : 80,
+    Geschwindigkeit : 0.2,
+    Winkel          : 0,
+    Name            : "Erde"
+};
+
+var Mond = {
+    Durchmesser     : 3,
+    Mutter          : Erde,
+    Farbe           : color(133, 133, 153),
+    Umlaufbahn      : 15,
+    Geschwindigkeit : -2.0,
+    Winkel          : 0,
+    Name            : "Mond"
+};
+
+var Mars = {
+    Durchmesser     : 8,
+    Mutter          : Sonne,
+    Farbe           : color(115, 7, 28),
+    Umlaufbahn      : 150,
+    Geschwindigkeit : -0.2,
+    Winkel          : 0,
+    Name            : "Mars"
 };
 
 
+var Planeten = [Sonne, Erde, Mond, Mars];
+
+textAlign(CENTER, CENTER);
+translate(200,200);
+
+var t1 = "Hello!";
+
 var draw = function() {
-    draw1();
+    background(0);
     
-    image(bild, x, 100);
+    for( var i=0 ; i < Planeten.length ; i++ ) {
+        var planet = Planeten[i];
+        
+        planet.x = 0;
+        planet.y = 0;
+        
+        if( planet.Mutter !== null ) {
+            planet.x = planet.Mutter.x + 
+                    cos(planet.Winkel)*planet.Umlaufbahn;
+            planet.y = planet.Mutter.y + 
+                    sin(planet.Winkel)*planet.Umlaufbahn;
+        }
+    
+        fill(planet.Farbe);
+        ellipse(planet.x, planet.y, 
+                planet.Durchmesser, planet.Durchmesser);
+                
+        planet.Winkel += planet.Geschwindigkeit;
+        
+        if( keyIsPressed ) {
+            text(planet.Name, planet.x, planet.y -20);
+        }
+    }
+    
+    fill(0);
+    //text(key.code, 0, 0);
+};
+
+
+var keyPressed = function() {
+
+    if( key.code === 96 + 13 ) {
+        Mond.Geschwindigkeit = -Mond.Geschwindigkeit;
+    }
+    
+    if( key.code === 96 + 5 ) {
+        Erde.Geschwindigkeit = -Erde.Geschwindigkeit;
+    }
+};
+
+
+var mousePressed = function() {
+
+    for( var i=0 ; i < Planeten.length ; i++ ) {
+        var planet = Planeten[i];
+        
+        if( dist( mouseX-200, mouseY-200, planet.x, planet.y) < 
+                planet.Durchmesser/2 ) {
+
+            planet.Farbe = color(random(0,255), 
+                                random(0,255), 
+                                random(0,255)
+            );
+        }
+    }    
 };
 
 </pre>
@@ -1036,8 +1251,8 @@ var selectFilename = function(input) {
 
 //////////////////////////////////////////
 // WS.connect connects to server and loads code files
-//$WS.connect("ws://localhost:8081/socket", "{{ .xsrfdata }}", function() {
-$WS.connect("ws://192.168.0.177:8081/socket", "{{ .xsrfdata }}", function() {
+$WS.connect("ws://localhost:8081/socket", "{{ .xsrfdata }}", function() {
+//$WS.connect("ws://192.168.0.177:8081/socket", "{{ .xsrfdata }}", function() {
 
     if( "{{ .UserName }}" === "" ) {
         

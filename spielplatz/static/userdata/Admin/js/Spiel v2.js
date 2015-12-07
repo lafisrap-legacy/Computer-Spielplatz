@@ -159,7 +159,7 @@ Titel.draw = function(isPaused) {
     text("Ein Spiel", Titel.x, 170); 
     fill(Titel.uFarbe);
     textSize(25);
-    image(Titel.images.Kaktus1, 340,325, 90, 150);
+    image(Titel.images.Kaktus1, 340,325, 120, 150);
     
     strokeWeight(2);
     stroke(0);
@@ -217,32 +217,49 @@ SpielSzene.init = function() {
 
 var Spielfeld = SpielSzene.addLayer(0,{
         Spinne: getImage("Spielplatz/Spinne"),
+        Kakteen: getImage("Spielplatz/Kakteen"),
     },{
         Tooor: getSound("Spielplatz/Schlagzeug"),
     });
 
 Spielfeld.init = function() {
-    Spielfeld.x = random(50,350);
-    Spielfeld.y = 0;
-    Spielfeld.dy = 1;
+    Spielfeld.x = [];
+    Spielfeld.y = [];
+    Spielfeld.dy = [];
+    Spielfeld.Buchstabe = [];
+    Spielfeld.Wort = "Hundertwasser";
+    Spielfeld.n = 10;
+    for( var i=0 ; i<10 ; i++ ) {
+        Spielfeld.x[i] = random(100,300);
+        Spielfeld.y[i] = -50-i*20;
+        Spielfeld.dy[i] = random(0.05,0.6);
+        Spielfeld.Buchstabe[i] = Spielfeld.Wort[floor(random(0,Spielfeld.Wort.length))];
+    }
 };
 
 Spielfeld.draw = function(isPaused) {
     if( !isPaused ) {
         noStroke();
         
-        translate(Spielfeld.x, Spielfeld.y);
-        //scale(0.5);
-        //rotate(0);
-        fill(0);
-        ellipse(0,0,50,50);
-        resetMatrix();
+        image(Spielfeld.images.Kakteen, 200, 350);
+    
+        for( var i=0 ; i < Spielfeld.n ; i++ ) {
+            translate(Spielfeld.x[i], Spielfeld.y[i]);
+            //scale(0.5);
+            //rotate(0);
+            fill(0);
+            ellipse(0,0,50,50);
+            fill(255);
+            textSize(30);
+            text(Spielfeld.Buchstabe[i],0,0);
+            resetMatrix();
             
-        Spielfeld.y += Spielfeld.dy;
+            Spielfeld.y[i] += Spielfeld.dy[i];
             
-        if( Spielfeld.y > 400 ) {
-            Spielfeld.pause();
-            Verloren.show();
+            if( Spielfeld.y[i] > 400 ) {
+                Spielfeld.pause();
+                Verloren.show();
+            }
         }
     }
 };
@@ -254,9 +271,11 @@ Spielfeld.keyReleased = function() {
 };
 
 Spielfeld.mousePressed = function() {
-    if( dist(mouseX, mouseY, Spielfeld.x, Spielfeld.y) < 25) {
-        Spielfeld.pause();
-        Gewonnen.show();
+    for( var i=0 ; i < Spielfeld.n ; i++ ) {
+        if( dist(mouseX, mouseY, Spielfeld.x[i], Spielfeld.y[i]) < 25) {
+            Spielfeld.pause();
+            Gewonnen.show();
+        }
     }
 };
 

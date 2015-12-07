@@ -27,8 +27,6 @@ var Layer = function(zIndex, images, sounds) {
         this.isVisible = true;
         this.isPaused = false;
         if( this.init ) {
-            debug("Hello! 3");
-
             this.init(options);
         }
     };
@@ -156,7 +154,7 @@ Titel.draw = function(isPaused) {
     background(148, 212, 242);
     fill(74, 15, 74);
     textSize(Titel.Größe);
-    text("Ein Spiel", Titel.x, 170); 
+    text("Sprich.Wort!", Titel.x, 170); 
     fill(Titel.uFarbe);
     textSize(25);
     image(Titel.images.Kaktus1, 340,325, 90, 150);
@@ -216,35 +214,83 @@ SpielSzene.init = function() {
 };
 
 var Spielfeld = SpielSzene.addLayer(0,{
-        Spinne: getImage("Spielplatz/Spinne"),
+        Kakteen: getImage("Spielplatz/Kakteen"),
     },{
         Tooor: getSound("Spielplatz/Schlagzeug"),
     });
 
 Spielfeld.init = function() {
-    Spielfeld.x = random(50,350);
-    Spielfeld.y = 0;
-    Spielfeld.dy = 1;
+    Spielfeld.Text = "Der ----- fällt nicht weit vom -----!";
+    Spielfeld.Lösung ="ApfelStamm";
+    Spielfeld.gelöst = 0;
+    Spielfeld.x = [];
+    Spielfeld.y = [];
+    Spielfeld.Größe = [];
+    Spielfeld.dy = [];
+    Spielfeld.Farbe = [];
+    Spielfeld.Buchstabe = [];
+    Spielfeld.n = 10;
+    for( var i=0 ; i < Spielfeld.n ; i++ ) {
+        Spielfeld.x[i] = random(50,350);
+        Spielfeld.y[i] = 50-i*40;
+        Spielfeld.Größe[i] = random(40,60);
+        Spielfeld.dy[i] = random(0.1,0.4);
+        Spielfeld.Farbe[i] = color(random(128,255),50,40);
+        Spielfeld.Buchstabe[i] = Spielfeld.Lösung.substr(random(0,Spielfeld.Lösung.length),1);
+    }
 };
 
 Spielfeld.draw = function(isPaused) {
+    background(210, 250, 250);
+    image(Spielfeld.images.Kakteen, 200, 290);
+    fill(255, 255, 15);
+    noStroke();
+    rect(200,375,400,50);
     if( !isPaused ) {
         noStroke();
         
-        translate(Spielfeld.x, Spielfeld.y);
-        //scale(0.5);
-        //rotate(0);
-        fill(0);
-        ellipse(0,0,50,50);
-        resetMatrix();
-            
-        Spielfeld.y += Spielfeld.dy;
-            
-        if( Spielfeld.y > 400 ) {
-            Spielfeld.pause();
-            Verloren.show();
+        for( var i=0 ; i < Spielfeld.n ; i++ ) {
+            translate(Spielfeld.x[i], Spielfeld.y[i]);
+            fill(Spielfeld.Farbe[i]);
+            ellipse(0,0,Spielfeld.Größe[i],Spielfeld.Größe[i]);
+            fill(0);
+            textSize(25);
+            text(Spielfeld.Buchstabe[i],0,0);
+            resetMatrix();
+                
+            Spielfeld.y[i] += Spielfeld.dy[i];
+                
+            if( Spielfeld.y[i] > 320 ) {
+                
+                if( Spielfeld.Buchstabe[i] === Spielfeld.Lösung.substr(0,1) ) {
+                    debug(Spielfeld.Buchstabe[i]+" === "+Spielfeld.Lösung.substr(0,1));
+                    var bs = Spielfeld.Lösung[0],
+                        pos = Spielfeld.Text.search("-");
+                    debug("bs="+bs+", pos="+pos);                    
+                    Spielfeld.Text = Spielfeld.Text.substr(0,pos)+bs+Spielfeld.Text.substr(pos+1);
+                    Spielfeld.Lösung = Spielfeld.Lösung.substr(1);
+                    if( Spielfeld.Lösung.length === 0 ) {
+                        Spielfeld.pause();
+                        Gewonnen.show();
+                    }
+                } else {
+                    for( var i=0 ; i < Spielfeld.n ; i++ ) {
+                        Spielfeld.y[i] = -50-i*30;
+                        Spielfeld.Buchstabe[i] = Spielfeld.Lösung.substr(random(0,Spielfeld.Lösung.length),1);
+                    }
+                    break;
+                }
+                //Spielfeld.pause();
+                //Verloren.show();
+                Spielfeld.y[i] = -50;
+                Spielfeld.Buchstabe[i] = Spielfeld.Lösung.substr(random(0,Spielfeld.Lösung.length),1);
+            }
         }
     }
+    
+    fill(0);
+    textSize(25);
+    text(Spielfeld.Text,200,370);
 };
 
 Spielfeld.keyPressed = function() {
@@ -254,9 +300,18 @@ Spielfeld.keyReleased = function() {
 };
 
 Spielfeld.mousePressed = function() {
-    if( dist(mouseX, mouseY, Spielfeld.x, Spielfeld.y) < 25) {
-        Spielfeld.pause();
-        Gewonnen.show();
+    for( var i=0 ; i < Spielfeld.n ; i++ ) {
+        if( dist(mouseX, mouseY, Spielfeld.x[i], Spielfeld.y[i]) < Spielfeld.Größe[i]/2) {
+            if( Spielfeld.Buchstabe[i] === Spielfeld.Lösung.substr(0,1) ) {
+                for( var i=0 ; i < Spielfeld.n ; i++ ) {
+                    Spielfeld.y[i] = -50-i*30;
+                    Spielfeld.Buchstabe[i] = Spielfeld.Lösung.substr(random(0,Spielfeld.Lösung.length),1);
+                }
+                break;
+            }
+            Spielfeld.y[i] = -50;
+            Spielfeld.Buchstabe[i] = Spielfeld.Lösung.substr(random(0,Spielfeld.Lösung.length),1);
+        }
     }
 };
 
