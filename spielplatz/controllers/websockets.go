@@ -218,6 +218,13 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 			imgFile *os.File
 			err     error
 		)
+		/////////////////////////////////////////
+		// Make sure the filename has an *.js-Ending
+		if fileNames[i][len(fileNames[i])-3:] != ".js" {
+			beego.Warning("Codefile should have a *.js suffix (" + fileNames[i] + ")")
+			fileNames[i] += ".js"
+		}
+
 		fileName := dir + fileNames[i]
 
 		/////////////////////////////////////////

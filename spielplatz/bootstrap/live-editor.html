@@ -1239,9 +1239,15 @@ var selectFilename = function(input) {
 
     input.fadeIn();
     input.focus();
-    var filename = input.val(),
-        startPos = 0,
-        endPos = filename.slice(-3) != ".js"? filename.length : filename.length-3;
+    var filename = input.val();
+
+    if( filename.slice(-3) != ".js" ) {
+        filename += ".js";
+        input.val(filename);
+    }
+
+    var startPos = 0,
+        endPos = filename.length-3;
 
     if (typeof input[0].selectionStart != "undefined") {
         input[0].selectionStart = startPos;
@@ -1483,6 +1489,11 @@ $("#control-bar-save").on('click', function(e) {
     if( filename === "{{ .ControlBarNewFile }}") {
         selectFilename(input);
     } else {
+        if( filename.slice(-3) != ".js" ) {
+            filename += ".js";
+            input.val(filename);
+        }
+
         saveCodeFile(filename);
         input.fadeOut();
     }
