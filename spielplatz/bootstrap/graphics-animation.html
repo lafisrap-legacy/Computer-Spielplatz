@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="static/css/spielplatz.css">
 <script src="static/js/jquery-2.1.4.js"></script>
 <script src="static/js/bootstrap.min.js"></script>
-<script src="static/js/processing.js"></script>
+<script src="static/js/paper.js"></script>
 <script src="static/js/cpg-sessions.js"></script>
 <script src="static/js/cpg-graphics-animation.js"></script>
 </head>
@@ -33,16 +33,21 @@
     <div class="pages">
         <div id="page-paper" class="page active">
             Paper-Mode
+            <canvas id="paperCanvas" width="400" height="400"></canvas>
         </div>
         <div id="page-animation" class="page">
             Animation-Mode
         </div>
     </div>
 </div>
+<div class="images">
+    <img id="fred" src="static/userdata/Admin/images/Spielplatz/Fred_Yeah.png" style="display:none;" />
+</div>
 <script>
 (function() {
   var a = $(".page-graphics-animation").removeClass("btn-default").addClass("btn-primary disabled");
 })();
 </script>
+<script src="static/js/cpg-paper.js" type="text/paperscript" canvas="paperCanvas"></script>
 </body>
 </html>
