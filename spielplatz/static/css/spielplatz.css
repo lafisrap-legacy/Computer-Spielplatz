@@ -108,6 +108,8 @@ body {
   margin: 5px;
 }
 
+.login-area .kuenste 
+
 #top-control-bar button,
 #bottom-control-bar button {
   margin: 5px;
@@ -233,6 +235,29 @@ body {
 #control-bar-caret {
   margin-left: 10px;
 }
+
+#page-paper {
+  background-color: #EDF1F2;
+}
+
+#paperCanvasWrapper {
+  width: 600px;
+  height: 600px;
+  margin: 10px;
+  float: left;
+  border: 1px solid grey;
+  background-image: url("../img/chess.png");
+}
+
+#viewCanvasWrapper {
+  width: 400px;
+  height: 400px;
+  margin: 10px;
+  width: 400px;
+  float: right;
+  border: 1px solid grey;
+}
+
 
 audio:hover, audio:focus, audio:active
 {
