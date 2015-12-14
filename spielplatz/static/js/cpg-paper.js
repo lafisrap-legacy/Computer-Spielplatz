@@ -2,36 +2,42 @@
 // cpg-paper.js contains the editor logic for the paper edit field
 // 
 
-///////////////////////////////////////////////////////
-// baseLayer is the layer that contains all objects that
-// are not part of an image
+var ImageLayer = Layer.extend({
+	_class: 'ImageLayer',
+	_serializeFields: {
+	},
 
+});
+
+var CropperOffset = new Point(100, 100);
 var Cropper = Base.extend({
 	_class: 'Cropper',
-	_minSize: new Size(20, 20),
+	_minSize: new Size(40, 40),
 	_maxSize: new Size(400, 400),
-	_offset: new Point(100, 100),
+	_offset: CropperOffset,
 	_margin: new Point(5,5),
-	_pos: null,
+	_point: null,
 	_size: null,
 	_area: null,
 	_rect: null,
 	_serializeFields: {
 
 	},
-	initialize: function() {
-		var self = this;
-		this._pos = pos = new Point(0,0);
-		this._size = size = this._maxSize;
+	initialize: function(rect) {
+		var self = this,
+			rect = rect || new Rectangle(new Point(0,0), this._maxSize);
+
+		this._point = point = rect.getPoint();
+		this._size = size = rect.getSize();
 		this._area = new CompoundPath({
 			children: [
 				new Path.Rectangle(new Point(0,0), view.bounds.size),
-				new Path.Rectangle(this._offset + pos, size),
+				new Path.Rectangle(this._offset + point, size),
 			],
 		  	fillColor: 'black',	
 		    opacity: 0.7,
 		});
-		this._rect = new Path.Rectangle(this._offset - this._margin + pos, size + this._margin*2);
+		this._rect = new Path.Rectangle(this._offset - this._margin + point, size + this._margin*2);
 		this._rect.strokeWidth = 10;
 		this._rect.strokeColor = "#aaa";
 		this._rect.opacity = 0.5;		
@@ -65,6 +71,9 @@ var Cropper = Base.extend({
 			areaCurves[i].point1 = areaPoints[i];
 			rectCurves[i].point1 = rectPoints[i];
 		}
+	},
+	getOffset: function() {
+		return this._offset;
 	}
 }, {
 	onMouseDrag: function(event) {
@@ -122,61 +131,53 @@ var Cropper = Base.extend({
 	}
 });
 
-var baseLayer = project.activeLayer;
-var baseCropper = new Cropper();
-
-
 
 ////////////////////////////////////////////////////////
 // Global functions
 
-//////////////////////////////////////////
-// init is called once at the beginning
-var init = function() {
-	var w = view.bounds.width,
-		h = view.bounds.height;
+if( sessionStorage.paperProject ) {
+	project.importJSON(sessionStorage.paperProject);
 
-	initCropper();
-};
+	var baseLayer = project.layers[project.layers.length-1],
+		cropperBounds = baseLayer.children[0].children[1].bounds;
 
-//////////////////////////////////////////
-// init is called once at the beginning
-var initCropper = function() {
+	baseLayer.removeChildren();	
+	baseLayer.activate();
+	
+	cropperBounds.point -= CropperOffset;
+	var baseCropper = new Cropper(cropperBounds);
+
+	project.layers[project.layers.length-2].activate();
+} else {
+	var baseLayer = project.activeLayer;
+	var baseCropper = new Cropper();
+	var activeLayer = new ImageLayer();
+	/*
+	var tmp = new Raster('fred');
+	raster = tmp.clone();
+	tmp.remove();
+	raster.position = view.center;
+	raster.scale(1);
+	raster.rotate(0);
+	raster.selected = false;
+	for( var i=0 ; i < 100 ; i++ ) for( var j=0 ; j < 100 ; j++ )
+		raster.setPixel(i,j,new Color(0,0,255));
+
+	for( var i=40 ; i < 60 ; i++ ) for( var j=40 ; j < 60 ; j++ )
+		raster.setPixel(i,j,new Color(0,0,0,0));
+	*/
 }
 
-var drawLayers = [],
-	currentLayer = 0;
-drawLayers[0] = new Layer();
-drawLayers[0].activate();
 
-var raster = new Raster('fred');
-raster.position = view.center;
-raster.scale(1);
-raster.rotate(0);
-raster.selected = false;
+baseLayer.bringToFront();
 
-drawLayers[0].visible = false;
-drawLayers[1] = new Layer();
-drawLayers[1].activate();
-currentLayer = 1;
-
-var raster = new Raster('fred');
-raster.position = view.center;
-raster.scale(1);
-raster.rotate(0);
-raster.selected = false;
-
-
-console.log(project.layers, projects);
-
+/*
 var hitOptions = {
 	segments: true,
 	stroke: true,
 	fill: true,
 	tolerance: 5
 };
-
-baseLayer.bringToFront();
 
 var segment, path;
 var movePath = false;
@@ -214,10 +215,14 @@ function onMouseDrag(event) {
 		path.position += event.delta;
 	}
 }
+*/
 
 function onMouseUp(event) {
 	console.log("Global: "+baseCropper.isDragging);
 	baseCropper.isDragging = false;
 }
 
-init();
+window.paperOnbeforeunload = function() {
+	sessionStorage.paperProject = project.exportJSON();
+}
+

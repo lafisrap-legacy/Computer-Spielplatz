@@ -1,7 +1,7 @@
 $(function fn() {
     fn.paper = {
       init: function() {
-      }
+      },
     };
 
     fn.animation = {
@@ -28,5 +28,12 @@ $(function fn() {
             $("#page-"+page).show();
             fn[page].init();
         }); 
+    }
+
+    window.onbeforeunload = function() {
+        for( pid in pages) {
+            var page = pages[pid]; 
+            if( window[page+"Onbeforeunload"] ) window[page+"Onbeforeunload"]();
+        }
     }
 });
