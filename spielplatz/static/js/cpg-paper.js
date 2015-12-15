@@ -230,6 +230,34 @@ var UndoManager = Base.extend({
 		this._reverseActions.length = this._actionPointer;
 	},
 
+	startTransaction: function(obj) {
+		// Currently only with Raster objects
+		if( obj.getClassName() !== "Raster" ) return;
+
+		this._transactionObject = obj;
+		this._transactionData = obj.getSubRaster(new Point(0,0), obj.size);
+		this._transactionData.remove();
+	},
+
+	commit: function(rect) {
+		// Currently only with Raster objects
+		if( !this._transactionData ) return;
+
+		rect = rect || this._transactionObject.bounds;
+
+		var lastObj = this._transactionData,
+			thisObj = this._transactionObject,
+			lastData = lastObj.getImageData(rect),
+			thisData = thisObj.getImageData(rect);
+
+		this._reverseActions[this._actionPointer] = function() {
+			thisObj.setImageData(lastData, rect.topLeft);
+		}
+		this._actions[this._actionPointer++] = function() {
+			thisObj.setImageData(thisData, rect.topLeft);
+		}
+	},
+
 	undo: function() {
 		if( this._actionPointer > 0 ) {
 			this._reverseActions[--this._actionPointer]();
