@@ -140,12 +140,16 @@ var Cropper = Base.extend({
 
 ////////////////////////////////////////////////////////
 // Global functions
-var Undoer = Base.extend({
-	_class: 'Undoer',
+var UndoManager = Base.extend({
+	_class: 'UndoManager',
 	
 	_actions: [],
 	_reverseActions: [],
 	_actionPointer: 0,
+
+	_transactionObject: null,
+	_transactionRect: null,
+	_transactionData: null,
 
 	_serializeFields: {
 
@@ -169,7 +173,7 @@ var Undoer = Base.extend({
 					obj[action] = param1;
 				}
 				break;
-				
+
 			case "Circle":
 				if( obj !== "Path") return
 
@@ -191,6 +195,34 @@ var Undoer = Base.extend({
 		return this._actions[this._actionPointer++]();
 	},
 
+	startTransaction: function(obj) {
+		// Currently only with Raster objects
+		if( obj.getClassName() !== "Raster" ) return;
+
+		this._transactionObject = obj;
+		this._transactionData = obj.getSubRaster(new Point(0,0), obj.size);
+		this._transactionData.remove();
+	},
+
+	commit: function(rect) {
+		// Currently only with Raster objects
+		if( !this._transactionData ) return;
+
+		rect = rect || this._transactionObject.bounds;
+
+		var lastObj = this._transactionData,
+			thisObj = this._transactionObject,
+			lastData = lastObj.getImageData(rect),
+			thisData = thisObj.getImageData(rect);
+
+		this._reverseActions[this._actionPointer] = function() {
+			thisObj.setImageData(lastData, rect.topLeft);
+		}
+		this._actions[this._actionPointer++] = function() {
+			thisObj.setImageData(thisData, rect.topLeft);
+		}
+	},
+
 	undo: function() {
 		if( this._actionPointer > 0 ) {
 			this._reverseActions[--this._actionPointer]();
@@ -208,7 +240,7 @@ var Undoer = Base.extend({
 
 ////////////////////////////////////////////////////////
 // Program startup
-var undo = new Undoer(); 
+var UM = new UndoManager(); 
 
 if( sessionStorage.paperProject ) {
 	project.importJSON(sessionStorage.paperProject);
@@ -233,44 +265,58 @@ if( sessionStorage.paperProject ) {
 	raster = tmp.clone();
 	tmp.remove();
 	raster.position = view.center;
-	raster.scale(1);
+	raster.scale(1.0);
 	raster.rotate(0);
 	raster.selected = false;
 
-	// Action 2
-	for( var i=0 ; i < 90 ; i++ ) for( var j=0 ; j < 90 ; j++ )
+	UM.startTransaction(raster);
+	for( var i=80 ; i < 100 ; i++ ) for( var j=80 ; j < 100 ; j++ )
+		raster.setPixel(i,j,new Color(1,1,0.5));
+	UM.commit(new Rectangle(80, 80, 20, 20));
+
+	UM.startTransaction(raster);
+	for( var i=100 ; i < 190 ; i++ ) for( var j=10 ; j < 100 ; j++ )
+		raster.setPixel(i,j,new Color(1,0,0.5));
+	UM.commit(new Rectangle(100, 10, 90, 90));
+
+	UM.startTransaction(raster);
+	for( var i=30 ; i < 120 ; i++ ) for( var j=0 ; j < 90 ; j++ )
 		raster.setPixel(i,j,new Color(0,0,0.5));
+	UM.commit(new Rectangle(30, 0, 90, 90));
 
-	// Action 3
-	for( var i=40 ; i < 60 ; i++ ) for( var j=40 ; j < 60 ; j++ )
-		raster.setPixel(i,j,new Color(0,0,0,0));
+	UM.startTransaction(raster);
+	for( var i=70 ; i < 90 ; i++ ) for( var j=40 ; j < 60 ; j++ )
+		raster.setPixel(i,j,new Color(0,1,1,0));
+	UM.commit(new Rectangle(30, 0, 90, 90));
 
-	// Action 4
-	debugger;
-	var circle1 = undo.execute( "Path", "Circle", new Point(250,150), 30 )
+	var circle1 = UM.execute( "Path", "Circle", new Point(250,150), 30 )
 	circle1.strokeColor = new Color(0,0,0,1);
-	var circle2 = undo.execute( "Path", "Circle", new Point(350,150), 30 )
+	var circle2 = UM.execute( "Path", "Circle", new Point(350,150), 30 )
 	circle2.strokeColor = new Color(0,0,0,1);
 
-	// Action 5
-	undo.execute( circle2, "strokeColor", new Color(0,1,0,1) );
+	UM.execute( circle2, "strokeColor", new Color(0,1,0,1) );
+	UM.execute( circle2, "strokeColor", 'red' );
+	UM.execute( circle2, "strokeWidth", 5 );
 
-	undo.execute( circle2, "strokeColor", 'red' );
+	//UM.undo();
+	//UM.undo();
+	//UM.undo();
+	//UM.undo();
+	//UM.undo();
+	//UM.undo();
+	//UM.undo();
+	//UM.undo();
+	//UM.undo();
 
-	// Action 6
-	undo.execute( circle2, "strokeWidth", 5 );
-
-	undo.undo();
-	undo.undo();
-	undo.undo();
-	undo.undo();
-	undo.undo();
-
-	undo.redo();
-	undo.redo();
-	undo.redo();
-	undo.redo();
-	//undo.redo();
+	//UM.redo();
+	//UM.redo();
+	//UM.redo();
+	//UM.redo();
+	//UM.redo();
+	//UM.redo();
+	//UM.redo();
+	//UM.redo();
+	//UM.redo();
 }
 
 baseLayer.bringToFront();
