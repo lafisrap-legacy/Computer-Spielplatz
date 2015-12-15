@@ -2,6 +2,9 @@
 // cpg-paper.js contains the editor logic for the paper edit field
 // 
 
+////////////////////////////////////////////////////////////////////////
+// ImageLayer is the base class for image files
+// 
 var ImageLayer = Layer.extend({
 	_class: 'ImageLayer',
 	_serializeFields: {
@@ -9,6 +12,9 @@ var ImageLayer = Layer.extend({
 
 });
 
+////////////////////////////////////////////////////////////////////////
+// Cropper is the cropping tool for the editor. It's part of the BaseLayer
+// 
 var CropperOffset = new Point(100, 100);
 var Cropper = Base.extend({
 	_class: 'Cropper',
@@ -134,6 +140,75 @@ var Cropper = Base.extend({
 
 ////////////////////////////////////////////////////////
 // Global functions
+var Undoer = Base.extend({
+	_class: 'Undoer',
+	
+	_actions: [],
+	_reverseActions: [],
+	_actionPointer: 0,
+
+	_serializeFields: {
+
+	},
+
+	initialize: function() {
+	},
+
+	execute: function(obj, action, param1, param2, param3, param4) {
+		switch(action) {
+			case "strokeWidth": 
+			case "strokeColor": 
+				var lastData = obj[action];
+				if( typeof lastData === "object" ) {
+					lastData = lastData.clone();
+				}
+				this._reverseActions[this._actionPointer] = function() {
+					obj[action] = lastData;
+				}
+				this._actions[this._actionPointer] = function() {
+					obj[action] = param1;
+				}
+				break;
+				
+			case "Circle":
+				if( obj !== "Path") return
+
+				var pathObject;
+				this._reverseActions[this._actionPointer] = function() {
+					pathObject.remove();
+				}
+				this._actions[this._actionPointer] = function() {
+					if( !pathObject ) {
+						pathObject = new Path[action](param1, param2, param3, param4);
+						pathObject.strokeColor = new Color(0,0,0,1);
+						return pathObject;
+					} else {
+						project.activeLayer.addChild( pathObject );
+					}
+				}
+		}
+
+		return this._actions[this._actionPointer++]();
+	},
+
+	undo: function() {
+		if( this._actionPointer > 0 ) {
+			this._reverseActions[--this._actionPointer]();
+		}
+	},
+
+	redo: function() {
+		if( this._actionPointer < this._actions.length ) {
+			this._actions[this._actionPointer++]();
+		}		
+	},
+});
+
+
+
+////////////////////////////////////////////////////////
+// Program startup
+var undo = new Undoer(); 
 
 if( sessionStorage.paperProject ) {
 	project.importJSON(sessionStorage.paperProject);
@@ -152,7 +227,8 @@ if( sessionStorage.paperProject ) {
 	var baseLayer = project.activeLayer;
 	var baseCropper = new Cropper();
 	var activeLayer = new ImageLayer();
-	/*
+
+	// Action 1	
 	var tmp = new Raster('fred');
 	raster = tmp.clone();
 	tmp.remove();
@@ -160,14 +236,42 @@ if( sessionStorage.paperProject ) {
 	raster.scale(1);
 	raster.rotate(0);
 	raster.selected = false;
-	for( var i=0 ; i < 100 ; i++ ) for( var j=0 ; j < 100 ; j++ )
-		raster.setPixel(i,j,new Color(0,0,255));
 
+	// Action 2
+	for( var i=0 ; i < 90 ; i++ ) for( var j=0 ; j < 90 ; j++ )
+		raster.setPixel(i,j,new Color(0,0,0.5));
+
+	// Action 3
 	for( var i=40 ; i < 60 ; i++ ) for( var j=40 ; j < 60 ; j++ )
 		raster.setPixel(i,j,new Color(0,0,0,0));
-	*/
-}
 
+	// Action 4
+	debugger;
+	var circle1 = undo.execute( "Path", "Circle", new Point(250,150), 30 )
+	circle1.strokeColor = new Color(0,0,0,1);
+	var circle2 = undo.execute( "Path", "Circle", new Point(350,150), 30 )
+	circle2.strokeColor = new Color(0,0,0,1);
+
+	// Action 5
+	undo.execute( circle2, "strokeColor", new Color(0,1,0,1) );
+
+	undo.execute( circle2, "strokeColor", 'red' );
+
+	// Action 6
+	undo.execute( circle2, "strokeWidth", 5 );
+
+	undo.undo();
+	undo.undo();
+	undo.undo();
+	undo.undo();
+	undo.undo();
+
+	undo.redo();
+	undo.redo();
+	undo.redo();
+	undo.redo();
+	//undo.redo();
+}
 
 baseLayer.bringToFront();
 
