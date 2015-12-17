@@ -2,6 +2,7 @@
 // cpg-paper.js contains the editor logic for the paper edit field
 // 
 
+
 ////////////////////////////////////////////////////////////////////////
 // ImageLayer is the base class for image files
 // 
@@ -20,31 +21,32 @@ var Cropper = Base.extend({
 	_class: 'Cropper',
 	_minSize: new Size(40, 40),
 	_maxSize: new Size(400, 400),
+	_areaRect: new Rectangle(0, 0, 600, 600),
 	_offset: CropperOffset,
-	_margin: new Point(5,5),
 	_point: null,
 	_size: null,
 	_area: null,
 	_rect: null,
+	_rectWidth: 10,
 	_serializeFields: {
 
 	},
 	initialize: function(rect) {
 		var self = this,
-			rect = rect || new Rectangle(new Point(0,0), this._maxSize);
+			rect = rect || new Rectangle(new Point(0, 0), this._maxSize);
 
 		this._point = point = rect.getPoint();
 		this._size = size = rect.getSize();
 		this._area = new CompoundPath({
 			children: [
-				new Path.Rectangle(new Point(0,0), view.bounds.size),
+				new Path.Rectangle(this._areaRect),
 				new Path.Rectangle(this._offset + point, size),
 			],
 		  	fillColor: 'black',	
 		    opacity: 0.7,
 		});
-		this._rect = new Path.Rectangle(this._offset - this._margin + point, size + this._margin*2);
-		this._rect.strokeWidth = 10;
+		this._rect = new Path.Rectangle(this._offset - this._rectWidth/2 + point, size + this._rectWidth);
+		this._rect.strokeWidth = this._rectWidth;
 		this._rect.strokeColor = "#aaa";
 		this._rect.opacity = 0.5;		
 		this._rect.onMouseMove 	= function(event) { self.onMouseMove(event); };
@@ -80,7 +82,10 @@ var Cropper = Base.extend({
 	},
 	getOffset: function() {
 		return this._offset;
-	}
+	},
+	getRect: function() {
+		return this._areaRect;
+	},
 }, {
 	onMouseDrag: function(event) {
 		var rect = this._area.children[1].bounds,
@@ -98,7 +103,8 @@ var Cropper = Base.extend({
 		this.isDragging = true;
 	},
 	onMouseMove: function(event) {
-		console.log("mouseMove: "+this.isDragging);
+		if( baseViewer ) baseViewer.onMouseMove(event);
+
 		if( this.isDragging ) return;
 
 		var rect = this._rect.bounds,
@@ -134,6 +140,74 @@ var Cropper = Base.extend({
 	},
 	onMouseUp: function(event) {
 		document.body.style.cursor = "default";		
+	}
+});
+
+////////////////////////////////////////////////////////////////////////
+// Viewer show the magifying glass, color picker etc. It's part of the BaseLayer
+// 
+var Viewer = Base.extend({
+	_class: 'Viewer',
+	_viewRect: new Rectangle( new Point(760,10), new Size(400, 400)),
+	_rect: null,
+	_rectWidth: 10,
+	_modes: ['magnify', 'colorpicker'],
+	_zoom: 8,
+	_mode: null, 
+	_cropper: null,
+	_context: null,
+	_ctx: null,
+	_serializeFields: {
+
+	},
+	initialize: function(cropper) {
+		var self = this;
+
+		this._cropper = cropper;
+		this._mode = this._modes[0];
+		this._context = document.getElementById("paperCanvas");
+		this._ctx = this._context.getContext('2d');
+		this._zoomctx = document.getElementById("viewCanvas").getContext('2d');
+	    this._zoomctx.imageSmoothingEnabled = false;
+	    this._zoomctx.mozImageSmoothingEnabled = false;
+	    this._zoomctx.webkitImageSmoothingEnabled = false;
+	    this._zoomctx.msImageSmoothingEnabled = false;
+
+		this._rect = new Path.Rectangle(this._viewRect.point - this._rectWidth/2 + point, this._viewRect.size + this._rectWidth);
+		this._rect.strokeWidth = this._rectWidth;
+		this._rect.strokeColor = "#aaa";
+		this._rect.opacity = 0.5;		
+
+		this._rect.onMouseMove 	= function(event) { self.onMouseMove(event); };
+		this._rect.onMouseLeave = function(event) { self.onMouseLeave(event); };
+		this._rect.onMouseDrag	= function(event) { self.onMouseDrag(event); };
+		this._rect.onMouseUp	= function(event) { self.onMouseUp(event); };
+	},
+	onFrame: function() {
+
+
+	},
+}, {
+	onMouseDrag: function(event) {
+	},
+	onMouseMove: function(event) {
+		var self = this;
+		switch( this._mode ) {
+			case 'magnify':
+				var zoomSize = this._viewRect.size,
+					size = zoomSize / this._zoom;
+
+				this._zoomctx.fillStyle = "white";
+				this._zoomctx.fillRect(0, 0, zoomSize.width, zoomSize.height);
+    			this._zoomctx.drawImage(this._context, event.point.x - size.width/2, event.point.y - size.height/2, size.width, size.height, 0, 0, zoomSize.width, zoomSize.height );
+				break;
+			case 'colorpicker':
+				break;
+		}
+	},
+	onMouseLeave: function(event) {
+	},
+	onMouseUp: function(event) {
 	}
 });
 
@@ -265,7 +339,7 @@ var UndoManager = Base.extend({
 	},
 
 	redo: function() {
-		if( this._actionPointer < this._actions.length ) {
+		if( this._actionPointer < this._actions.length) {
 			this._actions[this._actionPointer++]();
 		}		
 	},
@@ -276,6 +350,7 @@ var UndoManager = Base.extend({
 ////////////////////////////////////////////////////////
 // Program startup
 var UM = new UndoManager(); 
+
 
 if( sessionStorage.paperProject ) {
 	project.importJSON(sessionStorage.paperProject);
@@ -288,18 +363,20 @@ if( sessionStorage.paperProject ) {
 	
 	cropperBounds.point -= CropperOffset;
 	var baseCropper = new Cropper(cropperBounds);
+	var baseViewer = new Viewer(baseCropper);
 
 	project.layers[project.layers.length-2].activate();
 } else {
 	var baseLayer = project.activeLayer;
 	var baseCropper = new Cropper();
+	var baseViewer = new Viewer(baseCropper);
 	var activeLayer = new ImageLayer();
 
 	// Action 1	
 	var tmp = new Raster('fred');
 	raster = tmp.clone();
 	tmp.remove();
-	raster.position = view.center;
+	raster.position = new Point(300,300);
 	raster.scale(1.0);
 	raster.rotate(0);
 	raster.selected = false;
@@ -334,23 +411,6 @@ if( sessionStorage.paperProject ) {
 	UM.execute( circle2, "strokeWidth", 5 );
 
 	//UM.undo();
-	//UM.undo();
-	//UM.undo();
-	//UM.undo();
-	//UM.undo();
-	//UM.undo();
-	//UM.undo();
-	//UM.undo();
-	//UM.undo();
-
-	//UM.redo();
-	//UM.redo();
-	//UM.redo();
-	//UM.redo();
-	//UM.redo();
-	//UM.redo();
-	//UM.redo();
-	//UM.redo();
 	//UM.redo();
 }
 
@@ -387,9 +447,6 @@ function onMouseDown(event) {
 		project.activeLayer.addChild(hitResult.item);
 }
 
-function onMouseMove(event) {
-//	var hitResult = baseCropper.hitTest(event.point, baseCropper.hitOptions);
-}
 
 
 function onMouseDrag(event) {
@@ -402,10 +459,20 @@ function onMouseDrag(event) {
 }
 */
 
+function onMouseMove(event) {
+	if( baseCropper && baseViewer && baseCropper.getRect().contains(event.point) ) {
+		baseViewer.onMouseMove(event);
+	}
+}
+
 function onMouseUp(event) {
 	console.log("Global: "+baseCropper.isDragging);
 	baseCropper.isDragging = false;
 }
+
+function onFrame() {
+	if( baseViewer ) baseViewer.onFrame();
+};
 
 window.paperOnbeforeunload = function() {
 	sessionStorage.paperProject = project.exportJSON();
