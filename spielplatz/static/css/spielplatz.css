@@ -236,6 +236,10 @@ body {
   margin-left: 10px;
 }
 
+.page {
+    position: relative;
+}
+
 #page-paper {
   background-color: #EDF1F2;
 }
@@ -243,10 +247,33 @@ body {
 #paperCanvasWrapper {
   width: 1170px;
   height: 600px;
-  margin: 10px;
+  margin: 0px;
   float: left;
   border: 1px solid grey;
   background-image: url("../img/chess.png");
+}
+
+#paperCanvas {
+  width: 1170px;
+  height: 600px;  
+}
+
+#viewCanvasWrapper {
+  position: absolute; 
+  width: 256px;
+  height: 256px;
+  top: 172px; 
+  left: 690px;
+}
+
+#viewCanvas {
+}
+
+.colorpicker-green   {
+  position: absolute; 
+  top: -20px; 
+  right: -64px;
+  width: 42px !important;
 }
 
 audio:hover, audio:focus, audio:active

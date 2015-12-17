@@ -148,15 +148,18 @@ var Cropper = Base.extend({
 // 
 var Viewer = Base.extend({
 	_class: 'Viewer',
-	_viewRect: new Rectangle( new Point(760,10), new Size(400, 400)),
+	_viewRect: new Rectangle( new Point(690,172), new Size(256, 256)),
 	_rect: null,
 	_rectWidth: 10,
-	_modes: ['magnify', 'colorpicker'],
+	_modes: ['colorpicker'],
 	_zoom: 8,
+	_zoomActive: false,
 	_mode: null, 
 	_cropper: null,
 	_context: null,
 	_ctx: null,
+	_colorpickerGreen: 0,
+	_colorpickerOffset: null,
 	_serializeFields: {
 
 	},
@@ -182,34 +185,60 @@ var Viewer = Base.extend({
 		this._rect.onMouseLeave = function(event) { self.onMouseLeave(event); };
 		this._rect.onMouseDrag	= function(event) { self.onMouseDrag(event); };
 		this._rect.onMouseUp	= function(event) { self.onMouseUp(event); };
-	},
-	onFrame: function() {
 
-
+		var colorpicker = $(".colorpicker-green");
+		this._colorpickerOffset = parseInt(colorpicker.css("top"));
+		colorpicker.hide().css("top", this._colorpickerGreen+this._colorpickerOffset);
 	},
 }, {
 	onMouseDrag: function(event) {
 	},
 	onMouseMove: function(event) {
-		var self = this;
-		switch( this._mode ) {
-			case 'magnify':
-				var zoomSize = this._viewRect.size,
-					size = zoomSize / this._zoom;
 
-				this._zoomctx.fillStyle = "white";
-				this._zoomctx.fillRect(0, 0, zoomSize.width, zoomSize.height);
-    			this._zoomctx.drawImage(this._context, event.point.x - size.width/2, event.point.y - size.height/2, size.width, size.height, 0, 0, zoomSize.width, zoomSize.height );
-				break;
-			case 'colorpicker':
-				break;
+		var size = this._viewRect.size;
+
+		if( this._cropper.getRect().contains(event.point) ) {
+			this._zoomActive = true;		
+			$(".colorpicker-green").fadeOut();
+
+			var clipSize = size / this._zoom;
+
+			this._zoomctx.fillStyle = "white";
+			this._zoomctx.fillRect(0, 0, size.width, size.height);
+			this._zoomctx.drawImage(this._context, event.point.x - clipSize.width/2, event.point.y - clipSize.height/2, clipSize.width, clipSize.height, 0, 0, size.width, size.height );	
+		} else if( this._zoomActive ) {
+			this._zoomActive = false;
+
+			switch( this._mode ) {
+				case 'colorpicker':
+					var colorpicker = $(".colorpicker-green").fadeIn();
+					this.drawColorPicker();
+					break;
+			}			
 		}
 	},
 	onMouseLeave: function(event) {
 	},
 	onMouseUp: function(event) {
-	}
+	},
+
+	drawColorPicker: function(pos) {
+		var imageData = this._zoomctx.createImageData(1,1);
+
+		this._colorpickerGreen = pos || this._colorpickerGreen;
+		imageData.data[1] = this._colorpickerGreen;
+		imageData.data[3] = 255;
+		for( var i=0 ; i<256 ; i++ ) {
+			imageData.data[0] = i;
+			for( var j=0 ; j<256 ; j++ ) {
+				imageData.data[2] = j;
+				this._zoomctx.putImageData(imageData, i, j);			
+			}	
+		}
+	},
+
 });
+
 
 
 ////////////////////////////////////////////////////////
@@ -414,6 +443,44 @@ if( sessionStorage.paperProject ) {
 	//UM.redo();
 }
 
+
+////////////////////////////////////////////////////////
+// Bootsrap User Interaction
+(function() {
+	var colorpicker = $(".colorpicker-green"),
+		colorpickerIsDragging = false,
+		colorpickerYOffset = null,
+		colorpickerTopOffset = parseInt(colorpicker.css("top"));
+
+	colorpicker.mousedown(function(event) {
+		colorpickerIsDragging = true;
+		colorpickerYOffset = parseInt(colorpicker.css("top")) - event.pageY;
+	});
+
+	$(window).mousemove(function(event) {
+		if( colorpickerIsDragging ) {
+			var top = event.pageY + colorpickerYOffset; 
+			if( top < colorpickerTopOffset ) top = colorpickerTopOffset;
+			else if( top > colorpickerTopOffset + 255 ) top = colorpickerTopOffset + 255;
+			colorpicker.css("top", top+"px");
+			colorpicker.text(top - colorpickerTopOffset);
+			baseViewer.drawColorPicker(top - colorpickerTopOffset);
+		}
+	}).mouseup(function mouseup(event) {
+		if( colorpickerIsDragging ) {
+			var top = event.pageY + colorpickerYOffset; 
+			if( top < colorpickerTopOffset ) top = colorpickerTopOffset;
+			else if( top > colorpickerTopOffset + 255 ) top = colorpickerTopOffset + 255;
+			colorpicker.css("top", top+"px");
+			colorpicker.text(top - colorpickerTopOffset);
+			baseViewer.drawColorPicker(top - colorpickerTopOffset);
+			colorpickerIsDragging = false;
+		}
+	});
+})();
+
+
+
 baseLayer.bringToFront();
 
 /*
@@ -460,7 +527,7 @@ function onMouseDrag(event) {
 */
 
 function onMouseMove(event) {
-	if( baseCropper && baseViewer && baseCropper.getRect().contains(event.point) ) {
+	if( baseViewer ) {
 		baseViewer.onMouseMove(event);
 	}
 }
@@ -471,7 +538,6 @@ function onMouseUp(event) {
 }
 
 function onFrame() {
-	if( baseViewer ) baseViewer.onFrame();
 };
 
 window.paperOnbeforeunload = function() {
