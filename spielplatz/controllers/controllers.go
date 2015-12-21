@@ -426,10 +426,8 @@ func (c *CPGController) getImageInfo(userName string) string {
 	imageInfo := make([]imageGroup, 0, 21)
 
 	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
-		beego.Warning("!!!", path)
 		matches := imageRegexp.FindSubmatch([]byte(path))
 		if matches != nil {
-			beego.Warning("!!!!", matches)
 			folder := string(matches[1])
 			file := string(matches[2])
 			found := false
@@ -555,6 +553,12 @@ func (c *GraphicsController) Get() {
 	c.Data["LoginLogin"] = T["login_login"]
 	c.Data["LoginSignup"] = T["login_signup"]
 	c.Data["LoginLogout"] = T["login_logout"]
+	c.Data["GraphicsCommandsImportTitle"] = T["graphics_commands_import_title"]
+	c.Data["GraphicsCommandsImportSource1"] = T["graphics_commands_import_source1"]
+	c.Data["GraphicsCommandsImportSource2"] = T["graphics_commands_import_source2"]
+	c.Data["GraphicsCommandsImportSource3"] = T["graphics_commands_import_source3"]
+	c.Data["GraphicsCommandsImportOpen"] = T["graphics_commands_import_open"]
+	c.Data["GraphicsCommandsImportCancel"] = T["graphics_commands_import_cancel"]
 
 	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
 

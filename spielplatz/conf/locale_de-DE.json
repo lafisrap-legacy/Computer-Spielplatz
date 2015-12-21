@@ -43,6 +43,12 @@
 	"control_bar_modal_sound_title"		: "Wähle einen Sound aus ...",
 	"control_bar_modal_file_changed"	: "Du hast den Programmtext geändert!",
 	"control_bar_modal_file_changed_2"	: "Willst du ihn speichern?",
+	"graphics_commands_import_title"	: "Bilder importieren",
+	"graphics_commands_import_source1"	: "Deine eigenen Bilder",
+	"graphics_commands_import_source2"	: "... vom Spielplatz",
+	"graphics_commands_import_source3"	: "... aus der Welt",
+	"graphics_commands_import_open"		: "Öffnen",
+	"graphics_commands_import_cancel"	: "Abbrechen",
 
     "login_login"                       : "Anmelden",
     "login_signup"                      : "Neues Konto",

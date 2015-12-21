@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="static/css/bootstrap.min.css">
 <link rel="stylesheet" href="static/css/bootstrap-theme.min.css">
 <link rel="stylesheet" href="static/css/spielplatz.css">
+<link rel='stylesheet' href='static/fonts/typicons.min.css' />
 <script src="static/js/jquery-2.1.4.js"></script>
 <script src="static/js/bootstrap.min.js"></script>
 <script src="static/js/paper.js"></script>
@@ -15,6 +16,29 @@
 </head>
 <body>
 <div class="container" style="height: 1024px;">
+    <div id="commands-image-import-modal" class="modal fade">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">{{ .GraphicsCommandsImportTitle }}</h4>
+          </div>
+          <div class="modal-body">
+            <ul class="pagination">
+              <li><a href="#">{{ .GraphicsCommandsImportSource1 }}</a></li>
+              <li><a href="#">{{ .GraphicsCommandsImportSource2 }}</a></li>
+              <li><a href="#">{{ .GraphicsCommandsImportSource3 }}</a></li>
+            </ul>
+          </div>
+            <div class="clearfix"></div>
+          <div class="modal-footer">
+            <button type="button" class="modal-open pull-right btn btn-primary" data-dismiss="modal">{{ .GraphicsCommandsImportOpen }}</button>
+            <button type="button" class="modal-cancel pull-right btn btn-default" data-dismiss="modal">{{ .GraphicsCommandsImportCancel }}
+            </button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->    
     <div class="login-area">
         {{if not .UserName }}
             <a href="/login/" class="btn btn-info btn-sm pull-right">{{ .LoginLogin }} <span class="glyphicon glyphicon-share-alt"></span></a>
@@ -43,6 +67,52 @@
                     <button type="button" class="colorpicker-scroll-c2 btn btn-sm btn-primary"></button>
                 </div>
             </div>
+            <div id="commandsWrapper">
+                <button type="button" class="command btn btn-sm btn-default">
+                    <span class="typcn typcn-arrow-back-outline"></span>
+                </button>
+                <button type="button" class="command btn btn-sm btn-default">
+                    <span class="typcn typcn-arrow-forward-outline"></span>
+                </button>
+                <button type="button" class="command command-download btn btn-sm btn-default">
+                    <span class="typcn typcn-download-outline"></span>
+                </button>
+                <button type="button" class="command btn btn-sm btn-default">
+                    <span class="typcn typcn-upload-outline"></span>
+                </button>
+                <div class="colorfield">
+                </div>
+                <button type="button" class="command btn btn-sm btn-default">
+                    <span class="typcn typcn-location-arrow-outline"></span>
+                </button>
+                <button type="button" class="command btn btn-sm btn-default">
+                    <span class="typcn typcn-pen"></span>
+                </button>
+                <button type="button" class="command btn btn-sm btn-default">
+                    <span class="typcn typcn-bookmark"></span>
+                </button>
+                <button type="button" class="command btn btn-sm btn-default">
+                    <span class="typcn typcn-scissors"></span>
+                </button>
+                <button type="button" class="command btn btn-sm btn-default">
+                    <span class="typcn typcn-adjust-brightness"></span>
+                </button>
+                <button type="button" class="command btn btn-sm btn-default">
+                    <span class="typcn typcn-adjust-contrast"></span>
+                </button>
+                <button type="button" class="command btn btn-sm btn-default">
+                    <span class="typcn"></span>
+                </button>
+                <button type="button" class="command btn btn-sm btn-default">
+                    <span class="typcn"></span>
+                </button>
+                <button type="button" class="command btn btn-sm btn-default">
+                    <span class="typcn"></span>
+                </button>
+                <button type="button" class="command btn btn-sm btn-default">
+                    <span class="typcn"></span>
+                </button>
+            </div>
         </div>
         <div id="page-animation" class="page">
             Animation-Mode
@@ -54,7 +124,9 @@
 </div>
 <script>
 (function() {
-  var a = $(".page-graphics-animation").removeClass("btn-default").addClass("btn-primary disabled");
+    window.AllImages = JSON.parse({{ .AllImages }});
+    debugger;
+
 })();
 </script>
 <script src="static/js/cpg-paper.js" type="text/paperscript" canvas="paperCanvas"></script>

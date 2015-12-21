@@ -74,16 +74,26 @@
   font-family: 'Exo';
   font-weight: 700;
   font-style: italic;
-  src: url('/fonts/Exo-700italic/Exo-700italic.eot');
-  src: url('/fonts/Exo-700italic/Exo-700italic.eot?#iefix') format('embedded-opentype'),
+  src: url('../fonts/Exo-700italic/Exo-700italic.eot');
+  src: url('../fonts/Exo-700italic/Exo-700italic.eot?#iefix') format('embedded-opentype'),
        local('Exo Bold Italic'),
        local('Exo-700italic'),
-       url('/fonts/Exo-700italic/Exo-700italic.woff2') format('woff2'),
-       url('/fonts/Exo-700italic/Exo-700italic.woff') format('woff'),
-       url('/fonts/Exo-700italic/Exo-700italic.ttf') format('truetype'),
-       url('/fonts/Exo-700italic/Exo-700italic.svg#Exo') format('svg');
+       url('../fonts/Exo-700italic/Exo-700italic.woff2') format('woff2'),
+       url('../fonts/Exo-700italic/Exo-700italic.woff') format('woff'),
+       url('../fonts/Exo-700italic/Exo-700italic.ttf') format('truetype'),
+       url('../fonts/Exo-700italic/Exo-700italic.svg#Exo') format('svg');
 }
 
+@font-face {
+  font-family: 'typicons';
+  src: url("../fonts/typicons.eot");
+  src: url("../fonts/typicons.eot?#iefix") format('embedded-opentype'),
+       url("../fonts/typicons.woff") format('woff'),
+       url("../fonts/typicons.ttf") format('truetype'),
+       url("../fonts/typicons.svg#typicons") format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
 
 body {
   font-family: "Exo", Helvetica, Arial, sans-serif;
@@ -111,7 +121,8 @@ body {
 .login-area .kuenste 
 
 #top-control-bar button,
-#bottom-control-bar button {
+#bottom-control-bar button,
+ {
   margin: 5px;
 }
 
@@ -251,6 +262,8 @@ body {
   float: left;
   border: 1px solid grey;
   background-image: url("../img/chess.png");
+  background-position: left;
+  background-repeat: no-repeat;
 }
 
 #paperCanvas {
@@ -263,7 +276,7 @@ body {
   width: 256px;
   height: 256px;
   top: 172px; 
-  left: 690px;
+  left: 720px;
 }
 
 #viewCanvas {
@@ -297,6 +310,41 @@ body {
   right: -21px;
   width: 0px !important;
   height: 15px !important;
+}
+
+#commandsWrapper {
+  position: absolute;
+  top: 90px;
+  left: 605px;
+  width: 97px;
+  border: 1px solid lightgrey;  
+  padding: 5px;
+}
+
+#commandsWrapper .command {
+  position: relative;
+  margin: 3px 0;
+  width: 40px !important;
+  height: 40px !important;
+}
+
+#commandsWrapper .command .typcn {
+  position: absolute;
+  font-size: 30px;
+  left: 5px;
+  top: -5px;
+}
+
+#commandsWrapper .colorfield {
+  border: 1px solid lightgrey;  
+  margin: 3px 0;
+  width: 83px;
+  height: 86px;
+  background-color: white;
+}
+
+.modal-footer .btn-primary, .modal-footer .btn {
+  margin-left: 5px;
 }
 
 audio:hover, audio:focus, audio:active

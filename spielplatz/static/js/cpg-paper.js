@@ -2,7 +2,6 @@
 // cpg-paper.js contains the editor logic for the paper edit field
 // 
 
-
 ////////////////////////////////////////////////////////////////////////
 // ImageLayer is the base class for image files
 // 
@@ -35,8 +34,8 @@ var Cropper = Base.extend({
 		var self = this,
 			rect = rect || new Rectangle(new Point(0, 0), this._maxSize);
 
-		this._point = point = rect.getPoint();
-		this._size = size = rect.getSize();
+		var point = this._point = rect.getPoint();
+		var size = this._size = rect.getSize();
 		this._area = new CompoundPath({
 			children: [
 				new Path.Rectangle(this._areaRect),
@@ -151,7 +150,7 @@ var Cropper = Base.extend({
 // 
 var Viewer = Base.extend({
 	_class: 'Viewer',
-	_viewRect: new Rectangle( new Point(690,172), new Size(256, 256)),
+	_viewRect: new Rectangle( new Point(720,172), new Size(256, 256)),
 	_rect: null,
 	_rectWidth: 10,
 	_modes: ['colorpicker'],
@@ -164,6 +163,10 @@ var Viewer = Base.extend({
 	_colorPickerValue: 0,
 	_colorPickerOffset: null,
 	_colorPickerMode: "green",
+	_colorPickerIsDragging: false,
+	_colorPickerYOffset: null,
+	_colorPickerTopOffset: parseInt($(".colorpicker-scroll").css("top")),
+
 	_serializeFields: {
 
 	},
@@ -177,24 +180,105 @@ var Viewer = Base.extend({
 		this._zoomctx = document.getElementById("viewCanvas").getContext('2d');
 	    this._zoomctx.imageSmoothingEnabled = false;
 	    this._zoomctx.mozImageSmoothingEnabled = false;
-	    this._zoomctx.webkitImageSmoothingEnabled = false;
 	    this._zoomctx.msImageSmoothingEnabled = false;
 
-		this._rect = new Path.Rectangle(this._viewRect.point - this._rectWidth/2 + point, this._viewRect.size + this._rectWidth);
+		this._rect = new Path.Rectangle(this._viewRect.point - this._rectWidth/2, this._viewRect.size + this._rectWidth);
 		this._rect.strokeWidth = this._rectWidth;
 		this._rect.strokeColor = "#aaa";
 		this._rect.opacity = 0.5;		
 
-		this._rect.onMouseMove 	= function(event) { self.onMouseMove(event); };
-		this._rect.onMouseLeave = function(event) { self.onMouseLeave(event); };
-		this._rect.onMouseDrag	= function(event) { self.onMouseDrag(event); };
-		this._rect.onMouseUp	= function(event) { self.onMouseUp(event); };
+		$("#viewCanvas").on("mousedown", function(event) { event.point = {x:event.pageX, y:event.pageY}; self.onMouseDown(event); });
+		$("#viewCanvas").on("mousemove", function(event) { event.point = {x:event.pageX, y:event.pageY}; self.onMouseMove(event); });
+		$("#viewCanvas").on("mouseleave", function(event) { event.point = {x:event.pageX, y:event.pageY}; self.onMouseLeave(event); });
+		$("#viewCanvas").on("mouseup", function(event) { event.point = {x:event.pageX, y:event.pageY}; self.onMouseUp(event); });
 
 		this._colorPickerOffset = parseInt($(".colorpicker-scroll").css("top"));
 		$(".colorpicker-scroll").css("top", this._colorPickerValue+this._colorPickerOffset);
 		this.drawColorPicker();
+
+		$(".colorpicker-scroll-c").mousedown(function(event) {
+			console.log("mousedown: "+event.pageY);
+			self._colorPickerIsDragging = true;
+			self._colorPickerYOffset = parseInt($(".colorpicker-scroll").css("top")) - event.pageY;
+		});
+
+		$(window).mousemove(function(event) {
+			console.log("mousemove: "+self._colorPickerIsDragging);
+			if( self._colorPickerIsDragging ) {
+				var top = event.pageY + self._colorPickerYOffset; 
+				if( top < self._colorPickerTopOffset ) top = self._colorPickerTopOffset;
+				else if( top > self._colorPickerTopOffset + 255 ) top = self._colorPickerTopOffset + 255;
+				$(".colorpicker-scroll").css("top", top+"px");
+				$(".colorpicker-scroll-c").text(top - self._colorPickerTopOffset);
+				self.drawColorPicker(top - self._colorPickerTopOffset);
+			}
+		}).mouseup(function mouseup(event) {
+			if( self._colorPickerIsDragging ) {
+				var top = event.pageY + self._colorPickerYOffset; 
+				if( top < self._colorPickerTopOffset ) top = self._colorPickerTopOffset;
+				else if( top > self._colorPickerTopOffset + 255 ) top = self._colorPickerTopOffset + 255;
+				$(".colorpicker-scroll").css("top", top+"px");
+				$(".colorpicker-scroll-c").text(top - self._colorPickerTopOffset);
+				self.drawColorPicker(top - self._colorPickerTopOffset);
+				self._colorPickerIsDragging = false;
+			}
+		});
+
+		$(".colorpicker-scroll-c1").mousedown(function(event) {
+
+			switch( self.getColorPickerMode() ) {
+			case "red":
+				$(".colorpicker-scroll-c").removeClass("btn-danger").addClass("btn-success");
+				$(".colorpicker-scroll-c1").removeClass("btn-success").addClass("btn-danger");
+				self.setColorPickerMode("green");
+				break;
+			case "green":
+				$(".colorpicker-scroll-c").removeClass("btn-success").addClass("btn-danger");
+				$(".colorpicker-scroll-c1").removeClass("btn-danger").addClass("btn-success");
+				self.setColorPickerMode("red");
+				break;
+			case "blue":
+				$(".colorpicker-scroll-c").removeClass("btn-primary").addClass("btn-danger");
+				$(".colorpicker-scroll-c1").removeClass("btn-danger").addClass("btn-success");
+				$(".colorpicker-scroll-c2").removeClass("btn-success").addClass("btn-primary");
+				self.setColorPickerMode("red");
+				break;
+			}
+		});
+
+		$(".colorpicker-scroll-c2").mousedown(function(event) {
+
+			switch( self.getColorPickerMode() ) {
+			case "red":
+				$(".colorpicker-scroll-c").removeClass("btn-danger").addClass("btn-primary");
+				$(".colorpicker-scroll-c1").removeClass("btn-success").addClass("btn-danger");
+				$(".colorpicker-scroll-c2").removeClass("btn-primary").addClass("btn-success");
+				self.setColorPickerMode("blue");
+				break;
+			case "green":
+				$(".colorpicker-scroll-c").removeClass("btn-success").addClass("btn-primary");
+				$(".colorpicker-scroll-c2").removeClass("btn-primary").addClass("btn-success");
+				self.setColorPickerMode("blue");
+				break;
+			case "blue":
+				$(".colorpicker-scroll-c").removeClass("btn-primary").addClass("btn-success");
+				$(".colorpicker-scroll-c2").removeClass("btn-success").addClass("btn-primary");
+				self.setColorPickerMode("green");
+				break;
+			}
+		});
+
 	},
 }, {
+	onMouseDown: function(event) {
+		var point = { x: event.pageX - $("#viewCanvas").offset().left, y: event.pageY - $("#viewCanvas").offset().top };
+		var
+			pixel = this._zoomctx.getImageData(point.x, point.y, 1, 1),
+			data = pixel.data,
+			color = new Color(data[0]/255, data[1]/255, data[2]/255, data[3]/255);
+
+		baseCommands.setColor(color);
+	},
 	onMouseDrag: function(event) {
 	},
 	onMouseMove: function(event) {
@@ -251,6 +335,31 @@ var Viewer = Base.extend({
 		this._colorPickerMode = value;
 		this.drawColorPicker();
 	},
+});
+
+////////////////////////////////////////////////////////////////////////
+// Commands shows and handles all commands 
+// 
+var Commands = Base.extend({
+	_class: 'Commands',
+	_currentColor: new Color("red"),
+
+	_serializeFields: {
+
+	},
+	initialize: function(cropper) {
+		$(".colorfield").css("background-color", this._currentColor.toCSS());
+		$(".command-download").on("click tap", function(event) {
+			var modal = $("#commands-image-import-modal");
+
+			modal.modal('show');
+		});
+	},
+},{
+	setColor: function(color) {
+		this._currentColor = color;
+		$(".colorfield").css("background-color", color.toCSS())		
+	}
 });
 
 
@@ -407,12 +516,15 @@ if( sessionStorage.paperProject ) {
 	cropperBounds.point -= CropperOffset;
 	var baseCropper = new Cropper(cropperBounds);
 	var baseViewer = new Viewer(baseCropper);
+	var baseCommands = new Commands(baseCropper);
 
 	project.layers[project.layers.length-2].activate();
 } else {
 	var baseLayer = project.activeLayer;
 	var baseCropper = new Cropper();
 	var baseViewer = new Viewer(baseCropper);
+	var baseCommands = new Commands(baseCropper);
+
 	var activeLayer = new ImageLayer();
 
 	// Action 1	
@@ -461,79 +573,6 @@ if( sessionStorage.paperProject ) {
 ////////////////////////////////////////////////////////
 // Bootsrap User Interaction
 (function() {
-	var colorPickerIsDragging = false,
-		colorPickerYOffset = null,
-		colorPickerTopOffset = parseInt($(".colorpicker-scroll").css("top"));
-
-	$(".colorpicker-scroll-c").mousedown(function(event) {
-		colorPickerIsDragging = true;
-		colorPickerYOffset = parseInt($(".colorpicker-scroll").css("top")) - event.pageY;
-	});
-
-	$(window).mousemove(function(event) {
-		if( colorPickerIsDragging ) {
-			var top = event.pageY + colorPickerYOffset; 
-			if( top < colorPickerTopOffset ) top = colorPickerTopOffset;
-			else if( top > colorPickerTopOffset + 255 ) top = colorPickerTopOffset + 255;
-			$(".colorpicker-scroll").css("top", top+"px");
-			$(".colorpicker-scroll-c").text(top - colorPickerTopOffset);
-			baseViewer.drawColorPicker(top - colorPickerTopOffset);
-		}
-	}).mouseup(function mouseup(event) {
-		if( colorPickerIsDragging ) {
-			var top = event.pageY + colorPickerYOffset; 
-			if( top < colorPickerTopOffset ) top = colorPickerTopOffset;
-			else if( top > colorPickerTopOffset + 255 ) top = colorPickerTopOffset + 255;
-			$(".colorpicker-scroll").css("top", top+"px");
-			$(".colorpicker-scroll-c").text(top - colorPickerTopOffset);
-			baseViewer.drawColorPicker(top - colorPickerTopOffset);
-			colorPickerIsDragging = false;
-		}
-	});
-
-	$(".colorpicker-scroll-c1").mousedown(function(event) {
-
-		switch( baseViewer.getColorPickerMode() ) {
-		case "red":
-			$(".colorpicker-scroll-c").removeClass("btn-danger").addClass("btn-success");
-			$(".colorpicker-scroll-c1").removeClass("btn-success").addClass("btn-danger");
-			baseViewer.setColorPickerMode("green");
-			break;
-		case "green":
-			$(".colorpicker-scroll-c").removeClass("btn-success").addClass("btn-danger");
-			$(".colorpicker-scroll-c1").removeClass("btn-danger").addClass("btn-success");
-			baseViewer.setColorPickerMode("red");
-			break;
-		case "blue":
-			$(".colorpicker-scroll-c").removeClass("btn-primary").addClass("btn-danger");
-			$(".colorpicker-scroll-c1").removeClass("btn-danger").addClass("btn-success");
-			$(".colorpicker-scroll-c2").removeClass("btn-success").addClass("btn-primary");
-			baseViewer.setColorPickerMode("red");
-			break;
-		}
-	});
-
-	$(".colorpicker-scroll-c2").mousedown(function(event) {
-
-		switch( baseViewer.getColorPickerMode() ) {
-		case "red":
-			$(".colorpicker-scroll-c").removeClass("btn-danger").addClass("btn-primary");
-			$(".colorpicker-scroll-c1").removeClass("btn-success").addClass("btn-danger");
-			$(".colorpicker-scroll-c2").removeClass("btn-primary").addClass("btn-success");
-			baseViewer.setColorPickerMode("blue");
-			break;
-		case "green":
-			$(".colorpicker-scroll-c").removeClass("btn-success").addClass("btn-primary");
-			$(".colorpicker-scroll-c2").removeClass("btn-primary").addClass("btn-success");
-			baseViewer.setColorPickerMode("blue");
-			break;
-		case "blue":
-			$(".colorpicker-scroll-c").removeClass("btn-primary").addClass("btn-success");
-			$(".colorpicker-scroll-c2").removeClass("btn-success").addClass("btn-primary");
-			baseViewer.setColorPickerMode("green");
-			break;
-		}
-	});
 })();
 
 
@@ -583,14 +622,16 @@ function onMouseDrag(event) {
 }
 */
 
+function onMouseDown(event) {
+	if( baseViewer ) baseViewer.onMouseDown(event);
+}
+
+
 function onMouseMove(event) {
-	if( baseViewer ) {
-		baseViewer.onMouseMove(event);
-	}
+	if( baseViewer ) baseViewer.onMouseMove(event);
 }
 
 function onMouseUp(event) {
-	console.log("Global: "+baseCropper.isDragging);
 	baseCropper.isDragging = false;
 }
 
