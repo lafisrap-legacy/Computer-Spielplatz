@@ -16,6 +16,7 @@
 </head>
 <body>
 <div class="container" style="height: 1024px;">
+    
     <div id="commands-image-import-modal" class="modal fade">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -25,9 +26,14 @@
           </div>
           <div class="modal-body">
             <ul class="pagination">
-              <li><a href="#">{{ .GraphicsCommandsImportSource1 }}</a></li>
-              <li><a href="#">{{ .GraphicsCommandsImportSource2 }}</a></li>
-              <li><a href="#">{{ .GraphicsCommandsImportSource3 }}</a></li>
+              <li><a href="#" class="ownfiles">{{ .GraphicsCommandsImportSource1 }}</a></li>
+              <li><a href="#" class="playgroundfiles">{{ .GraphicsCommandsImportSource2 }}</a></li>
+              <li><a href="#" class="worldfiles">{{ .GraphicsCommandsImportSource3 }}</a></li>
+            </ul>
+            <ul class="content">
+              <div class="ownfiles"></div>
+              <div class="playgroundfiles"></div>
+              <div class="worldfiles"></div>
             </ul>
           </div>
             <div class="clearfix"></div>
@@ -125,8 +131,7 @@
 <script>
 (function() {
     window.AllImages = JSON.parse({{ .AllImages }});
-    debugger;
-
+    window.UserNameForImages = "{{ .UserNameForImages }}";
 })();
 </script>
 <script src="static/js/cpg-paper.js" type="text/paperscript" canvas="paperCanvas"></script>

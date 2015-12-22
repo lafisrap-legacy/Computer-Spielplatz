@@ -347,6 +347,52 @@ body {
   margin-left: 5px;
 }
 
+#commands-image-import-modal .file {
+  margin: 5px;
+}
+
+#commands-image-import-modal .middle {
+  width: 110px;
+  height: 110px;
+  margin: auto 0;
+  text-align: center;  
+}
+
+#commands-image-import-modal img {
+  max-width: 100px;
+  max-height: 100px;
+  text-align: center;  
+  zoom: 0.1;
+  opacity: 0;
+}
+
+#commands-image-import-modal .filename {
+  font-size: 0.9em;
+}
+
+#commands-image-import-modal .modal-dialog {
+  overflow-y: initial !important
+}
+
+#commands-image-import-modal .modal-body {
+  height: 550px;
+  width: 888px;
+  overflow-y: auto;
+  background-color: #f8f8f8;
+}
+
+#commands-image-import-modal .modal-body .bottom {
+  background-color: #e8e8e8;
+  border-top: 1px solid #c8c8c8;
+  height: 28px;
+  text-align: center;
+}
+
+#commands-image-import-modal .title {
+  font-size: 3.0em;
+  color: lightgrey;
+}
+
 audio:hover, audio:focus, audio:active
 {
 box-shadow: 5px 5px 8px rgba(0,0, 0, 0.4);

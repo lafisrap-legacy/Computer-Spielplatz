@@ -350,9 +350,9 @@ var Commands = Base.extend({
 	initialize: function(cropper) {
 		$(".colorfield").css("background-color", this._currentColor.toCSS());
 		$(".command-download").on("click tap", function(event) {
-			var modal = $("#commands-image-import-modal");
-
-			modal.modal('show');
+			showModalImageFiles(function(res, filename) {
+				console.log(res, filename)
+			});
 		});
 	},
 },{
@@ -362,7 +362,89 @@ var Commands = Base.extend({
 	}
 });
 
+///////////////////////////////////////////
+// showModalCodeFiles shows the code file info and modification dialog
+var showModalImageFiles = function(cb) {
+	var modal = $("#commands-image-import-modal");
 
+    var afl = window.AllImages,
+        ownFiles = $("<div id='modal-imagefiles' class='files ownfiles'>"),
+        playgroundFiles = $("<div id='modal-imagefiles' class='files playgroundfiles'>");
+
+    $(".content .ownfiles", modal).hide();
+    //$(".content .playgroundfiles").hide();
+    $(".content .worldfiles", modal).hide();
+
+    for( var i=0 ; i<afl.length ; i++ ) {
+
+    	var groupName = afl[i].groupName;
+    	if( groupName === "Spielplatz" ) target = ownFiles;
+    	else target = playgroundFiles;
+
+    	target.append("<div class='title'>"+groupName+"</div>");
+
+    	for( var j=0 ; j<afl[i].images.length ; j++ ) {
+	        target.append(
+	            "<div class='file file"+i+" pull-left' filename='"+afl[i].images[j]+"'>"+
+	            "   <div class='top'>"+
+	            "   </div>"+
+	            "   <div class='middle'>"+
+	            "       <img src='static/userdata/"+window.UserNameForImages+"/images/"+groupName+"/"+(afl[i].images[j]+".png'")+" max-width='100' max-height='100'>"+
+	            "   </div>"+
+	            "   <div class='bottom'>"+
+	            "       <span class='filename text-center'>"+afl[i].images[j]+"</span>"+
+	            "   </div>"+
+	            "</div>"
+	        );
+    	}
+    }
+
+    $(".content .ownfiles").append(ownFiles);
+    $(".content .playgroundfiles").append(playgroundFiles);
+    $(".content .worldfiles").append();
+
+    // Correct font size of filenames
+    $(".modal-body", modal ).html(target);
+
+    $(".file", modal).on("click", function(e) {
+        var lcb = cb;
+        cb = null;
+        modal.modal('hide');
+
+        //if( !lcb ) debugger;
+        if( lcb ) lcb("open", $(this).attr("filename"));    	
+    });
+
+    $(".modal-cancel", modal).off("click").one("click", function(e) {
+        modal.modal('hide');
+    });
+
+    modal.one('hidden.bs.modal', function(e) {
+        if( cb ) cb("cancel");
+    });
+
+    modal.one('shown.bs.modal', function(e) {
+	    // Vertically center images after they are shown
+	    $(".file img", modal).each(function(index) {
+		    var img = $(this),
+		    	w = img.width(),
+		    	h = img.height(),
+		    	maxW = parseInt(img.attr("max-width")),
+		    	maxH = parseInt(img.attr("max-height"));
+
+		    img.animate({
+		    	marginLeft: ((maxW-w)/2)+"px",
+		    	marginTop:  ((maxH-h)/2)+"px",
+		    	zoom: 1,
+		    	opacity: 1,
+		    }, 300);
+	    });
+
+
+    });
+
+    modal.modal('show');
+};
 
 ////////////////////////////////////////////////////////
 // Global functions
