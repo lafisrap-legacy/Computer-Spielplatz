@@ -413,6 +413,7 @@ func (c *LiveEditorController) Get() {
 		c.Data["LoginSignup"] = T["login_signup"]
 		c.Data["LoginLogout"] = T["login_logout"]
 
+		c.Data["WebsocketsAddress"] = "ws://" + beego.AppConfig.String("websockets::address") + ":" + beego.AppConfig.String("websockets::port") + beego.AppConfig.String("websockets::dir")
 		c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
 
 		setTitleData(c.Data)
