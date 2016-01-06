@@ -3,13 +3,68 @@
 // 
 
 ////////////////////////////////////////////////////////////////////////
-// ImageLayer is the base class for image files
+// ImageLayer is the base class for a layer for image files
 // 
 var ImageLayer = Layer.extend({
 	_class: 'ImageLayer',
 	_serializeFields: {
 	},
 
+});
+
+////////////////////////////////////////////////////////////////////////
+// ModRaster is the base class for a raster that can be modified
+// 
+ModRaster = Raster.extend({
+	_class: 'ModRaster',
+	_serializeFields: {
+	},
+
+	initialize: function ModRaster(object, position) {
+		if (!this._initialize(object,
+				position !== undefined && Point.read(arguments, 1))) {
+			if (typeof object === 'string') {
+				this.setSource(object);
+			} else {
+				this.setImage(object);
+			}
+		}
+		if (!this._size) {
+			this._size = new Size();
+			this._loaded = false;
+		}
+	},
+
+	_hitTestSelf: function(point) {
+
+		debugger;
+		var rect = this.bounds,
+			square = new Point(5,5),
+			resizeBase = null;
+		if( (rect.topLeft     - point).abs() < square ) resizeBase = "topLeft"; 
+		else if( (rect.topRight    - point).abs() < square ) resizeBase = "topRight"; 
+		else if( (rect.bottomLeft  - point).abs() < square ) resizeBase = "bottomLeft"; 
+		else if( (rect.bootomRight - point).abs() < square ) resizeBase = "bottomRight"; 
+		else if (this._contains(point)) {
+
+			var that = this;
+			return new HitResult('pixel', that, {
+				offset: point.add(that._size.divide(2)).round(),
+				color: {
+					get: function() {
+						return that.getPixel(this.offset);
+					}
+				}
+			});
+		}
+
+		if( resizeBase ) {
+			return new HitResult('resize', that, {
+				resizeBase: resizeBase,
+				point: point
+			});
+		}
+	},
 });
 
 ////////////////////////////////////////////////////////////////////////
@@ -27,6 +82,7 @@ var Cropper = Base.extend({
 	_area: null,
 	_rect: null,
 	_rectWidth: 10,
+	_cursor: null,
 	_serializeFields: {
 
 	},
@@ -57,6 +113,16 @@ var Cropper = Base.extend({
 		var min = this._minSize,
 			max = this._maxSize;
 
+		if( x1 instanceof Rectangle ) {
+			var rect = x1.clone();
+			rect.point -= CropperOffset;
+
+			x1 = rect.topLeft.x;
+			y1 = rect.topLeft.y;
+			x2 = rect.bottomRight.x;
+			y2 = rect.bottomRight.y;
+		}
+
 		if( x1 < 0 ) x1 = 0;
 		if( x2 < x1 + min.width ) x2 = x1 + min.width;
 		if( x2 > max.width ) x2 = max.width;
@@ -86,8 +152,16 @@ var Cropper = Base.extend({
 		return this._areaRect;
 	},
 	getInnerRect: function() {
-		return this._area.children[1].bounds;
+		var rect = this._area.children[1].bounds.clone();
+
+		rect.topLeft -= this._rectWidth;
+		rect.bottomRight += this._rectWidth;
+
+		return rect;
 	},
+	getCursor: function() {
+		return this._cursor;
+	}
 }, {
 	onMouseDrag: function(event) {
 		var rect = this._area.children[1].bounds,
@@ -136,9 +210,11 @@ var Cropper = Base.extend({
 		this._rect.moveOffset = new Point( (point.x < width? width-point.x - width/2 : -width + rect.width - point.x + width/2),
 										   (point.y < width? width-point.y - width/2 : -width + rect.height - point.y + width/2));
 		document.body.style.cursor = cursor;
+		this._cursor = "resize";
 	},
 	onMouseLeave: function(event) {
 		document.body.style.cursor = "default";		
+		this._cursor = null;
 	},
 	onMouseUp: function(event) {
 		document.body.style.cursor = "default";		
@@ -271,8 +347,7 @@ var Viewer = Base.extend({
 	},
 }, {
 	onMouseDown: function(event) {
-		var point = { x: event.pageX - $("#viewCanvas").offset().left, y: event.pageY - $("#viewCanvas").offset().top };
-		var
+		var point = { x: event.pageX - $("#viewCanvas").offset().left, y: event.pageY - $("#viewCanvas").offset().top },
 			pixel = this._zoomctx.getImageData(point.x, point.y, 1, 1),
 			data = pixel.data,
 			color = new Color(data[0]/255, data[1]/255, data[2]/255, data[3]/255);
@@ -350,8 +425,15 @@ var Commands = Base.extend({
 	initialize: function(cropper) {
 		$(".colorfield").css("background-color", this._currentColor.toCSS());
 		$(".command-download").on("click tap", function(event) {
-			showModalImageFiles(function(res, filename) {
-				console.log(res, filename)
+			showModalImageFiles(function(res, image) {
+				if( res === "open" ) {
+					var items = project.activeLayer.children;
+					if( items.length === 1 ) baseCropper.set(image.bounds);
+
+					project.deselectAll();
+
+					image.selected = true;
+				}
 			});
 		});
 	},
@@ -389,7 +471,7 @@ var showModalImageFiles = function(cb) {
 	            "   <div class='top'>"+
 	            "   </div>"+
 	            "   <div class='middle'>"+
-	            "       <img src='static/userdata/"+window.UserNameForImages+"/images/"+groupName+"/"+(afl[i].images[j]+".png'")+" max-width='100' max-height='100'>"+
+	            "       <img id='modal-image-"+afl[i].images[j]+"' src='static/userdata/"+window.UserNameForImages+"/images/"+groupName+"/"+(afl[i].images[j]+".png'")+" max-width='100' max-height='100'>"+
 	            "   </div>"+
 	            "   <div class='bottom'>"+
 	            "       <span class='filename text-center'>"+afl[i].images[j]+"</span>"+
@@ -411,8 +493,15 @@ var showModalImageFiles = function(cb) {
         cb = null;
         modal.modal('hide');
 
-        //if( !lcb ) debugger;
-        if( lcb ) lcb("open", $(this).attr("filename"));    	
+        var r1 = new ModRaster("modal-image-"+$(this).attr("filename")),
+        	r2 = r1.clone();
+
+		r2.position = new Point(300,300);
+		r2.scale(1.0);
+		r2.rotate(0);
+
+        r1.remove();
+        if( lcb ) lcb("open", r2);    	
     });
 
     $(".modal-cancel", modal).off("click").one("click", function(e) {
@@ -439,8 +528,6 @@ var showModalImageFiles = function(cb) {
 		    	opacity: 1,
 		    }, 300);
 	    });
-
-
     });
 
     modal.modal('show');
@@ -509,7 +596,7 @@ var UndoManager = Base.extend({
 
 	startTransaction: function(obj) {
 		// Currently only with Raster objects
-		if( obj.getClassName() !== "Raster" ) return;
+		if( obj.getClassName() !== "ModRaster" ) return;
 
 		this._transactionObject = obj;
 		this._transactionData = obj.getSubRaster(new Point(0,0), obj.size);
@@ -540,7 +627,7 @@ var UndoManager = Base.extend({
 
 	startTransaction: function(obj) {
 		// Currently only with Raster objects
-		if( obj.getClassName() !== "Raster" ) return;
+		if( obj.getClassName() !== "ModRaster" ) return;
 
 		this._transactionObject = obj;
 		this._transactionData = obj.getSubRaster(new Point(0,0), obj.size);
@@ -608,7 +695,7 @@ if( sessionStorage.paperProject ) {
 	var baseCommands = new Commands(baseCropper);
 
 	var activeLayer = new ImageLayer();
-
+/*
 	// Action 1	
 	var tmp = new Raster('fred');
 	raster = tmp.clone();
@@ -649,6 +736,7 @@ if( sessionStorage.paperProject ) {
 
 	//UM.undo();
 	//UM.redo();
+*/
 }
 
 
@@ -661,22 +749,34 @@ if( sessionStorage.paperProject ) {
 
 baseLayer.bringToFront();
 
-/*
+
 var hitOptions = {
 	segments: true,
 	stroke: true,
 	fill: true,
+	pixel: false,
 	tolerance: 5
 };
 
+/////////////////////////////////////////////////////////////
+// Selecting, moving and modifying items with the mouse
 var segment, path;
 var movePath = false;
 function onMouseDown(event) {
-	segment = path = null;
-	var hitResult = project.activeLayer.hitTest(event.point, hitOptions);
-	if (!hitResult )
-		return ;
 
+	segment = path = null;
+
+	// Resizing the cropper has priority
+	if( baseCropper.getCursor() === "resize") return;
+
+	// check if an item was hit
+	var hitResult = project.activeLayer.hitTest(event.point, hitOptions);
+
+	// No hit, nothing to do
+	if (!hitResult ) return;
+
+	// select hit item
+	project.deselectAll();
 	hitResult.item.selected = true;
 
 	path = hitResult.item;
@@ -688,24 +788,18 @@ function onMouseDown(event) {
 		path.smooth();
 	}
 	movePath = hitResult.type == 'fill';
-	if (movePath)
-		project.activeLayer.addChild(hitResult.item);
+	if (movePath) project.activeLayer.addChild(hitResult.item);
 }
 
-
-
 function onMouseDrag(event) {
+	if( baseViewer ) baseViewer.onMouseMove(event);
+
 	if (segment) {
 		segment.point += event.delta;
 		path.smooth();
 	} else if (path) {
 		path.position += event.delta;
 	}
-}
-*/
-
-function onMouseDown(event) {
-	if( baseViewer ) baseViewer.onMouseDown(event);
 }
 
 
