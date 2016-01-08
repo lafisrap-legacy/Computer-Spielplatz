@@ -154,21 +154,65 @@ Fahrrad.draw = function(isPaused) {
 
 //////////////////////////////////////////
 // Spielszene
-var Spielfeld, Tooor, Gewonnen, Figuren;
+var Warten, Spielfeld, Tooor, Gewonnen, Figuren;
 
 SpielSzene.init = function() {
     Tooor.hide();
     Gewonnen.hide();
     Figuren.show();
+    Figuren.pause();
     Spielfeld.show();
+    Warten.show();
     
     SpielSzene.PunkteRob = 0;
     SpielSzene.PunkteFred = 0;
 };
 
+var Warten = SpielSzene.addLayer(2);
+Warten.init = function(Schütze) {
+    cursor();
+    
+    Warten.TasteBob = false;
+    Warten.TasteFred = false;
+};
+
+Warten.draw = function(isPaused) {
+    if( !isPaused ) {
+        textSize(24);
+        fill(87, 35, 35);
+        text("Beide Spieler eine\nihrer Tasten drücken ...", 200, 270);
+    
+        textSize(14);
+        fill(245, 108, 108);
+        text("Hoch: A\nRunter: Y", 30, 380);
+        fill(132, 163, 201);
+        text("Hoch: P\nRunter: L", 370, 380);
+        Spielfeld.TastenFade -= 0.2;
+    }
+};
+
+Warten.keyPressed = function() {
+    switch(key.code) {
+        case 97: 
+        case 121: 
+            Warten.TasteBob = true;
+            break;
+        case 112: 
+        case 108: 
+            Warten.TasteFred = true;
+            break;
+    }
+    
+    if( Warten.TasteFred && Warten.TasteBob ) {
+        Warten.hide();
+        Figuren.resume();
+    }
+};
+
 var Spielfeld = SpielSzene.addLayer(0,{},{
         Tooor: getSound("Spielplatz/Schlagzeug")
     });
+
 Spielfeld.draw = function(isPaused) {
     noStroke();
     fill(245, 108, 108);
@@ -270,6 +314,8 @@ Gewonnen.init = function(Schütze) {
         Figuren.Gefühl1 = 4;
         Figuren.Gefühl2 = 3;
     }   
+    
+    cursor();
 };
 
 Gewonnen.draw = function(isPaused) {
@@ -460,5 +506,4 @@ Figuren.setBall = function() {
     Figuren.dBy = sin(winkel)*5;
 };
 
-noCursor();
 setScene( TitelSzene );

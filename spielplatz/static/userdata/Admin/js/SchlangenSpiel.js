@@ -1,7 +1,7 @@
 // Schlangen-Spiel (#1 Besserer Name) 
 
 var Schlange = [],
-    Elastizität = 10,   // (#2 Elastizität der Schlange ändern)
+    Elastizität = 12,   // (#2 Elastizität der Schlange ändern)
     n = 20,             // (#3 Länge der Schlange)
     Käfer = [],
     SchlangeAktiv = false,
@@ -135,4 +135,4 @@ var draw = function() {
     }
 };
 
-// (#22 Mehr Sound!)
+// (#22 EIGENE IDEEN!!!)

@@ -13,61 +13,6 @@ var ImageLayer = Layer.extend({
 });
 
 ////////////////////////////////////////////////////////////////////////
-// ModRaster is the base class for a raster that can be modified
-// 
-ModRaster = Raster.extend({
-	_class: 'ModRaster',
-	_serializeFields: {
-	},
-
-	initialize: function ModRaster(object, position) {
-		if (!this._initialize(object,
-				position !== undefined && Point.read(arguments, 1))) {
-			if (typeof object === 'string') {
-				this.setSource(object);
-			} else {
-				this.setImage(object);
-			}
-		}
-		if (!this._size) {
-			this._size = new Size();
-			this._loaded = false;
-		}
-	},
-
-	_hitTestSelf: function(point) {
-
-		debugger;
-		var rect = this.bounds,
-			square = new Point(5,5),
-			resizeBase = null;
-		if( (rect.topLeft     - point).abs() < square ) resizeBase = "topLeft"; 
-		else if( (rect.topRight    - point).abs() < square ) resizeBase = "topRight"; 
-		else if( (rect.bottomLeft  - point).abs() < square ) resizeBase = "bottomLeft"; 
-		else if( (rect.bootomRight - point).abs() < square ) resizeBase = "bottomRight"; 
-		else if (this._contains(point)) {
-
-			var that = this;
-			return new HitResult('pixel', that, {
-				offset: point.add(that._size.divide(2)).round(),
-				color: {
-					get: function() {
-						return that.getPixel(this.offset);
-					}
-				}
-			});
-		}
-
-		if( resizeBase ) {
-			return new HitResult('resize', that, {
-				resizeBase: resizeBase,
-				point: point
-			});
-		}
-	},
-});
-
-////////////////////////////////////////////////////////////////////////
 // Cropper is the cropping tool for the editor. It's part of the BaseLayer
 // 
 var CropperOffset = new Point(100, 100);
@@ -189,27 +134,26 @@ var Cropper = Base.extend({
 
 		if( point.x < width && point.y < width ||
 			point.x > rect.width-width && point.y > rect.height-width ) { 
-			var cursor = "nwse-resize";
+			document.body.style.cursor = "nwse-resize";
 			this._rect.moveX = point.x < width? 1:2;
 			this._rect.moveY = point.y < width? 1:2;
 		} else if( point.x < width && point.y > rect.height-width ||
 			point.x > rect.width-width && point.y < width ) { 
-			var cursor = "nesw-resize";
+			document.body.style.cursor = "nesw-resize";
 			this._rect.moveX = point.x < width? 1:2;
 			this._rect.moveY = point.y < width? 1:2;
 		} else if( point.x < width || point.x > rect.width-width ) {
-			var cursor = "ew-resize";
+			document.body.style.cursor = "ew-resize";
 			this._rect.moveX = point.x < width? 1:2;
 			this._rect.moveY = 0;
 		} else { 
-			var cursor = "ns-resize";
+			document.body.style.cursor = "ns-resize";
 			this._rect.moveX = 0;
 			this._rect.moveY = point.y < width? 1:2;
 		}
 
 		this._rect.moveOffset = new Point( (point.x < width? width-point.x - width/2 : -width + rect.width - point.x + width/2),
 										   (point.y < width? width-point.y - width/2 : -width + rect.height - point.y + width/2));
-		document.body.style.cursor = cursor;
 		this._cursor = "resize";
 	},
 	onMouseLeave: function(event) {
@@ -261,7 +205,7 @@ var Viewer = Base.extend({
 		this._rect = new Path.Rectangle(this._viewRect.point - this._rectWidth/2, this._viewRect.size + this._rectWidth);
 		this._rect.strokeWidth = this._rectWidth;
 		this._rect.strokeColor = "#aaa";
-		this._rect.opacity = 0.5;		
+		this._rect.opacity = 0.5;
 
 		$("#viewCanvas").on("mousedown", function(event) { event.point = {x:event.pageX, y:event.pageY}; self.onMouseDown(event); });
 		$("#viewCanvas").on("mousemove", function(event) { event.point = {x:event.pageX, y:event.pageY}; self.onMouseMove(event); });
@@ -415,6 +359,9 @@ var Viewer = Base.extend({
 ////////////////////////////////////////////////////////////////////////
 // Commands shows and handles all commands 
 // 
+var COMMAND_RESIZE = 0,
+	COMMAND_ROTATE = 1,
+	COMMAND_CROP = 2;
 var Commands = Base.extend({
 	_class: 'Commands',
 	_currentColor: new Color("red"),
@@ -422,19 +369,45 @@ var Commands = Base.extend({
 	_serializeFields: {
 
 	},
+
+	resizeMode: COMMAND_RESIZE,
+
 	initialize: function(cropper) {
+		var self = this;
+
 		$(".colorfield").css("background-color", this._currentColor.toCSS());
+
+		//////////////////////////////////////////////////////////////////7
+		// Menü-Command: Download 
 		$(".command-download").on("click tap", function(event) {
 			showModalImageFiles(function(res, image) {
 				if( res === "open" ) {
-					var items = project.activeLayer.children;
-					if( items.length === 1 ) baseCropper.set(image.bounds);
+
+					var r1 = new Raster(image),
+        				r2 = r1.clone();
+
+			        r1.remove();
 
 					project.deselectAll();
+					r2.position = new Point(300,300);
+					r2.selected = true;
 
-					image.selected = true;
+					var items = project.activeLayer.children;
+					if( items.length === 1 ) baseCropper.set(r2.bounds);
 				}
 			});
+		});
+		//////////////////////////////////////////////////////////////////7
+		// Menü-Command: Rotate 
+		$(".command-rotate").on("click tap", function(event) {
+			$(".command-crop").removeClass("active btn-primary");
+			if( $(this).toggleClass("active btn-primary").hasClass("active") ) self.resizeMode = COMMAND_ROTATE;
+			else self.resizeMode = COMMAND_RESIZE;
+		});
+		$(".command-crop").on("click tap", function(event) {
+			$(".command-rotate").removeClass("active btn-primary");
+			if( $(this).toggleClass("active btn-primary").hasClass("active") ) self.resizeMode = COMMAND_CROP;
+			else self.resizeMode = COMMAND_RESIZE;
 		});
 	},
 },{
@@ -493,15 +466,7 @@ var showModalImageFiles = function(cb) {
         cb = null;
         modal.modal('hide');
 
-        var r1 = new ModRaster("modal-image-"+$(this).attr("filename")),
-        	r2 = r1.clone();
-
-		r2.position = new Point(300,300);
-		r2.scale(1.0);
-		r2.rotate(0);
-
-        r1.remove();
-        if( lcb ) lcb("open", r2);    	
+        if( lcb ) lcb("open", "modal-image-"+$(this).attr("filename"));    	
     });
 
     $(".modal-cancel", modal).off("click").one("click", function(e) {
@@ -596,7 +561,7 @@ var UndoManager = Base.extend({
 
 	startTransaction: function(obj) {
 		// Currently only with Raster objects
-		if( obj.getClassName() !== "ModRaster" ) return;
+		if( obj.getClassName() !== "Raster" ) return;
 
 		this._transactionObject = obj;
 		this._transactionData = obj.getSubRaster(new Point(0,0), obj.size);
@@ -627,7 +592,7 @@ var UndoManager = Base.extend({
 
 	startTransaction: function(obj) {
 		// Currently only with Raster objects
-		if( obj.getClassName() !== "ModRaster" ) return;
+		if( obj.getClassName() !== "Raster" ) return;
 
 		this._transactionObject = obj;
 		this._transactionData = obj.getSubRaster(new Point(0,0), obj.size);
@@ -750,17 +715,9 @@ if( sessionStorage.paperProject ) {
 baseLayer.bringToFront();
 
 
-var hitOptions = {
-	segments: true,
-	stroke: true,
-	fill: true,
-	pixel: false,
-	tolerance: 5
-};
-
 /////////////////////////////////////////////////////////////
 // Selecting, moving and modifying items with the mouse
-var segment, path;
+var segment, path, bounds;
 var movePath = false;
 function onMouseDown(event) {
 
@@ -770,7 +727,12 @@ function onMouseDown(event) {
 	if( baseCropper.getCursor() === "resize") return;
 
 	// check if an item was hit
-	var hitResult = project.activeLayer.hitTest(event.point, hitOptions);
+	var hitResult = project.activeLayer.hitTest(event.point, {
+		bounds: true,
+		selected: true,
+		fill: true,
+		tolerance: 5
+	});
 
 	// No hit, nothing to do
 	if (!hitResult ) return;
@@ -780,7 +742,9 @@ function onMouseDown(event) {
 	hitResult.item.selected = true;
 
 	path = hitResult.item;
-	if (hitResult.type == 'segment') {
+	if (hitResult.type == 'bounds') {
+		bounds = hitResult.segment;
+	} else if (hitResult.type == 'segment') {
 		segment = hitResult.segment;
 	} else if (hitResult.type == 'stroke') {
 		var location = hitResult.location;
@@ -805,6 +769,25 @@ function onMouseDrag(event) {
 
 function onMouseMove(event) {
 	if( baseViewer ) baseViewer.onMouseMove(event);
+
+	var hitResult = project.activeLayer.hitTest(event.point, {
+		bounds: true,
+		selected: true,
+		tolerance: 5
+	});
+
+	// No hit, nothing to do
+	if (!hitResult ) return;
+
+	if( hitResult.type === "bounds") {
+		var cursor = baseCommands.resizeMode === COMMAND_ROTATE? "cur_rotate.png" : 
+					 baseCommands.resizeMode === COMMAND_CROP? 	 "cur_crop.png" : 
+																 "cur_resize.png";
+
+		document.body.style.cursor = "url('static/img/"+cursor+"') 11 11, auto";
+	} else {
+		document.body.style.cursor = "default";		
+	}
 }
 
 function onMouseUp(event) {
