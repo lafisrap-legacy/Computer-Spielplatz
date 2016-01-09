@@ -118,7 +118,7 @@ var Cropper = Base.extend({
 			x2 = mx === 2? point.x : rect.point.x + rect.size.width - this._offset.x,
 			y2 = my === 2? point.y : rect.point.y + rect.size.height - this._offset.y;
 
-		console.log(x1+", "+x2+", "+y1+", "+y2+", "+mx+", "+my+", "+0+", ")
+		//console.log(x1+", "+x2+", "+y1+", "+y2+", "+mx+", "+my+", "+0+", ")
 		this.set(x1, y1, x2, y2);
 
 		this.isDragging = true;
@@ -217,13 +217,13 @@ var Viewer = Base.extend({
 		this.drawColorPicker();
 
 		$(".colorpicker-scroll-c").mousedown(function(event) {
-			console.log("mousedown: "+event.pageY);
+			//console.log("mousedown: "+event.pageY);
 			self._colorPickerIsDragging = true;
 			self._colorPickerYOffset = parseInt($(".colorpicker-scroll").css("top")) - event.pageY;
 		});
 
 		$(window).mousemove(function(event) {
-			console.log("mousemove: "+self._colorPickerIsDragging);
+			//console.log("mousemove: "+self._colorPickerIsDragging);
 			if( self._colorPickerIsDragging ) {
 				var top = event.pageY + self._colorPickerYOffset; 
 				if( top < self._colorPickerTopOffset ) top = self._colorPickerTopOffset;
@@ -717,8 +717,9 @@ baseLayer.bringToFront();
 
 /////////////////////////////////////////////////////////////
 // Selecting, moving and modifying items with the mouse
-var segment, path, bounds;
-var movePath = false;
+var segment, path, bounds,
+	grabPoint = null;
+	movePath = false;
 function onMouseDown(event) {
 
 	segment = path = null;
@@ -737,14 +738,31 @@ function onMouseDown(event) {
 	// No hit, nothing to do
 	if (!hitResult ) return;
 
+	// If a selection is active ...
+	if( hitResult.item.selected ) {
+		// user hit the item frame
+		if (hitResult.type == 'bounds') {
+			var bounds = hitResult.item.bounds,
+				x = event.point.x,
+				y = event.point.y;
+			grabPoint = {
+				left:  	  Math.abs(x - bounds.left) < 10,
+				right: 	  Math.abs(x - bounds.right) < 10,
+				top: 	  Math.abs(y - bounds.top) < 10,
+				bottom:   Math.abs(y - bounds.bottom) < 10,
+				rotation: Math.atan2(y - bounds.center.y, x - bounds.center.x) * 180 / Math.PI,
+				item: 	  hitResult.item,
+			}
+			return;
+		}
+	}
+
 	// select hit item
 	project.deselectAll();
 	hitResult.item.selected = true;
 
 	path = hitResult.item;
-	if (hitResult.type == 'bounds') {
-		bounds = hitResult.segment;
-	} else if (hitResult.type == 'segment') {
+	if (hitResult.type == 'segment') {
 		segment = hitResult.segment;
 	} else if (hitResult.type == 'stroke') {
 		var location = hitResult.location;
@@ -758,7 +776,23 @@ function onMouseDown(event) {
 function onMouseDrag(event) {
 	if( baseViewer ) baseViewer.onMouseMove(event);
 
-	if (segment) {
+	if( grabPoint ) {
+		var b = grabPoint.item.bounds;
+		switch( baseCommands.resizeMode ) {
+		case COMMAND_RESIZE:
+			var point = new Point(grabPoint.left? b.right : grabPoint.right? b.left : b.center.x,
+								  grabPoint.top? b.bottom : grabPoint.bottom? b.top : b.center.y),
+				hor = point.x === b.center.x? 1 : Math.abs(event.point.x - point.x) / b.width,
+				ver = point.y === b.center.y? 1 : Math.abs(event.point.y - point.y) / b.height;
+				
+			grabPoint.item.scale(hor, ver, point);
+			break;
+		case COMMAND_ROTATE:
+			break;
+		case COMMAND_CROP:
+			break;
+		}
+	} else if (segment) {
 		segment.point += event.delta;
 		path.smooth();
 	} else if (path) {
@@ -777,7 +811,10 @@ function onMouseMove(event) {
 	});
 
 	// No hit, nothing to do
-	if (!hitResult ) return;
+	if (!hitResult ) {
+		document.body.style.cursor = "default";		
+		return;
+	}
 
 	if( hitResult.type === "bounds") {
 		var cursor = baseCommands.resizeMode === COMMAND_ROTATE? "cur_rotate.png" : 
@@ -792,6 +829,7 @@ function onMouseMove(event) {
 
 function onMouseUp(event) {
 	baseCropper.isDragging = false;
+	grabPoint = null;
 }
 
 function onFrame() {
