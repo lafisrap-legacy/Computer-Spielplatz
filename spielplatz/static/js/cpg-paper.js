@@ -780,6 +780,10 @@ function onMouseDrag(event) {
 	var x = event.point.x,
 		y = event.point.y;
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9674bbbd18efafdcd17fed3d6f49edf97859ba22
 	if( baseViewer ) baseViewer.onMouseMove(event);
 
 	if( grabPoint ) {
@@ -808,6 +812,11 @@ function onMouseDrag(event) {
 
 			grabPoint.item.rotate(rotation);			
 			grabPoint.rotation += rotation;			
+<<<<<<< HEAD
+=======
+			break;
+		case COMMAND_CROP:
+>>>>>>> 9674bbbd18efafdcd17fed3d6f49edf97859ba22
 			break;
 		}
 	} else if (segment) {
