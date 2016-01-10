@@ -742,16 +742,15 @@ function onMouseDown(event) {
 	if( hitResult.item.selected ) {
 		// user hit the item frame
 		if (hitResult.type == 'bounds') {
-			var bounds = hitResult.item.bounds,
-				x = event.point.x,
-				y = event.point.y;
+			var position = hitResult.item.position, 
+				point = hitResult.point;
+			
 			grabPoint = {
-				left:  	  Math.abs(x - bounds.left) < 10,
-				right: 	  Math.abs(x - bounds.right) < 10,
-				top: 	  Math.abs(y - bounds.top) < 10,
-				bottom:   Math.abs(y - bounds.bottom) < 10,
-				rotation: Math.atan2(y - bounds.center.y, x - bounds.center.x) * 180 / Math.PI,
-				item: 	  hitResult.item,
+				point: 		point,
+				oppPoint: 	point + (position - point)*2,
+				rotation: 	Math.atan2(event.point.y - position.y, event.point.x - position.x) * 180 / Math.PI, 
+				item: 	  	hitResult.item,
+				name: 		Base.camelize(hitResult.name),
 			}
 			return;
 		}
@@ -774,20 +773,38 @@ function onMouseDown(event) {
 }
 
 function onMouseDrag(event) {
+	var x = event.point.x,
+		y = event.point.y;
+
+
 	if( baseViewer ) baseViewer.onMouseMove(event);
 
 	if( grabPoint ) {
+		function getSpPoint(A,B,C){
+		    var x1=A.x, y1=A.y, x2=B.x, y2=B.y, x3=C.x, y3=C.y;
+		    var px = x2-x1, py = y2-y1, dAB = px*px + py*py;
+		    var u = ((x3 - x1) * px + (y3 - y1) * py) / dAB;
+		    var x = x1 + u * px, y = y1 + u * py;
+		    return {x:x, y:y}; //this is D
+		}
+
 		var b = grabPoint.item.bounds;
 		switch( baseCommands.resizeMode ) {
 		case COMMAND_RESIZE:
-			var point = new Point(grabPoint.left? b.right : grabPoint.right? b.left : b.center.x,
-								  grabPoint.top? b.bottom : grabPoint.bottom? b.top : b.center.y),
-				hor = point.x === b.center.x? 1 : Math.abs(event.point.x - point.x) / b.width,
-				ver = point.y === b.center.y? 1 : Math.abs(event.point.y - point.y) / b.height;
-				
-			grabPoint.item.scale(hor, ver, point);
+			var gp = grabPoint,
+				point = new Point(getSpPoint(gp.point, gp.oppPoint, event.point)),
+				zoom = gp.oppPoint.getDistance(point) / gp.oppPoint.getDistance(gp.point),
+				hor = gp.name.search(/topCenter|bottomCenter/) !== -1 && !gp.item.rotation? 1 : zoom,
+				ver = gp.name.search(/leftCenter|rightCenter/) !== -1 && !gp.item.rotation? 1 : zoom;
+
+			gp.item.scale(hor, ver, gp.oppPoint );
+			gp.point = point;
 			break;
 		case COMMAND_ROTATE:
+			var rotation = Math.atan2(y - b.center.y, x - b.center.x) * 180 / Math.PI - grabPoint.rotation;
+
+			grabPoint.item.rotate(rotation);			
+			grabPoint.rotation += rotation;			
 			break;
 		case COMMAND_CROP:
 			break;
