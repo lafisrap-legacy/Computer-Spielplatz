@@ -109,6 +109,9 @@ var Cropper = Base.extend({
 	}
 }, {
 	onMouseDrag: function(event) {
+
+		if( baseCommands.cursor === "bounds" ) return;
+		
 		var rect = this._area.children[1].bounds,
 			point = event.point - this._offset + this._rect.moveOffset,
 			mx = this._rect.moveX,
@@ -360,8 +363,8 @@ var Viewer = Base.extend({
 // Commands shows and handles all commands 
 // 
 var COMMAND_RESIZE = 0,
-	COMMAND_ROTATE = 1,
-	COMMAND_CROP = 2;
+	COMMAND_ROTATE = 1;
+
 var Commands = Base.extend({
 	_class: 'Commands',
 	_currentColor: new Color("red"),
@@ -371,6 +374,7 @@ var Commands = Base.extend({
 	},
 
 	resizeMode: COMMAND_RESIZE,
+	cursor: null,
 
 	initialize: function(cropper) {
 		var self = this;
@@ -400,15 +404,15 @@ var Commands = Base.extend({
 		//////////////////////////////////////////////////////////////////7
 		// Menü-Command: Rotate 
 		$(".command-rotate").on("click tap", function(event) {
-			$(".command-crop").removeClass("active btn-primary");
-			if( $(this).toggleClass("active btn-primary").hasClass("active") ) self.resizeMode = COMMAND_ROTATE;
-			else self.resizeMode = COMMAND_RESIZE;
+			$(".command-resize").removeClass("active btn-primary");
+			$(".command-rotate").addClass("active btn-primary");
+			self.resizeMode = COMMAND_ROTATE;
 		});
-		$(".command-crop").on("click tap", function(event) {
+		$(".command-resize").on("click tap", function(event) {
 			$(".command-rotate").removeClass("active btn-primary");
-			if( $(this).toggleClass("active btn-primary").hasClass("active") ) self.resizeMode = COMMAND_CROP;
-			else self.resizeMode = COMMAND_RESIZE;
-		});
+			$(".command-resize").addClass("active btn-primary");
+			self.resizeMode = COMMAND_RESIZE;
+		}).addClass("active btn-primary");
 	},
 },{
 	setColor: function(color) {
@@ -718,7 +722,7 @@ baseLayer.bringToFront();
 /////////////////////////////////////////////////////////////
 // Selecting, moving and modifying items with the mouse
 var segment, path, bounds,
-	grabPoint = null;
+	grabPoint = null,
 	movePath = false;
 function onMouseDown(event) {
 
@@ -742,16 +746,15 @@ function onMouseDown(event) {
 	if( hitResult.item.selected ) {
 		// user hit the item frame
 		if (hitResult.type == 'bounds') {
-			var bounds = hitResult.item.bounds,
-				x = event.point.x,
-				y = event.point.y;
+			var position = hitResult.item.position, 
+				point = hitResult.point;
+			
 			grabPoint = {
-				left:  	  Math.abs(x - bounds.left) < 10,
-				right: 	  Math.abs(x - bounds.right) < 10,
-				top: 	  Math.abs(y - bounds.top) < 10,
-				bottom:   Math.abs(y - bounds.bottom) < 10,
-				rotation: Math.atan2(y - bounds.center.y, x - bounds.center.x) * 180 / Math.PI,
-				item: 	  hitResult.item,
+				point: 		point,
+				oppPoint: 	point + (position - point)*2,
+				rotation: 	Math.atan2(event.point.y - position.y, event.point.x - position.x) * 180 / Math.PI, 
+				item: 	  	hitResult.item,
+				name: 		Base.camelize(hitResult.name),
 			}
 			return;
 		}
@@ -774,22 +777,37 @@ function onMouseDown(event) {
 }
 
 function onMouseDrag(event) {
+	var x = event.point.x,
+		y = event.point.y;
+
 	if( baseViewer ) baseViewer.onMouseMove(event);
 
 	if( grabPoint ) {
+		function getSpPoint(A,B,C){
+		    var x1=A.x, y1=A.y, x2=B.x, y2=B.y, x3=C.x, y3=C.y;
+		    var px = x2-x1, py = y2-y1, dAB = px*px + py*py;
+		    var u = ((x3 - x1) * px + (y3 - y1) * py) / dAB;
+		    var x = x1 + u * px, y = y1 + u * py;
+		    return {x:x, y:y}; //this is D
+		}
+
 		var b = grabPoint.item.bounds;
 		switch( baseCommands.resizeMode ) {
 		case COMMAND_RESIZE:
-			var point = new Point(grabPoint.left? b.right : grabPoint.right? b.left : b.center.x,
-								  grabPoint.top? b.bottom : grabPoint.bottom? b.top : b.center.y),
-				hor = point.x === b.center.x? 1 : Math.abs(event.point.x - point.x) / b.width,
-				ver = point.y === b.center.y? 1 : Math.abs(event.point.y - point.y) / b.height;
-				
-			grabPoint.item.scale(hor, ver, point);
+			var gp = grabPoint,
+				point = new Point(getSpPoint(gp.point, gp.oppPoint, event.point)),
+				zoom = gp.oppPoint.getDistance(point) / gp.oppPoint.getDistance(gp.point),
+				hor = gp.name.search(/topCenter|bottomCenter/) !== -1 && !gp.item.rotation? 1 : zoom,
+				ver = gp.name.search(/leftCenter|rightCenter/) !== -1 && !gp.item.rotation? 1 : zoom;
+
+			gp.item.scale(hor, ver, gp.oppPoint );
+			gp.point = point;
 			break;
 		case COMMAND_ROTATE:
-			break;
-		case COMMAND_CROP:
+			var rotation = Math.atan2(y - b.center.y, x - b.center.x) * 180 / Math.PI - grabPoint.rotation;
+
+			grabPoint.item.rotate(rotation);			
+			grabPoint.rotation += rotation;			
 			break;
 		}
 	} else if (segment) {
@@ -812,16 +830,18 @@ function onMouseMove(event) {
 
 	// No hit, nothing to do
 	if (!hitResult ) {
-		document.body.style.cursor = "default";		
+		if( baseCommands.cursor ) {
+			document.body.style.cursor = "default";
+			baseCommands.cursor = null;
+		}	
 		return;
 	}
 
-	if( hitResult.type === "bounds") {
-		var cursor = baseCommands.resizeMode === COMMAND_ROTATE? "cur_rotate.png" : 
-					 baseCommands.resizeMode === COMMAND_CROP? 	 "cur_crop.png" : 
-																 "cur_resize.png";
+	if( hitResult.type === "bounds" ) {
+		var c = baseCommands.resizeMode === COMMAND_ROTATE? "cur_rotate.png" : "cur_resize.png";
 
-		document.body.style.cursor = "url('static/img/"+cursor+"') 11 11, auto";
+		document.body.style.cursor = "url('static/img/"+c+"') 11 11, auto";
+		baseCommands.cursor = "bounds";
 	} else {
 		document.body.style.cursor = "default";		
 	}
