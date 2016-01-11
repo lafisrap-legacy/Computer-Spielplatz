@@ -110,7 +110,7 @@ var Cropper = Base.extend({
 }, {
 	onMouseDrag: function(event) {
 
-		if( baseCommands.cursor === "bounds" ) return;
+		if( baseCommands.cursorMode === "bounds" || moveItem ) return;
 		
 		var rect = this._area.children[1].bounds,
 			point = event.point - this._offset + this._rect.moveOffset,
@@ -121,7 +121,7 @@ var Cropper = Base.extend({
 			x2 = mx === 2? point.x : rect.point.x + rect.size.width - this._offset.x,
 			y2 = my === 2? point.y : rect.point.y + rect.size.height - this._offset.y;
 
-		//console.log(x1+", "+x2+", "+y1+", "+y2+", "+mx+", "+my+", "+0+", ")
+		console.log("Cropper cursor draw: "+JSON.stringify(point));
 		this.set(x1, y1, x2, y2);
 
 		this.isDragging = true;
@@ -134,6 +134,8 @@ var Cropper = Base.extend({
 		var rect = this._rect.bounds,
 			point = event.point - rect.point,
 			width = this._rect.strokeWidth;
+
+		console.log("Cropper cursor: "+JSON.stringify(point));
 
 		if( point.x < width && point.y < width ||
 			point.x > rect.width-width && point.y > rect.height-width ) { 
@@ -160,11 +162,11 @@ var Cropper = Base.extend({
 		this._cursor = "resize";
 	},
 	onMouseLeave: function(event) {
-		document.body.style.cursor = "default";		
+		document.body.style.cursor = baseCommands.cursorShape;		
 		this._cursor = null;
 	},
 	onMouseUp: function(event) {
-		document.body.style.cursor = "default";		
+		document.body.style.cursor = baseCommands.cursorShape;		
 	}
 });
 
@@ -362,8 +364,12 @@ var Viewer = Base.extend({
 ////////////////////////////////////////////////////////////////////////
 // Commands shows and handles all commands 
 // 
-var COMMAND_RESIZE = 0,
-	COMMAND_ROTATE = 1;
+var COMMAND_POINTER = 1,
+	COMMAND_PEN 	= 2,
+	COMMAND_RUBBER 	= 3,
+	COMMAND_DELETE 	= 4,
+	COMMAND_RESIZE 	= 5,
+	COMMAND_ROTATE 	= 6;
 
 var Commands = Base.extend({
 	_class: 'Commands',
@@ -373,8 +379,10 @@ var Commands = Base.extend({
 
 	},
 
+	commandMode: COMMAND_POINTER,
 	resizeMode: COMMAND_RESIZE,
-	cursor: null,
+	cursorMode: null,
+	cursorShape: "default",
 
 	initialize: function(cropper) {
 		var self = this;
@@ -402,12 +410,46 @@ var Commands = Base.extend({
 			});
 		});
 		//////////////////////////////////////////////////////////////////7
+		// Menü-Command: Click-Commands - Pointer
+		$(".command-pointer").on("click tap", function(event) {
+			$(".click-command").removeClass("active btn-primary");
+			$(".command-pointer").addClass("active btn-primary");
+			self.commandMode = COMMAND_POINTER;
+			self.cursorShape = "default";
+			document.body.style.cursor = self.cursorShape;
+		}).addClass("active btn-primary");
+		// Menü-Command: Click-Commands - Pen
+		$(".command-pen").on("click tap", function(event) {
+			$(".click-command").removeClass("active btn-primary");
+			$(".command-pen").addClass("active btn-primary");
+			self.commandMode = COMMAND_PEN;
+			self.cursorShape = "url('static/img/cur_pen.png') 0 22, auto";
+			document.body.style.cursor = self.cursorShape;
+		});
+		// Menü-Command: Click-Commands - Rubber
+		$(".command-rubber").on("click tap", function(event) {
+			$(".click-command").removeClass("active btn-primary");
+			$(".command-rubber").addClass("active btn-primary");
+			self.commandMode = COMMAND_RUBBER;
+			self.cursorShape = "url('static/img/cur_rubber.png') 4 4, auto";
+			document.body.style.cursor = self.cursorShape;
+		});
+		// Menü-Command: Click-Commands - Delete
+		$(".command-delete").on("click tap", function(event) {
+			$(".click-command").removeClass("active btn-primary");
+			$(".command-delete").addClass("active btn-primary");
+			self.commandMode = COMMAND_DELETE;
+			self.cursorShape = "url('static/img/cur_delete.png') 8 8, auto";
+			document.body.style.cursor = self.cursorShape;
+		});
+		//////////////////////////////////////////////////////////////////7
 		// Menü-Command: Rotate 
 		$(".command-rotate").on("click tap", function(event) {
 			$(".command-resize").removeClass("active btn-primary");
 			$(".command-rotate").addClass("active btn-primary");
 			self.resizeMode = COMMAND_ROTATE;
 		});
+		// Menü-Command: Resize 
 		$(".command-resize").on("click tap", function(event) {
 			$(".command-rotate").removeClass("active btn-primary");
 			$(".command-resize").addClass("active btn-primary");
@@ -736,9 +778,9 @@ function onMouseMove(event) {
 
 	// No hit, nothing to do
 	if (!hitResult ) {
-		if( baseCommands.cursor ) {
-			document.body.style.cursor = "default";
-			baseCommands.cursor = null;
+		if( baseCommands.cursorMode ) {
+			document.body.style.cursor = baseCommands.cursorShape;
+			baseCommands.cursorMode = null;
 		}	
 		return;
 	}
@@ -747,18 +789,17 @@ function onMouseMove(event) {
 		var c = baseCommands.resizeMode === COMMAND_ROTATE? "cur_rotate.png" : "cur_resize.png";
 
 		document.body.style.cursor = "url('static/img/"+c+"') 11 11, auto";
-		baseCommands.cursor = "bounds";
+		baseCommands.cursorMode = "bounds";
+
+		console.log("Cursor command: "+c);
 	} else {
-		document.body.style.cursor = "default";		
+		document.body.style.cursor = baseCommands.cursorShape;		
 	}
 }
 
 function onMouseDown(event) {
 
 	segment = item = moveItem = null;
-
-	// Resizing the cropper has priority
-	if( baseCropper.getCursor() === "resize") return;
 
 	//////////////////////////////////////////////////////////////////////////////
 	// Checking for selected items
