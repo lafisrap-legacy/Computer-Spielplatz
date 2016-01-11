@@ -721,112 +721,9 @@ baseLayer.bringToFront();
 
 /////////////////////////////////////////////////////////////
 // Selecting, moving and modifying items with the mouse
-var segment, path, bounds,
+var segment, item, bounds,
 	grabPoint = null,
-	movePath = false;
-function onMouseDown(event) {
-
-	segment = path = null;
-
-	// Resizing the cropper has priority
-	if( baseCropper.getCursor() === "resize") return;
-
-	// check if an item was hit
-	var hitResult = project.activeLayer.hitTest(event.point, {
-		bounds: true,
-		selected: true,
-		fill: true,
-		tolerance: 5
-	});
-
-	// No hit, nothing to do
-	if (!hitResult ) return;
-
-	// If a selection is active ...
-	if( hitResult.item.selected ) {
-		// user hit the item frame
-		if (hitResult.type == 'bounds') {
-			var position = hitResult.item.position, 
-				point = hitResult.point;
-			
-			grabPoint = {
-				point: 		point,
-				oppPoint: 	point + (position - point)*2,
-				rotation: 	Math.atan2(event.point.y - position.y, event.point.x - position.x) * 180 / Math.PI, 
-				item: 	  	hitResult.item,
-				name: 		Base.camelize(hitResult.name),
-			}
-			return;
-		}
-	}
-
-	// select hit item
-	project.deselectAll();
-	hitResult.item.selected = true;
-
-	path = hitResult.item;
-	if (hitResult.type == 'segment') {
-		segment = hitResult.segment;
-	} else if (hitResult.type == 'stroke') {
-		var location = hitResult.location;
-		segment = path.insert(location.index + 1, event.point);
-		path.smooth();
-	}
-	movePath = hitResult.type == 'fill';
-	if (movePath) project.activeLayer.addChild(hitResult.item);
-}
-
-function onMouseDrag(event) {
-	var x = event.point.x,
-		y = event.point.y;
-
-<<<<<<< HEAD
-=======
-
->>>>>>> 9674bbbd18efafdcd17fed3d6f49edf97859ba22
-	if( baseViewer ) baseViewer.onMouseMove(event);
-
-	if( grabPoint ) {
-		function getSpPoint(A,B,C){
-		    var x1=A.x, y1=A.y, x2=B.x, y2=B.y, x3=C.x, y3=C.y;
-		    var px = x2-x1, py = y2-y1, dAB = px*px + py*py;
-		    var u = ((x3 - x1) * px + (y3 - y1) * py) / dAB;
-		    var x = x1 + u * px, y = y1 + u * py;
-		    return {x:x, y:y}; //this is D
-		}
-
-		var b = grabPoint.item.bounds;
-		switch( baseCommands.resizeMode ) {
-		case COMMAND_RESIZE:
-			var gp = grabPoint,
-				point = new Point(getSpPoint(gp.point, gp.oppPoint, event.point)),
-				zoom = gp.oppPoint.getDistance(point) / gp.oppPoint.getDistance(gp.point),
-				hor = gp.name.search(/topCenter|bottomCenter/) !== -1 && !gp.item.rotation? 1 : zoom,
-				ver = gp.name.search(/leftCenter|rightCenter/) !== -1 && !gp.item.rotation? 1 : zoom;
-
-			gp.item.scale(hor, ver, gp.oppPoint );
-			gp.point = point;
-			break;
-		case COMMAND_ROTATE:
-			var rotation = Math.atan2(y - b.center.y, x - b.center.x) * 180 / Math.PI - grabPoint.rotation;
-
-			grabPoint.item.rotate(rotation);			
-			grabPoint.rotation += rotation;			
-<<<<<<< HEAD
-=======
-			break;
-		case COMMAND_CROP:
->>>>>>> 9674bbbd18efafdcd17fed3d6f49edf97859ba22
-			break;
-		}
-	} else if (segment) {
-		segment.point += event.delta;
-		path.smooth();
-	} else if (path) {
-		path.position += event.delta;
-	}
-}
-
+	moveItem;
 
 function onMouseMove(event) {
 	if( baseViewer ) baseViewer.onMouseMove(event);
@@ -856,9 +753,136 @@ function onMouseMove(event) {
 	}
 }
 
+function onMouseDown(event) {
+
+	segment = item = moveItem = null;
+
+	// Resizing the cropper has priority
+	if( baseCropper.getCursor() === "resize") return;
+
+	//////////////////////////////////////////////////////////////////////////////
+	// Checking for selected items
+	var hitResult = project.activeLayer.hitTest(event.point, {
+		selected: true,
+		bounds: true,
+		fill: true,
+		tolerance: 5
+	});
+
+	// Checking for unselected items
+	if( !hitResult ) {
+		hitResult = project.activeLayer.hitTest(event.point, {
+			selected: false,
+			bounds: true,
+			fill: true,
+			tolerance: 5
+		});
+	}
+
+	if( !hitResult ) {
+		project.deselectAll();
+		return;
+	}
+
+	item = hitResult.item;
+	item.hasBeenSelected = item.selected;
+	project.deselectAll();	
+	item.selected = true;
+
+	switch( hitResult.type ) {
+
+	case "bounds":
+		var position = hitResult.item.position, 
+			point = hitResult.point;
+		
+		grabPoint = {
+			point: 		point,
+			oppPoint: 	point + (position - point)*2,
+			rotation: 	Math.atan2(event.point.y - position.y, event.point.x - position.x) * 180 / Math.PI, 
+			item: 	  	hitResult.item,
+			name: 		Base.camelize(hitResult.name),
+		}
+		break;
+
+	case "segment":
+		segment = hitResult.segment;
+		break;
+
+	case "stroke":
+		var location = hitResult.location;
+		segment = item.insert(location.index + 1, event.point);
+		item.smooth();
+		break;
+
+	case "pixel":
+	case "fill":
+		moveItem = "Not moved";
+	}
+}
+
+function onMouseDrag(event) {
+	var x = event.point.x,
+		y = event.point.y;
+
+	if( baseViewer ) baseViewer.onMouseMove(event);
+
+	if( grabPoint ) {
+		function getSpPoint(A,B,C){
+		    var x1=A.x, y1=A.y, x2=B.x, y2=B.y, x3=C.x, y3=C.y;
+		    var px = x2-x1, py = y2-y1, dAB = px*px + py*py;
+		    var u = ((x3 - x1) * px + (y3 - y1) * py) / dAB;
+		    var x = x1 + u * px, y = y1 + u * py;
+		    return {x:x, y:y}; //this is D
+		}
+
+		var b = grabPoint.item.bounds;
+		switch( baseCommands.resizeMode ) {
+		case COMMAND_RESIZE:
+			var gp = grabPoint,
+				point = new Point(getSpPoint(gp.point, gp.oppPoint, event.point)),
+				zoom = gp.oppPoint.getDistance(point) / gp.oppPoint.getDistance(gp.point),
+				hor = gp.name.search(/topCenter|bottomCenter/) !== -1 && !gp.item.rotation? 1 : zoom,
+				ver = gp.name.search(/leftCenter|rightCenter/) !== -1 && !gp.item.rotation? 1 : zoom;
+
+			gp.item.scale(hor, ver, gp.oppPoint );
+			gp.point = point;
+			break;
+		case COMMAND_ROTATE:
+			var rotation = Math.atan2(y - b.center.y, x - b.center.x) * 180 / Math.PI - grabPoint.rotation;
+
+			grabPoint.item.rotate(rotation);			
+			grabPoint.rotation += rotation;			
+			break;
+		}
+	} else if (segment) {
+		segment.point += event.delta;
+		item.smooth();
+	} else if (moveItem) {
+		item.position += event.delta;
+		moveItem = "Moved";
+	}
+}
+
+
 function onMouseUp(event) {
 	baseCropper.isDragging = false;
 	grabPoint = null;
+
+	if( moveItem === "Not moved" && item.hasBeenSelected ) {
+		var next = item;
+		while( next = next.previousSibling ) {
+			if( next.hitTest( event.point ) ) {
+				project.deselectAll();
+				next.selected = true;
+				return;
+			}
+		}
+		if( hitResult = project.hitTest( event.point ) ) {
+			project.deselectAll();
+			hitResult.item.selected = true;
+			return;
+		}
+	}
 }
 
 function onFrame() {
