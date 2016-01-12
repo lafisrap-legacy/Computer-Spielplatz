@@ -387,6 +387,13 @@ var Commands = Base.extend({
 	initialize: function(cropper) {
 		var self = this;
 
+		var buttonBlink = function(button) {
+			button.addClass("active btn-primary");
+			setTimeout(function() {
+				button.removeClass("active btn-primary");
+			}, 200);
+		};
+
 		$(".colorfield").css("background-color", this._currentColor.toCSS());
 
 		//////////////////////////////////////////////////////////////////7
@@ -455,6 +462,16 @@ var Commands = Base.extend({
 			$(".command-resize").addClass("active btn-primary");
 			self.resizeMode = COMMAND_RESIZE;
 		}).addClass("active btn-primary");
+		//////////////////////////////////////////////////////////////////7
+		// Menü-Command: Arrange
+		$(".command-arrange-down").on("click tap", function(event) {
+			Base.each(project.selectedItems, function(item) { item.sendToBack(); });
+			buttonBlink($(this));
+		});
+		$(".command-arrange-up").on("click tap", function(event) {
+			Base.each(project.selectedItems, function(item) { item.bringToFront(); });
+			buttonBlink($(this));
+		});
 	},
 },{
 	setColor: function(color) {
@@ -857,7 +874,21 @@ function onMouseDown(event) {
 
 	case "pixel":
 	case "fill":
-		moveItem = "Not moved";
+		switch( baseCommands.commandMode ) {
+		case COMMAND_POINTER:
+			moveItem = "Not moved";
+			break;
+		case COMMAND_PEN:
+			break;
+		case COMMAND_RUBBER:
+			break;
+		case COMMAND_DELETE:
+			item.remove();
+			if( project.activeLayer.isEmpty() ) {
+				$(".command-pointer").trigger("click");	
+			}
+			break;
+		}
 	}
 }
 
