@@ -88,8 +88,8 @@ func init() {
 // 	doneChan	channel to signal end or get it signaled
 func StartWebsockets(doneChan chan bool) {
 
+	address := beego.AppConfig.String("httpaddr")
 	dir := beego.AppConfig.String("websockets::dir")
-	address := beego.AppConfig.String("websockets::address")
 	port := beego.AppConfig.String("websockets::port")
 
 	beego.Trace("dir:", dir, "address:", address, "port:", port)
