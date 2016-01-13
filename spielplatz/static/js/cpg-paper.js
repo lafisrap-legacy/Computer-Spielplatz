@@ -388,9 +388,9 @@ var Commands = Base.extend({
 		var self = this;
 
 		var buttonBlink = function(button) {
-			button.addClass("active btn-primary");
+			button.addClass("active btn-success");
 			setTimeout(function() {
-				button.removeClass("active btn-primary");
+				button.removeClass("active btn-success");
 			}, 200);
 		};
 
@@ -463,17 +463,69 @@ var Commands = Base.extend({
 			self.resizeMode = COMMAND_RESIZE;
 		}).addClass("active btn-primary");
 		//////////////////////////////////////////////////////////////////7
-		// Menü-Command: Arrange
+		// Menü-Command: Arrange etc.
 		$(".command-arrange-down").on("click tap", function(event) {
 			Base.each(project.selectedItems, function(item) { item.sendToBack(); });
-			buttonBlink($(this));
+			if( project.selectedItems.length ) buttonBlink($(this));
 		});
 		$(".command-arrange-up").on("click tap", function(event) {
 			Base.each(project.selectedItems, function(item) { item.bringToFront(); });
-			buttonBlink($(this));
+			if( project.selectedItems.length ) buttonBlink($(this));
+		});
+		$(".command-clone").on("click tap", function(event) {
+			Base.each(project.selectedItems, function(item) { item.clone(); });
+			if( project.selectedItems.length ) buttonBlink($(this));
+		});
+		$(".command-rasterize").on("click tap", function(event) {
+			Base.each(project.selectedItems, function(item) { 
+				if( item.className === "Raster") {
+					var raster = item.rasterize(); 
+					item.remove();
+					newRaster = self.cropRaster(raster);
+					raster.remove();
+					newRaster.selected = true;					
+				}
+			});
+			if( project.selectedItems.length ) buttonBlink($(this));
 		});
 	},
 },{
+	cropRaster: function(raster) {
+		// check bounds
+		var ctx = raster.getContext(),
+			b = raster.bounds;
+
+		var findPixel = function( data ) {
+			for( var i=0 ; i<data.length ; i+=4 ) if( data[i+3] !== 0 ) return true;
+			return false;
+		};
+
+		for( var i=0, found=false ; i<b.width && !found ; i++ ) found = findPixel(ctx.getImageData(i, 0, 1, b.height).data); 
+
+		if( !found ) {
+			raster.remove();
+			return;
+		}
+
+		var x = i-1;
+
+		for( var i=0, found=false ; i<b.height && !found ; i++ ) found = findPixel(ctx.getImageData(x, i, b.width-x, 1).data); 
+
+		var y = i-1;
+
+		for( var i=b.width-1, found=false ; i>=x && !found ; i-- ) found = findPixel(ctx.getImageData(i, y, 1, b.height-y).data); 
+
+		var width = i+2 - x;
+
+		for( var i=b.height-1, found=false ; i>=y && !found ; i-- ) found = findPixel(ctx.getImageData(x, i, width, 1).data);
+
+		var height = i+2 - y;
+
+		var newRaster = raster.getSubRaster(new Rectangle(x, y, width, height));
+		raster.remove();
+		return newRaster;
+	},
+
 	setColor: function(color) {
 		this._currentColor = color;
 		$(".colorfield").css("background-color", color.toCSS())		
