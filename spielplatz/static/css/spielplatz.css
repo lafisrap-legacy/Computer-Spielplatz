@@ -275,7 +275,7 @@ body {
   position: absolute; 
   width: 256px;
   height: 256px;
-  top: 172px; 
+  top: 25px; 
   left: 720px;
 }
 
@@ -314,7 +314,7 @@ body {
 
 #commandsWrapper {
   position: absolute;
-  top: 90px;
+  top: 15px;
   left: 605px;
   width: 97px;
   border: 1px solid lightgrey;  
@@ -341,6 +341,11 @@ body {
   width: 83px;
   height: 86px;
   background-color: white;
+}
+
+#commandsWrapper hr {
+  margin-top: 4px;
+  margin-bottom: 4px;
 }
 
 .modal-footer .btn-primary, .modal-footer .btn {

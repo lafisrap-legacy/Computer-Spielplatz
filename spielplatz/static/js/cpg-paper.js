@@ -175,7 +175,7 @@ var Cropper = Base.extend({
 // 
 var Viewer = Base.extend({
 	_class: 'Viewer',
-	_viewRect: new Rectangle( new Point(720,172), new Size(256, 256)),
+	_viewRect: new Rectangle( new Point(parseInt($("#viewCanvasWrapper").css("left")),parseInt($("#viewCanvasWrapper").css("top"))), new Size(256, 256)),
 	_rect: null,
 	_rectWidth: 10,
 	_modes: ['colorpicker'],
@@ -364,12 +364,18 @@ var Viewer = Base.extend({
 ////////////////////////////////////////////////////////////////////////
 // Commands shows and handles all commands 
 // 
-var COMMAND_POINTER = 1,
-	COMMAND_PEN 	= 2,
-	COMMAND_RUBBER 	= 3,
-	COMMAND_DELETE 	= 4,
-	COMMAND_RESIZE 	= 5,
-	COMMAND_ROTATE 	= 6;
+var COMMAND_POINTER 	= 1,
+	COMMAND_PEN 		= 2,
+	COMMAND_RUBBER 		= 3,
+	COMMAND_DELETE 		= 4,
+	COMMAND_MAGIC 		= 5,
+	COMMAND_PIPETTE		= 6,
+	COMMAND_BRIGHTNESS 	= 7,
+	COMMAND_GRAYSCALE 	= 8,
+	COMMAND_SATURATION 	= 9,
+	COMMAND_HUE 		= 10,
+	COMMAND_RESIZE 		= 11,
+	COMMAND_ROTATE 		= 12;
 
 var Commands = Base.extend({
 	_class: 'Commands',
@@ -394,6 +400,16 @@ var Commands = Base.extend({
 			}, 200);
 		};
 
+		var initClickCommand = function(type, mode, cursorShape) {
+			return $(".command-"+type).on("click tap", function(event) {
+				$(".click-command").removeClass("active btn-primary");
+				$(".command-"+type).addClass("active btn-primary");
+				self.commandMode = mode;
+				self.cursorShape = cursorShape;
+				document.body.style.cursor = self.cursorShape;
+			});
+		};
+
 		$(".colorfield").css("background-color", this._currentColor.toCSS());
 
 		//////////////////////////////////////////////////////////////////7
@@ -416,39 +432,20 @@ var Commands = Base.extend({
 				}
 			});
 		});
+
 		//////////////////////////////////////////////////////////////////7
-		// Menü-Command: Click-Commands - Pointer
-		$(".command-pointer").on("click tap", function(event) {
-			$(".click-command").removeClass("active btn-primary");
-			$(".command-pointer").addClass("active btn-primary");
-			self.commandMode = COMMAND_POINTER;
-			self.cursorShape = "default";
-			document.body.style.cursor = self.cursorShape;
-		}).addClass("active btn-primary");
-		// Menü-Command: Click-Commands - Pen
-		$(".command-pen").on("click tap", function(event) {
-			$(".click-command").removeClass("active btn-primary");
-			$(".command-pen").addClass("active btn-primary");
-			self.commandMode = COMMAND_PEN;
-			self.cursorShape = "url('static/img/cur_pen.png') 0 22, auto";
-			document.body.style.cursor = self.cursorShape;
-		});
-		// Menü-Command: Click-Commands - Rubber
-		$(".command-rubber").on("click tap", function(event) {
-			$(".click-command").removeClass("active btn-primary");
-			$(".command-rubber").addClass("active btn-primary");
-			self.commandMode = COMMAND_RUBBER;
-			self.cursorShape = "url('static/img/cur_rubber.png') 4 4, auto";
-			document.body.style.cursor = self.cursorShape;
-		});
-		// Menü-Command: Click-Commands - Delete
-		$(".command-delete").on("click tap", function(event) {
-			$(".click-command").removeClass("active btn-primary");
-			$(".command-delete").addClass("active btn-primary");
-			self.commandMode = COMMAND_DELETE;
-			self.cursorShape = "url('static/img/cur_delete.png') 8 8, auto";
-			document.body.style.cursor = self.cursorShape;
-		});
+		// Menü-Command: Click-Commands
+		initClickCommand("pointer"	 , COMMAND_POINTER	 , "default").addClass("active btn-primary");
+		initClickCommand("pen"    	 , COMMAND_PEN		 , "url('static/img/cur_pen.png') 0 22, auto");
+		initClickCommand("rubber" 	 , COMMAND_RUBBER	 , "url('static/img/cur_rubber.png') 4 4, auto");
+		initClickCommand("delete" 	 , COMMAND_DELETE	 , "url('static/img/cur_delete.png') 8 8, auto");
+		initClickCommand("magic"  	 , COMMAND_MAGIC	 , "url('static/img/cur_magic.png') 11 11, auto");
+		initClickCommand("pipette"	 , COMMAND_PIPETTE	 , "url('static/img/cur_pipette.png') 1 21, auto");
+		initClickCommand("brightness", COMMAND_BRIGHTNESS, "default");
+		initClickCommand("grayscale" , COMMAND_GRAYSCALE , "default");
+		initClickCommand("saturation", COMMAND_SATURATION, "default");
+		initClickCommand("hue"		 , COMMAND_HUE		 , "default");
+
 		//////////////////////////////////////////////////////////////////7
 		// Menü-Command: Rotate 
 		$(".command-rotate").on("click tap", function(event) {
