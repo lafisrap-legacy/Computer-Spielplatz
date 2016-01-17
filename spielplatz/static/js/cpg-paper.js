@@ -421,7 +421,7 @@ var Commands = Base.extend({
 			});
 		};
 
-		var getDeleteBrush = function(index) {
+		var getRubberBrush = function(index) {
 			var currentLayer = project.activeLayer,
 				layer = new Layer(),
 				radius = BRUSH_RADII[index],
@@ -479,7 +479,8 @@ var Commands = Base.extend({
 		// Menü-Command: Click-Commands
 		var rubberInit = function(event) {
 			var currentLayer = project.activeLayer,
-				radius = BRUSH_RADII[$("#rubberOptions .cursorShape .commandBox.selected").attr("index")],
+				brush = $("#rubberOptions .cursorShape .commandBox.selected"),
+				radius = BRUSH_RADII[brush.attr("index")],
 				offset = $("#paperCanvasWrapper").offset();
 			
 			baseLayer.activate();
@@ -490,6 +491,11 @@ var Commands = Base.extend({
 			    strokeColor: new Color(0,0,0,255),
 			    dashArray: [1]
 			});
+
+			var raster = new Raster($("img", brush)[0]);
+			
+			self.rubberBrush = raster.getImageData();
+			raster.remove();
 
 			currentLayer.activate();
 		};
@@ -566,7 +572,7 @@ var Commands = Base.extend({
 			}
 		});
 		$.each(cursorShapeBoxes, function(index, box) {
-			$(box).html("<img src='"+getDeleteBrush(index)+"' />");
+			$(box).html("<img src='"+getRubberBrush(index)+"' />");
 		});
 	},
 },{
@@ -609,6 +615,33 @@ var Commands = Base.extend({
 	setColor: function(color) {
 		this._currentColor = color;
 		$(".colorfield").css("background-color", color.toCSS())		
+	},
+
+	drawRubberData: function(item, point) {
+		var w = this.rubberBrush.width,
+			h = this.rubberBrush.height,
+			p = point - item.position + item.size/2 - new Point(w/2, h/2),
+			brush = this.rubberBrush.data,
+			mask = this.rubberMask.data,
+			buffer = item.getImageData(new Rectangle(p.x, p.y, w-1, h));
+
+		for( var i=0 ; i<h ; i++ ) {
+			var y = p.y + i;
+			if( y >= 0 && y < item.size.height ) {
+				for( var j=0 ; j<w ; j++ ) {
+					var x = p.x + j,
+						mp = y*item.size.width*4+x*4+3,
+						bp = i*h*4+j*4+3;
+
+					if( x >= 0 && x < item.size.width && mask[mp] < brush[bp] ) {
+						buffer.data[bp] -= brush[bp] - mask[mp];
+						mask[mp] = brush[bp];
+					}
+				}				
+			} 
+		}
+
+		item.setImageData(buffer, p);
 	}
 });
 
@@ -1000,14 +1033,20 @@ function onMouseDown(event) {
 		break;
 
 	case "pixel":
+		if( baseCommands.commandMode === COMMAND_RUBBER ) {
+			var ctx = item.getContext();
+
+			baseCommands.rubberMask = ctx.createImageData(item.size.width, item.size.height);
+
+			baseCommands.drawRubberData(item, event.point);
+			break;
+		}
 	case "fill":
 		switch( baseCommands.commandMode ) {
 		case COMMAND_POINTER:
 			moveItem = "Not moved";
 			break;
 		case COMMAND_PEN:
-			break;
-		case COMMAND_RUBBER:
 			break;
 		case COMMAND_DELETE:
 			item.remove();
@@ -1017,16 +1056,17 @@ function onMouseDown(event) {
 			break;
 		}
 	}
+
+	if( baseViewer ) baseViewer.onMouseMove(event);
 };
 
 function onMouseDrag(event) {
 	var x = event.point.x,
 		y = event.point.y;
 
-	if( baseViewer ) baseViewer.onMouseMove(event);
-
 	if( baseCommands.rubberCircle ) {
 		baseCommands.rubberCircle.position = event.point;
+		baseCommands.drawRubberData(item, event.point);
 	}
 
 	if( grabPoint ) {
@@ -1064,6 +1104,8 @@ function onMouseDrag(event) {
 		item.position += event.delta;
 		moveItem = "Moved";
 	}
+
+	if( baseViewer ) baseViewer.onMouseMove(event);
 };
 
 
