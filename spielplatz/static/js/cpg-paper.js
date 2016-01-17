@@ -376,6 +376,7 @@ var COMMAND_POINTER 	= 1,
 	COMMAND_HUE 		= 10,
 	COMMAND_RESIZE 		= 11,
 	COMMAND_ROTATE 		= 12;
+	BRUSH_RADII			= [0.5,1,2,4,8,12,18,24];
 
 var Commands = Base.extend({
 	_class: 'Commands',
@@ -384,11 +385,13 @@ var Commands = Base.extend({
 	_serializeFields: {
 
 	},
+	_exitFns: [],
 
 	commandMode: COMMAND_POINTER,
 	resizeMode: COMMAND_RESIZE,
 	cursorMode: null,
 	cursorShape: "default",
+	rubberCircle: null,
 
 	initialize: function(cropper) {
 		var self = this;
@@ -400,15 +403,54 @@ var Commands = Base.extend({
 			}, 200);
 		};
 
-		var initClickCommand = function(type, mode, cursorShape) {
+		var initClickCommand = function(type, mode, cursorShape, initFn, exitFn) {
+			if( exitFn ) self._exitFns.push(exitFn);
 			return $(".command-"+type).on("click tap", function(event) {
+				// deactivate all commands
 				$(".click-command").removeClass("active btn-primary");
+				$(".commandOptions").fadeOut();
+				Base.each(self._exitFns, function(fn) { fn(event); });
+
+				// activate selected command
 				$(".command-"+type).addClass("active btn-primary");
+				$("#"+type+"Options").fadeIn();			
 				self.commandMode = mode;
 				self.cursorShape = cursorShape;
 				document.body.style.cursor = self.cursorShape;
+				if( initFn ) initFn(event);
 			});
 		};
+
+		var getDeleteBrush = function(index) {
+			var currentLayer = project.activeLayer,
+				layer = new Layer(),
+				radius = BRUSH_RADII[index],
+				maxRadius = BRUSH_RADII[BRUSH_RADII.length-1];
+
+			new Path.Rectangle({
+				point: [0,0],
+				size: [maxRadius*2, maxRadius*2],
+				strokeColor: new Color(0,0,0,0)
+			});
+			var path = new Path.Circle({
+			    center: [maxRadius,maxRadius],
+			    radius: radius,
+			    strokeColor: new Color(0,0,0,0)
+			});
+			path.fillColor = {
+				gradient: {
+	        		stops: [['black', 0.70], [new Color(0,0,0,0), 1]],
+	        		radial: true
+    			},
+			    origin: path.position,
+	    		destination: path.bounds.rightCenter
+			};
+
+			var image = layer.rasterize(undefined, false).toDataURL();
+			layer.remove();
+			project.activeLayer = currentLayer;
+			return image;
+		}
 
 		$(".colorfield").css("background-color", this._currentColor.toCSS());
 
@@ -433,11 +475,35 @@ var Commands = Base.extend({
 			});
 		});
 
-		//////////////////////////////////////////////////////////////////7
+		///////////////////////////////////////////////////////////////////
 		// Menü-Command: Click-Commands
+		var rubberInit = function(event) {
+			var currentLayer = project.activeLayer,
+				radius = BRUSH_RADII[$("#rubberOptions .cursorShape .commandBox.selected").attr("index")],
+				offset = $("#paperCanvasWrapper").offset();
+			
+			baseLayer.activate();
+
+			self.rubberCircle = new Path.Circle({
+			    center: [event.pageX - offset.left, event.pageY - offset.top],
+			    radius: radius,
+			    strokeColor: new Color(0,0,0,255),
+			    dashArray: [1]
+			});
+
+			currentLayer.activate();
+		};
+
+		var rubberExit = function(event) {
+			if( self.rubberCircle ) {
+				self.rubberCircle.remove();
+				self.rubberCircle = null;
+			}
+		};
+
 		initClickCommand("pointer"	 , COMMAND_POINTER	 , "default").addClass("active btn-primary");
 		initClickCommand("pen"    	 , COMMAND_PEN		 , "url('static/img/cur_pen.png') 0 22, auto");
-		initClickCommand("rubber" 	 , COMMAND_RUBBER	 , "url('static/img/cur_rubber.png') 4 4, auto");
+		initClickCommand("rubber" 	 , COMMAND_RUBBER	 , "url('static/img/cur_rubber.png') 4 4, auto", rubberInit, rubberExit);
 		initClickCommand("delete" 	 , COMMAND_DELETE	 , "url('static/img/cur_delete.png') 8 8, auto");
 		initClickCommand("magic"  	 , COMMAND_MAGIC	 , "url('static/img/cur_magic.png') 11 11, auto");
 		initClickCommand("pipette"	 , COMMAND_PIPETTE	 , "url('static/img/cur_pipette.png') 1 21, auto");
@@ -484,6 +550,23 @@ var Commands = Base.extend({
 				}
 			});
 			if( project.selectedItems.length ) buttonBlink($(this));
+		});
+
+		/////////////////////////////////////////////////////////////////////////////////
+		// Command options
+		// Delete Options
+		$(".commandOptions").fadeOut();
+		var cursorShapeBoxes = $("#rubberOptions .cursorShape .commandBox").on("tap click", function(event) {
+			cursorShapeBoxes.removeClass("selected");
+			$(this).addClass("selected");
+
+			if( self.rubberCircle ) {
+				rubberExit(event);
+				rubberInit(event);
+			}
+		});
+		$.each(cursorShapeBoxes, function(index, box) {
+			$(box).html("<img src='"+getDeleteBrush(index)+"' />");
 		});
 	},
 },{
@@ -816,16 +899,7 @@ if( sessionStorage.paperProject ) {
 */
 }
 
-
-////////////////////////////////////////////////////////
-// Bootsrap User Interaction
-(function() {
-})();
-
-
-
 baseLayer.bringToFront();
-
 
 /////////////////////////////////////////////////////////////
 // Selecting, moving and modifying items with the mouse
@@ -835,6 +909,10 @@ var segment, item, bounds,
 
 function onMouseMove(event) {
 	if( baseViewer ) baseViewer.onMouseMove(event);
+
+	if( baseCommands.rubberCircle ) {
+		baseCommands.rubberCircle.position = event.point;
+	}
 
 	var hitResult = project.activeLayer.hitTest(event.point, {
 		bounds: true,
@@ -861,7 +939,7 @@ function onMouseMove(event) {
 	} else {
 		document.body.style.cursor = baseCommands.cursorShape;		
 	}
-}
+};
 
 function onMouseDown(event) {
 
@@ -939,13 +1017,17 @@ function onMouseDown(event) {
 			break;
 		}
 	}
-}
+};
 
 function onMouseDrag(event) {
 	var x = event.point.x,
 		y = event.point.y;
 
 	if( baseViewer ) baseViewer.onMouseMove(event);
+
+	if( baseCommands.rubberCircle ) {
+		baseCommands.rubberCircle.position = event.point;
+	}
 
 	if( grabPoint ) {
 		function getSpPoint(A,B,C){
@@ -982,7 +1064,7 @@ function onMouseDrag(event) {
 		item.position += event.delta;
 		moveItem = "Moved";
 	}
-}
+};
 
 
 function onMouseUp(event) {
@@ -1004,12 +1086,11 @@ function onMouseUp(event) {
 			return;
 		}
 	}
-}
+};
 
 function onFrame() {
 };
 
 window.paperOnbeforeunload = function() {
 	sessionStorage.paperProject = project.exportJSON();
-}
-
+};
