@@ -623,7 +623,13 @@ var Commands = Base.extend({
 			p = point - item.position + item.size/2 - new Point(w/2, h/2),
 			brush = this.rubberBrush.data,
 			mask = this.rubberMask.data,
-			buffer = item.getImageData(new Rectangle(p.x, p.y, w-1, h));
+			buffer = item.getImageData(new Rectangle(p.x, p.y, w, h));
+
+		// workaround for Chrome (part 1)
+		if( buffer.width !== w ) {
+			var bufCorr = w - buffer.width;
+			buffer = item.getImageData(new Rectangle(p.x, p.y, w+bufCorr, h));
+		}
 
 		for( var i=0 ; i<h ; i++ ) {
 			var y = p.y + i;
@@ -641,6 +647,8 @@ var Commands = Base.extend({
 			} 
 		}
 
+		// workaround for Chrome (part 2)
+		if( bufCorr && p.x < 0 ) p.x+=bufCorr;
 		item.setImageData(buffer, p);
 	}
 });
@@ -980,12 +988,25 @@ function onMouseDown(event) {
 
 	//////////////////////////////////////////////////////////////////////////////
 	// Checking for selected items
-	var hitResult = project.activeLayer.hitTest(event.point, {
-		selected: true,
-		bounds: true,
-		fill: true,
-		tolerance: 5
-	});
+	// If rubber is active and raster item is selected, take this
+	if( baseCommands.commandMode === COMMAND_RUBBER && 
+		project.selectedItems.length === 1 && 
+		project.selectedItems[0].className === "Raster" ) {
+
+		var hitResult = {
+			type: "pixel",
+			item: project.selectedItems[0],
+			location: event.point
+		}
+	} else {	
+		// check if selected item was hit
+		var hitResult = project.activeLayer.hitTest(event.point, {
+			selected: true,
+			bounds: true,
+			fill: true,
+			tolerance: 5
+		});
+	}
 
 	// Checking for unselected items
 	if( !hitResult ) {
@@ -1034,13 +1055,16 @@ function onMouseDown(event) {
 
 	case "pixel":
 		if( baseCommands.commandMode === COMMAND_RUBBER ) {
+			item = baseCommands.cropRaster(item);
+			item.selected = true;
+
 			var ctx = item.getContext();
 
 			baseCommands.rubberMask = ctx.createImageData(item.size.width, item.size.height);
-
 			baseCommands.drawRubberData(item, event.point);
 			break;
 		}
+		// fall through if not COMMAND_RUBBER mode ...
 	case "fill":
 		switch( baseCommands.commandMode ) {
 		case COMMAND_POINTER:
