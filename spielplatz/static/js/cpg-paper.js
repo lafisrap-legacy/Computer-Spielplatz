@@ -294,6 +294,9 @@ var Viewer = Base.extend({
 		});
 
 	},
+	getCtx: function() {
+		return this._ctx;
+	}
 }, {
 	onMouseDown: function(event) {
 		var point = { x: event.pageX - $("#viewCanvas").offset().left, y: event.pageY - $("#viewCanvas").offset().top },
@@ -648,7 +651,7 @@ var Commands = Base.extend({
 		}
 
 		// workaround for Chrome (part 2)
-		if( bufCorr && p.x < 0 ) p.x+=bufCorr;
+		if( bufCorr && p.x < 0 ) p.x += bufCorr;
 		item.setImageData(buffer, p);
 	}
 });
@@ -998,6 +1001,13 @@ function onMouseDown(event) {
 			item: project.selectedItems[0],
 			location: event.point
 		}
+	} else if( baseCommands.commandMode === COMMAND_PIPETTE) {
+		var ctx = baseViewer.getCtx(),
+			data = ctx.getImageData(event.point.x, event.point.y, 1, 1).data,
+			color = new Color(data[0]/255, data[1]/255, data[2]/255, data[3]/255);
+
+		baseCommands.setColor(color);
+		return;
 	} else {	
 		// check if selected item was hit
 		var hitResult = project.activeLayer.hitTest(event.point, {
