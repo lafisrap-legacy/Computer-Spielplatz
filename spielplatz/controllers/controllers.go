@@ -560,7 +560,9 @@ func (c *GraphicsController) Get() {
 	c.Data["GraphicsCommandsImportSource3"] = T["graphics_commands_import_source3"]
 	c.Data["GraphicsCommandsImportOpen"] = T["graphics_commands_import_open"]
 	c.Data["GraphicsCommandsImportCancel"] = T["graphics_commands_import_cancel"]
-
+	c.Data["GraphicsColorizerHue"] = T["graphics_colorizer_hue"]
+	c.Data["GraphicsColorizerBrightness"] = T["graphics_colorizer_brightness"]
+	c.Data["GraphicsColorizerSaturation"] = T["graphics_colorizer_saturation"]
 	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
 
 	setTitleData(c.Data)

@@ -121,7 +121,6 @@ var Cropper = Base.extend({
 			x2 = mx === 2? point.x : rect.point.x + rect.size.width - this._offset.x,
 			y2 = my === 2? point.y : rect.point.y + rect.size.height - this._offset.y;
 
-		console.log("Cropper cursor draw: "+JSON.stringify(point));
 		this.set(x1, y1, x2, y2);
 
 		this.isDragging = true;
@@ -134,8 +133,6 @@ var Cropper = Base.extend({
 		var rect = this._rect.bounds,
 			point = event.point - rect.point,
 			width = this._rect.strokeWidth;
-
-		console.log("Cropper cursor: "+JSON.stringify(point));
 
 		if( point.x < width && point.y < width ||
 			point.x > rect.width-width && point.y > rect.height-width ) { 
@@ -364,6 +361,128 @@ var Viewer = Base.extend({
 	},
 });
 
+var Colorizer = Base.extend({
+	_class: 'Colorizer',
+	_offset: CropperOffset,
+	_layer: null,
+	_serializeFields: {
+
+	},
+	
+	point: new Point(parseInt($("#colorizerOptions").css("left")), parseInt($("#colorizerOptions").css("top"))),
+	size:  new Size(parseInt($("#colorizerOptions").css("width")), parseInt($("#colorizerOptions").css("height"))),
+	item: null,
+
+	initialize: function() {
+
+		var currentLayer = project.activeLayer;
+		baseLayer.activate();
+
+		this.item = new Group({
+			children: [
+				this.addSlider({
+					name: window.CPG_Locale.Colorizer.brightness,
+					startValue: 0.5,
+					yPos: 30,
+					setFn: this.setBrightness,
+				}),
+				this.addSlider({
+					name: window.CPG_Locale.Colorizer.saturation,
+					startValue: 0.5,
+					yPos: 100,
+					setFn: this.setSaturation,
+				}),
+				this.addSlider({
+					name: window.CPG_Locale.Colorizer.hue,
+					startValue: 0.8,
+					yPos: 170,
+					setFn: this.setHue,
+				})
+			]
+		});
+
+		currentLayer.activate();
+	},
+
+	addSlider: function(options) {
+		var value = options.startValue,
+			x = this.point.x,
+			y = this.point.y,
+			sWidth = 20,
+			sHeight = 40,
+			margin = 20,
+			width = this.size.width - margin*2;
+
+		var group = new Group([
+			new PointText({
+				point: new Point(x + margin, y + options.yPos),
+			    content: options.name,
+			    fillColor: 'black',
+			    fontFamily: 'Courier New',
+			    fontSize: 16,
+			}),
+			new Path.Rectangle({
+				point: new Point(x + margin, y + options.yPos + 15),
+				size: new Size(width, sWidth),
+				radius: 10,
+				strokeColor: "black",
+			}),
+			new Path.Rectangle({
+				point: new Point(x + margin + value*width, y + options.yPos + 5),
+				size: new Size(sWidth, sHeight),
+				radius: 10,
+				strokeColor: "black",
+				fillColor: {
+			        gradient: {
+			            stops: ['yellow', 'red', 'blue']
+			        },
+			        origin: [x + margin + value*width, y + options.yPos + 5],
+			        destination: [x + margin + value*width + sWidth, y + options.yPos + sHeight],
+			    }
+			})
+		]);
+
+		var slider = group.children[2],
+			xOffset = null;
+
+		slider.onMouseDown = function(event) {
+			xOffset = event.point.x - slider.position.x;
+		};
+
+		slider.onMouseDrag = function(event) {
+			slider.position.x = event.point.x - xOffset;
+			if( slider.position.x < x + margin ) slider.position.x = x + margin;
+			if( slider.position.x >= x + margin + width ) slider.position.x = x + margin + width;
+
+			value = (slider.position.x - x - margin)/width;
+		} 
+
+		return group;
+	},
+
+	setBrightness: function(value) {
+
+	},
+
+	setSaturation: function(value) {
+
+	},
+
+	setHue: function(value) {
+
+	},
+
+	show: function() {
+		this.item.visible = true;
+	},
+
+	hide: function() {
+		this.item.visible = false;
+	},
+}, {
+
+});
+
 ////////////////////////////////////////////////////////////////////////
 // Commands shows and handles all commands 
 // 
@@ -373,10 +492,7 @@ var COMMAND_POINTER 	= 1,
 	COMMAND_DELETE 		= 4,
 	COMMAND_MAGIC 		= 5,
 	COMMAND_PIPETTE		= 6,
-	COMMAND_BRIGHTNESS 	= 7,
-	COMMAND_GRAYSCALE 	= 8,
-	COMMAND_SATURATION 	= 9,
-	COMMAND_HUE 		= 10,
+	COMMAND_COLORIZER 	= 7,
 	COMMAND_RESIZE 		= 11,
 	COMMAND_ROTATE 		= 12;
 	BRUSH_RADII			= [0.5,1,2,4,8,12,18,24];
@@ -510,16 +626,21 @@ var Commands = Base.extend({
 			}
 		};
 
+		var colorizerInit = function(event) {
+			baseColorizer.show();
+		};
+
+		var colorizerExit = function(event) {
+			baseColorizer.hide();
+		};
+
 		initClickCommand("pointer"	 , COMMAND_POINTER	 , "default").addClass("active btn-primary");
 		initClickCommand("pen"    	 , COMMAND_PEN		 , "url('static/img/cur_pen.png') 0 22, auto");
 		initClickCommand("rubber" 	 , COMMAND_RUBBER	 , "url('static/img/cur_rubber.png') 4 4, auto", rubberInit, rubberExit);
 		initClickCommand("delete" 	 , COMMAND_DELETE	 , "url('static/img/cur_delete.png') 8 8, auto");
 		initClickCommand("magic"  	 , COMMAND_MAGIC	 , "url('static/img/cur_magic.png') 11 11, auto");
 		initClickCommand("pipette"	 , COMMAND_PIPETTE	 , "url('static/img/cur_pipette.png') 1 21, auto");
-		initClickCommand("brightness", COMMAND_BRIGHTNESS, "default");
-		initClickCommand("grayscale" , COMMAND_GRAYSCALE , "default");
-		initClickCommand("saturation", COMMAND_SATURATION, "default");
-		initClickCommand("hue"		 , COMMAND_HUE		 , "default");
+		initClickCommand("colorizer" , COMMAND_COLORIZER, "default", colorizerInit, colorizerExit);
 
 		//////////////////////////////////////////////////////////////////7
 		// Menü-Command: Rotate 
@@ -878,6 +999,7 @@ var UM = new UndoManager();
 
 
 if( sessionStorage.paperProject ) {
+	project.clear();
 	project.importJSON(sessionStorage.paperProject);
 
 	var baseLayer = project.layers[project.layers.length-1],
@@ -890,6 +1012,9 @@ if( sessionStorage.paperProject ) {
 	var baseCropper = new Cropper(cropperBounds);
 	var baseViewer = new Viewer(baseCropper);
 	var baseCommands = new Commands(baseCropper);
+	var baseColorizer = new Colorizer();
+
+	baseColorizer.hide();
 
 	project.layers[project.layers.length-2].activate();
 } else {
@@ -897,6 +1022,7 @@ if( sessionStorage.paperProject ) {
 	var baseCropper = new Cropper();
 	var baseViewer = new Viewer(baseCropper);
 	var baseCommands = new Commands(baseCropper);
+	var baseColorizer = new Colorizer();
 
 	var activeLayer = new ImageLayer();
 /*
@@ -1078,6 +1204,7 @@ function onMouseDown(event) {
 	case "fill":
 		switch( baseCommands.commandMode ) {
 		case COMMAND_POINTER:
+		case COMMAND_COLORIZER:
 			moveItem = "Not moved";
 			break;
 		case COMMAND_PEN:

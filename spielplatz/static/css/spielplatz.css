@@ -357,6 +357,10 @@ body {
   padding: 5px;
 }
 
+#colorizerOptions {
+  height: 230px;
+}
+
 .commandOptionsLine {
 }
 
