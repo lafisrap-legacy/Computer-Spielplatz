@@ -394,7 +394,7 @@ var Colorizer = Base.extend({
 				}),
 				this.addSlider({
 					name: window.CPG_Locale.Colorizer.hue,
-					startValue: 0.8,
+					startValue: 0.5,
 					yPos: 170,
 					setFn: this.setHue,
 				})
@@ -703,7 +703,7 @@ var Commands = Base.extend({
 	cropRaster: function(raster) {
 		// check bounds
 		var ctx = raster.getContext(),
-			b = raster.bounds;
+			b = raster.size;
 
 		var findPixel = function( data ) {
 			for( var i=0 ; i<data.length ; i+=4 ) if( data[i+3] !== 0 ) return true;
@@ -1024,6 +1024,8 @@ if( sessionStorage.paperProject ) {
 	var baseCommands = new Commands(baseCropper);
 	var baseColorizer = new Colorizer();
 
+	baseColorizer.hide();
+
 	var activeLayer = new ImageLayer();
 /*
 	// Action 1	
@@ -1191,6 +1193,11 @@ function onMouseDown(event) {
 
 	case "pixel":
 		if( baseCommands.commandMode === COMMAND_RUBBER ) {
+
+			var oldItem = item;
+			item = item.rasterize();
+			oldItem.remove();
+
 			item = baseCommands.cropRaster(item);
 			item.selected = true;
 

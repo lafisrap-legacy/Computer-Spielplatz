@@ -49,6 +49,9 @@
 	"graphics_commands_import_source3"	: "... aus der Welt",
 	"graphics_commands_import_open"		: "Öffnen",
 	"graphics_commands_import_cancel"	: "Abbrechen",
+	"graphics_colorizer_hue"			: "Farbton",
+	"graphics_colorizer_brightness"		: "Helligkeit",
+	"graphics_colorizer_saturation"		: "Sättigung",
 
     "login_login"                       : "Anmelden",
     "login_signup"                      : "Neues Konto",
