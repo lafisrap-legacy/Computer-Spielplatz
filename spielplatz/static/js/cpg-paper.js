@@ -365,6 +365,10 @@ var Colorizer = Base.extend({
 	_class: 'Colorizer',
 	_offset: CropperOffset,
 	_layer: null,
+	_enabled: true,
+	_modFns: [],
+	_orgImageData: null,
+	_newImageData: null,
 	_serializeFields: {
 
 	},
@@ -384,19 +388,19 @@ var Colorizer = Base.extend({
 					name: window.CPG_Locale.Colorizer.brightness,
 					startValue: 0.5,
 					yPos: 30,
-					setFn: this.setBrightness,
+					modFn: this.setBrightness,
 				}),
 				this.addSlider({
 					name: window.CPG_Locale.Colorizer.saturation,
 					startValue: 0.5,
 					yPos: 100,
-					setFn: this.setSaturation,
+					modFn: this.setSaturation,
 				}),
 				this.addSlider({
 					name: window.CPG_Locale.Colorizer.hue,
 					startValue: 0.5,
 					yPos: 170,
-					setFn: this.setHue,
+					modFn: this.setHue,
 				})
 			]
 		});
@@ -405,13 +409,15 @@ var Colorizer = Base.extend({
 	},
 
 	addSlider: function(options) {
-		var value = options.startValue,
+		var self = this,
+			value = options.startValue,
 			x = this.point.x,
 			y = this.point.y,
 			sWidth = 20,
 			sHeight = 40,
 			margin = 20,
-			width = this.size.width - margin*2;
+			width = this.size.width - margin*2,
+			enabled = true;
 
 		var group = new Group([
 			new PointText({
@@ -431,53 +437,153 @@ var Colorizer = Base.extend({
 				point: new Point(x + margin + value*width, y + options.yPos + 5),
 				size: new Size(sWidth, sHeight),
 				radius: 10,
-				strokeColor: "black",
-				fillColor: {
-			        gradient: {
-			            stops: ['yellow', 'red', 'blue']
-			        },
-			        origin: [x + margin + value*width, y + options.yPos + 5],
-			        destination: [x + margin + value*width + sWidth, y + options.yPos + sHeight],
-			    }
-			})
+				strokeColor: "black"
+			}),
 		]);
 
 		var slider = group.children[2],
 			xOffset = null;
 
 		slider.onMouseDown = function(event) {
+			if( !self._enabled ) return;
+
 			xOffset = event.point.x - slider.position.x;
 		};
 
 		slider.onMouseDrag = function(event) {
+			if( !self._enabled ) return;
+
 			slider.position.x = event.point.x - xOffset;
 			if( slider.position.x < x + margin ) slider.position.x = x + margin;
 			if( slider.position.x >= x + margin + width ) slider.position.x = x + margin + width;
 
 			value = (slider.position.x - x - margin)/width;
-		} 
+
+			self.update();
+		};
+
+		group.getValue = function() {
+			return value;
+		};
+
+		group.setValue = function(val) {
+			value = val;
+			slider.position.x = x + margin + width * value;
+		};
+
+		group.setSliderFillColor = function(enable) {
+			if( enable ) {
+				slider.fillColor = {
+			        gradient: {
+			            stops: ['yellow', 'red', 'blue']
+			        },
+			        origin: [0, y + options.yPos + 5],
+			        destination: [0, y + options.yPos + sHeight],
+			    }
+			} else {
+				slider.fillColor = {
+			        gradient: {
+			            stops: ['grey', 'blue', 'gray']
+			        },
+			        origin: [0, y + options.yPos + 5],
+			        destination: [0, y + options.yPos + sHeight],
+			    }
+			}
+		};
+
+		this._modFns.push(options.modFn);
 
 		return group;
 	},
 
-	setBrightness: function(value) {
+	setBrightness: function(color, value) {
+		if( value < 0.5 ) {
+			color.r *= value * 2;
+			color.g *= value * 2;
+			color.b *= value * 2;
+		} else {
+			color.r += (255-color.r)*(value-0.5)*2; 
+			color.g += (255-color.g)*(value-0.5)*2; 
+			color.b += (255-color.b)*(value-0.5)*2; 
+		}
+	},
+
+	setSaturation: function(color) {
 
 	},
 
-	setSaturation: function(value) {
-
-	},
-
-	setHue: function(value) {
+	setHue: function(color) {
 
 	},
 
 	show: function() {
 		this.item.visible = true;
+
+		var item = project.selectedItems[0];
+
+		if( project.selectedItems.length === 1 && 
+			item.className === "Raster" ) {
+
+			//item = baseCommands.cropRaster(item);
+			//item.selected = true;
+
+			this._orgImageData = item.getImageData(item.size);
+			this._newImageData = new ImageData(item.size.width, item.size.height);
+
+			baseColorizer.enable();
+		} else {
+			baseColorizer.disable();
+		}
 	},
 
 	hide: function() {
 		this.item.visible = false;
+		this._imageData = null;
+	},
+
+	enable: function() {
+		this._enabled = true;
+		Base.each(this.item.children, function(child) {
+			child.setSliderFillColor(true);
+		});
+	},
+
+	disable: function() {
+		this._enabled = false;
+		Base.each(this.item.children, function(child) {
+			child.setSliderFillColor(false);
+		});
+	},
+
+	update: function() {
+		var self = this,
+			item = project.selectedItems[0],
+			orgImage = this._orgImageData,
+			newImage = this._newImageData;
+
+		for( var i=0 ; i<orgImage.height ; i++ ) {
+			var line = i*orgImage.width*4;
+			for( var j=0 ; j<orgImage.width ; j++ ) {
+				var col = j*4,
+					color = {
+					r: orgImage.data[line+col+0],
+					g: orgImage.data[line+col+1],
+					b: orgImage.data[line+col+2],
+					a: orgImage.data[line+col+3],
+				};
+
+				Base.each(this._modFns, function(fn) {
+					fn(color, self.item.children[0].getValue());
+				});
+
+				newImage.data[line+col+0] = color.r;
+				newImage.data[line+col+1] = color.g;
+				newImage.data[line+col+2] = color.b;
+				newImage.data[line+col+3] = color.a;
+			}
+		}
+
+		item.setImageData(newImage);
 	},
 }, {
 
@@ -500,19 +606,21 @@ var COMMAND_POINTER 	= 1,
 var Commands = Base.extend({
 	_class: 'Commands',
 	_currentColor: new Color("red"),
+	_cursorShapes: {},
 
 	_serializeFields: {
 
 	},
+	_initFns: {},
 	_exitFns: [],
 
-	commandMode: COMMAND_POINTER,
+	commandMode: "pointer",
 	resizeMode: COMMAND_RESIZE,
 	cursorMode: null,
 	cursorShape: "default",
 	rubberCircle: null,
 
-	initialize: function(cropper) {
+	initialize: function() {
 		var self = this;
 
 		var buttonBlink = function(button) {
@@ -523,20 +631,12 @@ var Commands = Base.extend({
 		};
 
 		var initClickCommand = function(type, mode, cursorShape, initFn, exitFn) {
+			self._cursorShapes[type] = cursorShape;
+			self._initFns[type] = initFn;
 			if( exitFn ) self._exitFns.push(exitFn);
-			return $(".command-"+type).on("click tap", function(event) {
-				// deactivate all commands
-				$(".click-command").removeClass("active btn-primary");
-				$(".commandOptions").fadeOut();
-				Base.each(self._exitFns, function(fn) { fn(event); });
 
-				// activate selected command
-				$(".command-"+type).addClass("active btn-primary");
-				$("#"+type+"Options").fadeIn();			
-				self.commandMode = mode;
-				self.cursorShape = cursorShape;
-				document.body.style.cursor = self.cursorShape;
-				if( initFn ) initFn(event);
+			return $(".command-"+type).on("click tap", function(event) {
+				self.activateCommand(type, event);
 			});
 		};
 
@@ -569,7 +669,7 @@ var Commands = Base.extend({
 			layer.remove();
 			project.activeLayer = currentLayer;
 			return image;
-		}
+		};
 
 		$(".colorfield").css("background-color", this._currentColor.toCSS());
 
@@ -627,6 +727,9 @@ var Commands = Base.extend({
 		};
 
 		var colorizerInit = function(event) {
+			var sliders = baseColorizer.item.children;
+			for( var i=0 ; i<sliders.length ; i++ ) sliders[i].setValue(0.5);
+
 			baseColorizer.show();
 		};
 
@@ -672,11 +775,8 @@ var Commands = Base.extend({
 		$(".command-rasterize").on("click tap", function(event) {
 			Base.each(project.selectedItems, function(item) { 
 				if( item.className === "Raster") {
-					var raster = item.rasterize(); 
-					item.remove();
-					newRaster = self.cropRaster(raster);
-					raster.remove();
-					newRaster.selected = true;					
+					item = self.cropRaster(item);
+					item.selected = true;					
 				}
 			});
 			if( project.selectedItems.length ) buttonBlink($(this));
@@ -699,9 +799,30 @@ var Commands = Base.extend({
 			$(box).html("<img src='"+getRubberBrush(index)+"' />");
 		});
 	},
+
+	activateCommand: function(type, event) {
+		// deactivate all commands
+		$(".click-command").removeClass("active btn-primary");
+		$(".commandOptions").fadeOut();
+		Base.each(this._exitFns, function(fn) { fn(event); });
+
+		// activate selected command
+		$(".command-"+type).addClass("active btn-primary");
+		$("#"+type+"Options").fadeIn();			
+
+		this.commandMode = type;
+		this.cursorShape = this._cursorShapes[type];
+		document.body.style.cursor = this.cursorShape;
+		if( this._initFns[type] ) this._initFns[type](event);
+	},
 },{
 	cropRaster: function(raster) {
 		// check bounds
+		var oldRaster = raster;
+
+		raster = raster.rasterize();
+		oldRaster.remove();
+
 		var ctx = raster.getContext(),
 			b = raster.size;
 
@@ -711,24 +832,19 @@ var Commands = Base.extend({
 		};
 
 		for( var i=0, found=false ; i<b.width && !found ; i++ ) found = findPixel(ctx.getImageData(i, 0, 1, b.height).data); 
-
 		if( !found ) {
 			raster.remove();
 			return;
 		}
-
 		var x = i-1;
 
 		for( var i=0, found=false ; i<b.height && !found ; i++ ) found = findPixel(ctx.getImageData(x, i, b.width-x, 1).data); 
-
 		var y = i-1;
 
 		for( var i=b.width-1, found=false ; i>=x && !found ; i-- ) found = findPixel(ctx.getImageData(i, y, 1, b.height-y).data); 
-
 		var width = i+2 - x;
 
 		for( var i=b.height-1, found=false ; i>=y && !found ; i-- ) found = findPixel(ctx.getImageData(x, i, width, 1).data);
-
 		var height = i+2 - y;
 
 		var newRaster = raster.getSubRaster(new Rectangle(x, y, width, height));
@@ -825,6 +941,8 @@ var showModalImageFiles = function(cb) {
         var lcb = cb;
         cb = null;
         modal.modal('hide');
+
+		baseCommands.activateCommand("pointer");
 
         if( lcb ) lcb("open", "modal-image-"+$(this).attr("filename"));    	
     });
@@ -1120,7 +1238,7 @@ function onMouseDown(event) {
 	//////////////////////////////////////////////////////////////////////////////
 	// Checking for selected items
 	// If rubber is active and raster item is selected, take this
-	if( baseCommands.commandMode === COMMAND_RUBBER && 
+	if( baseCommands.commandMode === "rubber" && 
 		project.selectedItems.length === 1 && 
 		project.selectedItems[0].className === "Raster" ) {
 
@@ -1129,7 +1247,7 @@ function onMouseDown(event) {
 			item: project.selectedItems[0],
 			location: event.point
 		}
-	} else if( baseCommands.commandMode === COMMAND_PIPETTE) {
+	} else if( baseCommands.commandMode === "pipette") {
 		var ctx = baseViewer.getCtx(),
 			data = ctx.getImageData(event.point.x, event.point.y, 1, 1).data,
 			color = new Color(data[0]/255, data[1]/255, data[2]/255, data[3]/255);
@@ -1157,7 +1275,7 @@ function onMouseDown(event) {
 	}
 
 	if( !hitResult ) {
-		project.deselectAll();
+		if( baseCropper.getRect().contains(event.point) ) project.deselectAll();
 		return;
 	}
 
@@ -1192,11 +1310,7 @@ function onMouseDown(event) {
 		break;
 
 	case "pixel":
-		if( baseCommands.commandMode === COMMAND_RUBBER ) {
-
-			var oldItem = item;
-			item = item.rasterize();
-			oldItem.remove();
+		if( baseCommands.commandMode === "rubber" ) {
 
 			item = baseCommands.cropRaster(item);
 			item.selected = true;
@@ -1210,13 +1324,13 @@ function onMouseDown(event) {
 		// fall through if not COMMAND_RUBBER mode ...
 	case "fill":
 		switch( baseCommands.commandMode ) {
-		case COMMAND_POINTER:
-		case COMMAND_COLORIZER:
+		case "pointer":
+		case "colorizer":
 			moveItem = "Not moved";
 			break;
-		case COMMAND_PEN:
+		case "pen":
 			break;
-		case COMMAND_DELETE:
+		case "delete":
 			item.remove();
 			if( project.activeLayer.isEmpty() ) {
 				$(".command-pointer").trigger("click");	
