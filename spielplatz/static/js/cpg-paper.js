@@ -398,7 +398,7 @@ var Colorizer = Base.extend({
 				}),
 				this.addSlider({
 					name: window.CPG_Locale.Colorizer.hue,
-					startValue: 0.5,
+					startValue: 0.0,
 					yPos: 170,
 					modFn: this.setHue,
 				})
@@ -458,7 +458,11 @@ var Colorizer = Base.extend({
 			if( slider.position.x >= x + margin + width ) slider.position.x = x + margin + width;
 
 			value = (slider.position.x - x - margin)/width;
+		};
 
+		slider.onMouseUp = function(event) {
+			if( !self._enabled ) return;
+	
 			self.update();
 		};
 
@@ -496,26 +500,6 @@ var Colorizer = Base.extend({
 		return group;
 	},
 
-	setBrightness: function(color, value) {
-		if( value < 0.5 ) {
-			color.r *= value * 2;
-			color.g *= value * 2;
-			color.b *= value * 2;
-		} else {
-			color.r += (255-color.r)*(value-0.5)*2; 
-			color.g += (255-color.g)*(value-0.5)*2; 
-			color.b += (255-color.b)*(value-0.5)*2; 
-		}
-	},
-
-	setSaturation: function(color) {
-
-	},
-
-	setHue: function(color) {
-
-	},
-
 	show: function() {
 		this.item.visible = true;
 
@@ -524,25 +508,33 @@ var Colorizer = Base.extend({
 		if( project.selectedItems.length === 1 && 
 			item.className === "Raster" ) {
 
-			//item = baseCommands.cropRaster(item);
-			//item.selected = true;
-
-			this._orgImageData = item.getImageData(item.size);
-			this._newImageData = new ImageData(item.size.width, item.size.height);
-
-			baseColorizer.enable();
-		} else {
-			baseColorizer.disable();
+			this.enable(item);
 		}
 	},
 
 	hide: function() {
 		this.item.visible = false;
 		this._imageData = null;
+
+		this.disable();
 	},
 
-	enable: function() {
+	enable: function(item) {
 		this._enabled = true;
+
+		if( this._orgItem ) {
+			this._orgItem.remove();
+			this._orgItem = null;
+		}
+		this._orgItem = item;
+		this._newItem = null;
+		item.visible = false;
+		this.update();
+
+		this.item.children[0].setValue(0.5);
+		this.item.children[1].setValue(0.5);
+		this.item.children[2].setValue(0.0);
+
 		Base.each(this.item.children, function(child) {
 			child.setSliderFillColor(true);
 		});
@@ -550,40 +542,40 @@ var Colorizer = Base.extend({
 
 	disable: function() {
 		this._enabled = false;
+
+		if( this._orgItem ) {
+			this._orgItem.remove();
+			this._orgItem = null;
+		}
+
 		Base.each(this.item.children, function(child) {
 			child.setSliderFillColor(false);
 		});
 	},
 
 	update: function() {
-		var self = this,
-			item = project.selectedItems[0],
-			orgImage = this._orgImageData,
-			newImage = this._newImageData;
+		var self = this;
 
-		for( var i=0 ; i<orgImage.height ; i++ ) {
-			var line = i*orgImage.width*4;
-			for( var j=0 ; j<orgImage.width ; j++ ) {
-				var col = j*4,
-					color = {
-					r: orgImage.data[line+col+0],
-					g: orgImage.data[line+col+1],
-					b: orgImage.data[line+col+2],
-					a: orgImage.data[line+col+3],
-				};
-
-				Base.each(this._modFns, function(fn) {
-					fn(color, self.item.children[0].getValue());
-				});
-
-				newImage.data[line+col+0] = color.r;
-				newImage.data[line+col+1] = color.g;
-				newImage.data[line+col+2] = color.b;
-				newImage.data[line+col+3] = color.a;
-			}
+		if( this._newItem ) {
+			this._newItem.remove();
 		}
+		this._newItem = this._orgItem.clone();
+		this._newItem.visible = true;
 
-		item.setImageData(newImage);
+		Caman(this._newItem.canvas, function () {
+			
+			//Base.each(this._modFns, function(fn) {
+			//	self.item.children[0].getValue());
+			//});
+
+			this.brightness((self.item.children[0].getValue()-0.5)*200 );
+			this.saturation((self.item.children[1].getValue()-0.5)*200 );
+			this.hue((self.item.children[2].getValue())*100 );
+			this.render(function () {
+				self._newItem.visible = false;
+				self._newItem.visible = true;
+			});
+		});
 	},
 }, {
 
@@ -1275,7 +1267,10 @@ function onMouseDown(event) {
 	}
 
 	if( !hitResult ) {
-		if( baseCropper.getRect().contains(event.point) ) project.deselectAll();
+		if( baseCropper.getRect().contains(event.point) ) {
+			baseColorizer.disable();
+			project.deselectAll();
+		}
 		return;
 	}
 
@@ -1283,6 +1278,8 @@ function onMouseDown(event) {
 	item.hasBeenSelected = item.selected;
 	project.deselectAll();	
 	item.selected = true;
+
+	if( !item.hasBeenSelected ) baseColorizer.enable(item);
 
 	switch( hitResult.type ) {
 
