@@ -462,6 +462,7 @@ var Colorizer = Base.extend({
 
 		slider.onMouseUp = function(event) {
 			if( !self._enabled ) return;
+			
 	
 			self.update();
 		};
@@ -522,14 +523,7 @@ var Colorizer = Base.extend({
 	enable: function(item) {
 		this._enabled = true;
 
-		if( this._orgItem ) {
-			this._orgItem.remove();
-			this._orgItem = null;
-		}
 		this._orgItem = item;
-		this._newItem = null;
-		item.visible = false;
-		this.update();
 
 		this.item.children[0].setValue(0.5);
 		this.item.children[1].setValue(0.5);
@@ -538,15 +532,12 @@ var Colorizer = Base.extend({
 		Base.each(this.item.children, function(child) {
 			child.setSliderFillColor(true);
 		});
+
+		this.update();
 	},
 
 	disable: function() {
 		this._enabled = false;
-
-		if( this._orgItem ) {
-			this._orgItem.remove();
-			this._orgItem = null;
-		}
 
 		Base.each(this.item.children, function(child) {
 			child.setSliderFillColor(false);
@@ -554,9 +545,15 @@ var Colorizer = Base.extend({
 	},
 
 	update: function() {
-		var self = this;
+		// var self = this;
 
-		if( this._newItem ) {
+		this._orgItem.filter({
+			brightness: (this.item.children[0].getValue()-0.5)*200,
+			saturation: (this.item.children[1].getValue()-0.5)*200,
+			hue: (this.item.children[2].getValue())*100,
+		});
+
+/*		if( this._newItem ) {
 			this._newItem.remove();
 		}
 		this._newItem = this._orgItem.clone();
@@ -566,7 +563,7 @@ var Colorizer = Base.extend({
 			
 			//Base.each(this._modFns, function(fn) {
 			//	self.item.children[0].getValue());
-			//});
+			//});	
 
 			this.brightness((self.item.children[0].getValue()-0.5)*200 );
 			this.saturation((self.item.children[1].getValue()-0.5)*200 );
@@ -575,7 +572,7 @@ var Colorizer = Base.extend({
 				self._newItem.visible = false;
 				self._newItem.visible = true;
 			});
-		});
+		});*/
 	},
 }, {
 
