@@ -363,12 +363,7 @@ var Viewer = Base.extend({
 
 var Colorizer = Base.extend({
 	_class: 'Colorizer',
-	_offset: CropperOffset,
-	_layer: null,
 	_enabled: true,
-	_modFns: [],
-	_orgImageData: null,
-	_newImageData: null,
 	_serializeFields: {
 
 	},
@@ -496,8 +491,6 @@ var Colorizer = Base.extend({
 			}
 		};
 
-		this._modFns.push(options.modFn);
-
 		return group;
 	},
 
@@ -523,6 +516,7 @@ var Colorizer = Base.extend({
 	enable: function(item) {
 		this._enabled = true;
 
+		if( this._orgItem ) this._orgItem.filter({commit: true});
 		this._orgItem = item;
 
 		this.item.children[0].setValue(0.5);
@@ -539,40 +533,71 @@ var Colorizer = Base.extend({
 	disable: function() {
 		this._enabled = false;
 
+		if( this._orgItem ) this._orgItem.filter({commit: true});
+		this._orgItem = null;
+
 		Base.each(this.item.children, function(child) {
 			child.setSliderFillColor(false);
 		});
 	},
 
+	enabled: function() {
+		return this._enabled;
+	},
+
 	update: function() {
-		// var self = this;
 
 		this._orgItem.filter({
 			brightness: (this.item.children[0].getValue()-0.5)*200,
 			saturation: (this.item.children[1].getValue()-0.5)*200,
 			hue: (this.item.children[2].getValue())*100,
 		});
+	},
+}, {
 
-/*		if( this._newItem ) {
-			this._newItem.remove();
-		}
-		this._newItem = this._orgItem.clone();
-		this._newItem.visible = true;
+});
 
-		Caman(this._newItem.canvas, function () {
-			
-			//Base.each(this._modFns, function(fn) {
-			//	self.item.children[0].getValue());
-			//});	
+var Slider = Base.extend({
+	_class: 'Slider',
+	_point: null,
+	_enabled: true,
+	_serializeFields: {
 
-			this.brightness((self.item.children[0].getValue()-0.5)*200 );
-			this.saturation((self.item.children[1].getValue()-0.5)*200 );
-			this.hue((self.item.children[2].getValue())*100 );
-			this.render(function () {
-				self._newItem.visible = false;
-				self._newItem.visible = true;
-			});
-		});*/
+	},
+	
+	point: new Point(parseInt($("#colorizerOptions").css("left")), parseInt($("#colorizerOptions").css("top"))),
+	size:  new Size(parseInt($("#colorizerOptions").css("width")), parseInt($("#colorizerOptions").css("height"))),
+	item: null,
+
+	initialize: function() {
+
+		var currentLayer = project.activeLayer;
+		baseLayer.activate();
+
+		this.item = new Group({
+			children: [
+				this.addSlider({
+					name: window.CPG_Locale.Colorizer.brightness,
+					startValue: 0.5,
+					yPos: 30,
+					modFn: this.setBrightness,
+				}),
+				this.addSlider({
+					name: window.CPG_Locale.Colorizer.saturation,
+					startValue: 0.5,
+					yPos: 100,
+					modFn: this.setSaturation,
+				}),
+				this.addSlider({
+					name: window.CPG_Locale.Colorizer.hue,
+					startValue: 0.0,
+					yPos: 170,
+					modFn: this.setHue,
+				})
+			]
+		});
+
+		currentLayer.activate();
 	},
 }, {
 
@@ -758,7 +783,10 @@ var Commands = Base.extend({
 			if( project.selectedItems.length ) buttonBlink($(this));
 		});
 		$(".command-clone").on("click tap", function(event) {
-			Base.each(project.selectedItems, function(item) { item.clone(); });
+			Base.each(project.selectedItems, function(item) {
+				if( baseColorizer.enabled() ) baseColorizer.enable(item.clone()); 
+				item.selected = false;
+			});
 			if( project.selectedItems.length ) buttonBlink($(this));
 		});
 		$(".command-rasterize").on("click tap", function(event) {
@@ -1395,12 +1423,14 @@ function onMouseUp(event) {
 			if( next.hitTest( event.point ) ) {
 				project.deselectAll();
 				next.selected = true;
+				baseColorizer.enable(next);
 				return;
 			}
 		}
 		if( hitResult = project.hitTest( event.point ) ) {
 			project.deselectAll();
 			hitResult.item.selected = true;
+			baseColorizer.enable(hitResult.item);
 			return;
 		}
 	}
