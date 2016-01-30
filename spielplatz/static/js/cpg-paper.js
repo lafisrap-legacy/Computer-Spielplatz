@@ -378,58 +378,153 @@ var Colorizer = Base.extend({
 		baseLayer.activate();
 
 		this.item = new Group({
-			children: [
-				this.addSlider({
+			children: [new Slider({
 					name: window.CPG_Locale.Colorizer.brightness,
+					filter: "brightness",
 					startValue: 0.5,
-					yPos: 30,
-					modFn: this.setBrightness,
+					bounds: new Rectangle( this.point + new Point(0,30), this.size ),
+					camanValue: function(value) { return (value-0.5)*200; },
+					parent: this,
 				}),
-				this.addSlider({
+				new Slider({
 					name: window.CPG_Locale.Colorizer.saturation,
+					filter: "saturation",
 					startValue: 0.5,
-					yPos: 100,
-					modFn: this.setSaturation,
+					bounds: new Rectangle( this.point + new Point(0,100), this.size ),
+					camanValue: function(value) { return (value-0.5)*200; },
+					parent: this,
 				}),
-				this.addSlider({
+				new Slider({
 					name: window.CPG_Locale.Colorizer.hue,
+					filter: "hue",
 					startValue: 0.0,
-					yPos: 170,
-					modFn: this.setHue,
-				})
+					bounds: new Rectangle( this.point + new Point(0,170), this.size ),
+					camanValue: function(value) { return value*100; },
+					parent: this,
+				}),
+				new Slider({
+					name: "Unschärfe",
+					filter: "stackBlur",
+					startValue: 0.0,
+					bounds: new Rectangle( this.point + new Point(0,240), this.size ),
+					camanValue: function(value) { return value*20; },
+					parent: this,
+				}),
 			]
 		});
 
 		currentLayer.activate();
 	},
 
-	addSlider: function(options) {
+	show: function() {
+		var self = this;
+
+		this.item.visible = true;
+
+		$("#page-paper").on("itemSelected", function(event, item) {
+			self.enable(item);
+		});
+		$("#page-paper").on("itemDeselected", function(event, item) {
+			self.disable();
+		});
+
+		this.enable(project.selectedItems[0]);
+	},
+
+	hide: function() {
+		this.item.visible = false;
+
+		this.disable();
+
+		$("#page-paper").off("itemSelected");
+		$("#page-paper").off("itemDeselected");
+	},
+
+	enable: function(item) {
+		this._enabled = true;
+
+		if( item === this._orgItem ) return;
+
+		if( this._orgItem ) {
+			this._orgItem.filter({commit: true});
+			this._orgItem = null;
+		}
+
+		if( item.className === "Raster" ) {
+
+			this._orgItem = item;
+
+			Base.each(this.item.children, function(slider) {
+				slider.resetValue();
+				slider.setSliderFillColor(true);
+			});
+
+			this.update();
+		}
+	},
+
+	disable: function() {
+		if( !this._orgItem ) return;
+
+		this._enabled = false;
+		this._orgItem.filter({commit: true});
+		this._orgItem = null;
+
+		Base.each(this.item.children, function(slider) {
+			slider.resetValue();
+			slider.setSliderFillColor(false);
+		});
+	},
+
+	enabled: function() {
+		return this._enabled;
+	},
+
+	update: function() {
+
+		var options = {};
+		Base.each(this.item.children, function(slider) { slider.getValue(options); });
+		this._orgItem.filter(options);
+	},
+}, {
+
+});
+
+var Slider = Base.extend({
+	_class: 'Slider',
+	_serializeFields: {
+
+	},
+
+	group: null,
+	
+	initialize: function(options) {
 		var self = this,
-			value = options.startValue,
-			x = this.point.x,
-			y = this.point.y,
+			point = this._point = options.bounds.topLeft,
+			size = this._size = options.bounds.size,
+			value = this._startValue = options.startValue,
 			sWidth = 20,
 			sHeight = 40,
 			margin = 20,
-			width = this.size.width - margin*2,
-			enabled = true;
+			width = size.width - margin*2,
+			enabled = false;
 
-		var group = new Group([
+		var group = this.group = new Group([
 			new PointText({
-				point: new Point(x + margin, y + options.yPos),
+				point: new Point(point.x + margin, point.y ),
 			    content: options.name,
 			    fillColor: 'black',
 			    fontFamily: 'Courier New',
 			    fontSize: 16,
 			}),
 			new Path.Rectangle({
-				point: new Point(x + margin, y + options.yPos + 15),
+				point: new Point(point.x + margin, point.y + 15),
 				size: new Size(width, sWidth),
 				radius: 10,
 				strokeColor: "black",
 			}),
 			new Path.Rectangle({
-				point: new Point(x + margin + value*width, y + options.yPos + 5),
+				point: new Point(point.x + margin + value*width, point.y + 5),
 				size: new Size(sWidth, sHeight),
 				radius: 10,
 				strokeColor: "black"
@@ -440,35 +535,40 @@ var Colorizer = Base.extend({
 			xOffset = null;
 
 		slider.onMouseDown = function(event) {
-			if( !self._enabled ) return;
+			if( !options.parent.enabled() ) return;
 
 			xOffset = event.point.x - slider.position.x;
 		};
 
 		slider.onMouseDrag = function(event) {
-			if( !self._enabled ) return;
+			if( !options.parent.enabled() ) return;
 
 			slider.position.x = event.point.x - xOffset;
-			if( slider.position.x < x + margin ) slider.position.x = x + margin;
-			if( slider.position.x >= x + margin + width ) slider.position.x = x + margin + width;
+			if( slider.position.x < point.x + margin ) slider.position.x = point.x + margin;
+			if( slider.position.x >= point.x + margin + width ) slider.position.x = point.x + margin + width;
 
-			value = (slider.position.x - x - margin)/width;
+			value = (slider.position.x - point.x - margin)/width;
 		};
 
-		slider.onMouseUp = function(event) {
-			if( !self._enabled ) return;
-			
-	
-			self.update();
+		group.onMouseUp = function(event) {
+			if( !options.parent.enabled() ) return;
+				
+			options.parent.update();
 		};
 
-		group.getValue = function() {
+		group.getValue = function(opt) {
+			if( typeof opt === "object" ) opt[options.filter] = options.camanValue(value);
 			return value;
 		};
 
 		group.setValue = function(val) {
 			value = val;
-			slider.position.x = x + margin + width * value;
+			slider.position.x = point.x + margin + width * value;
+		};
+
+		group.resetValue = function() {
+			value = options.startValue;
+			slider.position.x = point.x + margin + width * value;
 		};
 
 		group.setSliderFillColor = function(enable) {
@@ -477,16 +577,16 @@ var Colorizer = Base.extend({
 			        gradient: {
 			            stops: ['yellow', 'red', 'blue']
 			        },
-			        origin: [0, y + options.yPos + 5],
-			        destination: [0, y + options.yPos + sHeight],
+			        origin: [0, point.y + 5],
+			        destination: [0, point.y + sHeight],
 			    }
 			} else {
 				slider.fillColor = {
 			        gradient: {
 			            stops: ['grey', 'blue', 'gray']
 			        },
-			        origin: [0, y + options.yPos + 5],
-			        destination: [0, y + options.yPos + sHeight],
+			        origin: [0, point.y + 5],
+			        destination: [0, point.y + sHeight],
 			    }
 			}
 		};
@@ -494,111 +594,9 @@ var Colorizer = Base.extend({
 		return group;
 	},
 
-	show: function() {
-		this.item.visible = true;
-
-		var item = project.selectedItems[0];
-
-		if( project.selectedItems.length === 1 && 
-			item.className === "Raster" ) {
-
-			this.enable(item);
-		}
-	},
-
-	hide: function() {
-		this.item.visible = false;
-		this._imageData = null;
-
-		this.disable();
-	},
-
-	enable: function(item) {
-		this._enabled = true;
-
-		if( this._orgItem ) this._orgItem.filter({commit: true});
-		this._orgItem = item;
-
-		this.item.children[0].setValue(0.5);
-		this.item.children[1].setValue(0.5);
-		this.item.children[2].setValue(0.0);
-
-		Base.each(this.item.children, function(child) {
-			child.setSliderFillColor(true);
-		});
-
-		this.update();
-	},
-
-	disable: function() {
-		this._enabled = false;
-
-		if( this._orgItem ) this._orgItem.filter({commit: true});
-		this._orgItem = null;
-
-		Base.each(this.item.children, function(child) {
-			child.setSliderFillColor(false);
-		});
-	},
-
-	enabled: function() {
-		return this._enabled;
-	},
-
-	update: function() {
-
-		this._orgItem.filter({
-			brightness: (this.item.children[0].getValue()-0.5)*200,
-			saturation: (this.item.children[1].getValue()-0.5)*200,
-			hue: (this.item.children[2].getValue())*100,
-		});
-	},
-}, {
-
-});
-
-var Slider = Base.extend({
-	_class: 'Slider',
-	_point: null,
-	_enabled: true,
-	_serializeFields: {
-
-	},
-	
-	point: new Point(parseInt($("#colorizerOptions").css("left")), parseInt($("#colorizerOptions").css("top"))),
-	size:  new Size(parseInt($("#colorizerOptions").css("width")), parseInt($("#colorizerOptions").css("height"))),
-	item: null,
-
-	initialize: function() {
-
-		var currentLayer = project.activeLayer;
-		baseLayer.activate();
-
-		this.item = new Group({
-			children: [
-				this.addSlider({
-					name: window.CPG_Locale.Colorizer.brightness,
-					startValue: 0.5,
-					yPos: 30,
-					modFn: this.setBrightness,
-				}),
-				this.addSlider({
-					name: window.CPG_Locale.Colorizer.saturation,
-					startValue: 0.5,
-					yPos: 100,
-					modFn: this.setSaturation,
-				}),
-				this.addSlider({
-					name: window.CPG_Locale.Colorizer.hue,
-					startValue: 0.0,
-					yPos: 170,
-					modFn: this.setHue,
-				})
-			]
-		});
-
-		currentLayer.activate();
-	},
+	resetValue: function() { this.group.resetValue(); },
+	setSliderFillColor: function(enable) { this.group.setSliderFillColor(enable); },
+	getValue: function(options) { this.group.getValue(options); },
 }, {
 
 });
@@ -741,9 +739,6 @@ var Commands = Base.extend({
 		};
 
 		var colorizerInit = function(event) {
-			var sliders = baseColorizer.item.children;
-			for( var i=0 ; i<sliders.length ; i++ ) sliders[i].setValue(0.5);
-
 			baseColorizer.show();
 		};
 
@@ -784,7 +779,9 @@ var Commands = Base.extend({
 		});
 		$(".command-clone").on("click tap", function(event) {
 			Base.each(project.selectedItems, function(item) {
-				if( baseColorizer.enabled() ) baseColorizer.enable(item.clone()); 
+				var newItem = item.clone();
+				$("#page-paper").trigger("itemDeselected", item); 
+				setTimeout( function() { $("#page-paper").trigger("itemSelected", newItem); }, 5); 
 				item.selected = false;
 			});
 			if( project.selectedItems.length ) buttonBlink($(this));
@@ -1293,8 +1290,12 @@ function onMouseDown(event) {
 
 	if( !hitResult ) {
 		if( baseCropper.getRect().contains(event.point) ) {
-			baseColorizer.disable();
+			Base.each(project.selectedItems, function(item) {
+				$("#page-paper").trigger("itemDeselected", item);
+			});
+
 			project.deselectAll();
+
 		}
 		return;
 	}
@@ -1304,7 +1305,7 @@ function onMouseDown(event) {
 	project.deselectAll();	
 	item.selected = true;
 
-	if( !item.hasBeenSelected ) baseColorizer.enable(item);
+	if( !item.hasBeenSelected ) $("#page-paper").trigger("itemSelected", item); 
 
 	switch( hitResult.type ) {
 
@@ -1418,19 +1419,21 @@ function onMouseUp(event) {
 	grabPoint = null;
 
 	if( moveItem === "Not moved" && item.hasBeenSelected ) {
+		$("#page-paper").trigger("itemDeselected", item); 
+
 		var next = item;
 		while( next = next.previousSibling ) {
 			if( next.hitTest( event.point ) ) {
 				project.deselectAll();
 				next.selected = true;
-				baseColorizer.enable(next);
+				setTimeout( function() { $("#page-paper").trigger("itemSelected", next); }, 5); 
 				return;
 			}
 		}
 		if( hitResult = project.hitTest( event.point ) ) {
 			project.deselectAll();
 			hitResult.item.selected = true;
-			baseColorizer.enable(hitResult.item);
+			setTimeout( function() { $("#page-paper").trigger("itemSelected", hitResult.item); }, 5); 
 			return;
 		}
 	}
