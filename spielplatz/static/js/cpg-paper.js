@@ -372,46 +372,23 @@ var Colorizer = Base.extend({
 	size:  new Size(parseInt($("#colorizerOptions").css("width")), parseInt($("#colorizerOptions").css("height"))),
 	item: null,
 
-	initialize: function() {
+	initialize: function(options) {
 
 		var currentLayer = project.activeLayer;
 		baseLayer.activate();
 
-		this.item = new Group({
-			children: [new Slider({
-					name: window.CPG_Locale.Colorizer.brightness,
-					filter: "brightness",
-					startValue: 0.5,
-					bounds: new Rectangle( this.point + new Point(0,30), this.size ),
-					camanValue: function(value) { return (value-0.5)*200; },
-					parent: this,
-				}),
-				new Slider({
-					name: window.CPG_Locale.Colorizer.saturation,
-					filter: "saturation",
-					startValue: 0.5,
-					bounds: new Rectangle( this.point + new Point(0,100), this.size ),
-					camanValue: function(value) { return (value-0.5)*200; },
-					parent: this,
-				}),
-				new Slider({
-					name: window.CPG_Locale.Colorizer.hue,
-					filter: "hue",
-					startValue: 0.0,
-					bounds: new Rectangle( this.point + new Point(0,170), this.size ),
-					camanValue: function(value) { return value*100; },
-					parent: this,
-				}),
-				new Slider({
-					name: "Unschärfe",
-					filter: "stackBlur",
-					startValue: 0.0,
-					bounds: new Rectangle( this.point + new Point(0,240), this.size ),
-					camanValue: function(value) { return value*20; },
-					parent: this,
-				}),
-			]
-		});
+		var children = [];
+		for( var i=0 ; i<options.length ; i++ ) {
+			children.push(new Slider({
+				name: window.CPG_Locale.Colorizer[options[i].filter],
+				filter: options[i].filter,
+				startValue: options[i].startValue,
+				bounds: new Rectangle( this.point + new Point(0,options[i].yPos), this.size ),
+				camanValue: options[i].camanValue,
+				parent: this,
+			}));
+		};
+		this.item = new Group(children);
 
 		currentLayer.activate();
 	},
@@ -423,9 +400,11 @@ var Colorizer = Base.extend({
 
 		$("#page-paper").on("itemSelected", function(event, item) {
 			self.enable(item);
+			console.log("event: itemSelected");
 		});
 		$("#page-paper").on("itemDeselected", function(event, item) {
 			self.disable();
+			console.log("event: itemDeselected");
 		});
 
 		this.enable(project.selectedItems[0]);
@@ -550,11 +529,12 @@ var Slider = Base.extend({
 			value = (slider.position.x - point.x - margin)/width;
 		};
 
-		group.onMouseUp = function(event) {
-			if( !options.parent.enabled() ) return;
+		$("#page-paper").on("mouseup", function(event) {
+			if( !options.parent.enabled() || xOffset === null ) return;
 				
-			options.parent.update();
-		};
+			options.parent.update();		
+			xOffset = null;	
+		});
 
 		group.getValue = function(opt) {
 			if( typeof opt === "object" ) opt[options.filter] = options.camanValue(value);
@@ -738,21 +718,30 @@ var Commands = Base.extend({
 			}
 		};
 
-		var colorizerInit = function(event) {
-			baseColorizer.show();
+		var colorizer1Init = function(event) {
+			baseColorizer1.show();
 		};
 
-		var colorizerExit = function(event) {
-			baseColorizer.hide();
+		var colorizer1Exit = function(event) {
+			baseColorizer1.hide();
 		};
 
-		initClickCommand("pointer"	 , COMMAND_POINTER	 , "default").addClass("active btn-primary");
-		initClickCommand("pen"    	 , COMMAND_PEN		 , "url('static/img/cur_pen.png') 0 22, auto");
-		initClickCommand("rubber" 	 , COMMAND_RUBBER	 , "url('static/img/cur_rubber.png') 4 4, auto", rubberInit, rubberExit);
-		initClickCommand("delete" 	 , COMMAND_DELETE	 , "url('static/img/cur_delete.png') 8 8, auto");
-		initClickCommand("magic"  	 , COMMAND_MAGIC	 , "url('static/img/cur_magic.png') 11 11, auto");
-		initClickCommand("pipette"	 , COMMAND_PIPETTE	 , "url('static/img/cur_pipette.png') 1 21, auto");
-		initClickCommand("colorizer" , COMMAND_COLORIZER, "default", colorizerInit, colorizerExit);
+		var colorizer2Init = function(event) {
+			baseColorizer2.show();
+		};
+
+		var colorizer2Exit = function(event) {
+			baseColorizer2.hide();
+		};
+
+		initClickCommand("pointer"	   , COMMAND_POINTER	 , "default").addClass("active btn-primary");
+		initClickCommand("pen"    	   , COMMAND_PEN		 , "url('static/img/cur_pen.png') 0 22, auto");
+		initClickCommand("rubber" 	   , COMMAND_RUBBER	 , "url('static/img/cur_rubber.png') 4 4, auto", rubberInit, rubberExit);
+		initClickCommand("delete" 	   , COMMAND_DELETE	 , "url('static/img/cur_delete.png') 8 8, auto");
+		initClickCommand("magic"  	   , COMMAND_MAGIC	 , "url('static/img/cur_magic.png') 11 11, auto");
+		initClickCommand("pipette"	   , COMMAND_PIPETTE	 , "url('static/img/cur_pipette.png') 1 21, auto");
+		initClickCommand("colorizer-1" , COMMAND_COLORIZER, "default", colorizer1Init, colorizer1Exit);
+		initClickCommand("colorizer-2" , COMMAND_COLORIZER, "default", colorizer2Init, colorizer2Exit);
 
 		//////////////////////////////////////////////////////////////////7
 		// Menü-Command: Rotate 
@@ -1144,9 +1133,41 @@ if( sessionStorage.paperProject ) {
 	var baseCropper = new Cropper(cropperBounds);
 	var baseViewer = new Viewer(baseCropper);
 	var baseCommands = new Commands(baseCropper);
-	var baseColorizer = new Colorizer();
+	var baseColorizer1 = new Colorizer([{
+		filter: "brightness",
+		yPos: 30,
+		startValue: 0.5,
+		camanValue: function(value) { return (value-0.5)*200; },
+	},{
+		filter: "saturation",
+		yPos: 100,
+		startValue: 0.5,
+		camanValue: function(value) { return (value-0.5)*200; },
+	},{
+		filter: "hue",
+		yPos: 170,
+		startValue: 0.0,
+		camanValue: function(value) { return value*100; },
+	}]);
+	var baseColorizer2 = new Colorizer([{
+		filter: "sharpen",
+		yPos: 30,
+		startValue: 0.0,
+		camanValue: function(value) { return value*100; },
+	},{
+		filter: "stackBlur",
+		yPos: 100,
+		startValue: 0.0,
+		camanValue: function(value) { return value*100; },
+	},{
+		filter: "sepia",
+		yPos: 170,
+		startValue: 0.0,
+		camanValue: function(value) { return value*100; },
+	}]);
 
-	baseColorizer.hide();
+	baseColorizer1.hide();
+	baseColorizer2.hide();
 
 	project.layers[project.layers.length-2].activate();
 } else {
@@ -1154,9 +1175,45 @@ if( sessionStorage.paperProject ) {
 	var baseCropper = new Cropper();
 	var baseViewer = new Viewer(baseCropper);
 	var baseCommands = new Commands(baseCropper);
-	var baseColorizer = new Colorizer();
-
-	baseColorizer.hide();
+	var baseColorizer1 = new Colorizer([{
+		filter: "brightness",
+		yPos: 30,
+		startValue: 0.5,
+		camanValue: function(value) { return (value-0.5)*200; },
+	},{
+		filter: "saturation",
+		yPos: 100,
+		startValue: 0.5,
+		camanValue: function(value) { return (value-0.5)*200; },
+	},{
+		filter: "hue",
+		yPos: 170,
+		startValue: 0.0,
+		camanValue: function(value) { return value*100; },
+	},{
+		filter: "contrast",
+		yPos: 240,
+		startValue: 0.5,
+		camanValue: function(value) { return (value-0.5)*200; },
+	}]);
+	var baseColorizer2 = new Colorizer([{
+		filter: "sharpen",
+		yPos: 30,
+		startValue: 0.0,
+		camanValue: function(value) { return value*100; },
+	},{
+		filter: "stackBlur",
+		yPos: 100,
+		startValue: 0.0,
+		camanValue: function(value) { return value*100; },
+	},{
+		filter: "sepia",
+		yPos: 170,
+		startValue: 0.0,
+		camanValue: function(value) { return value*100; },
+	}]);
+	baseColorizer1.hide();
+	baseColorizer2.hide();
 
 	var activeLayer = new ImageLayer();
 /*
@@ -1348,7 +1405,8 @@ function onMouseDown(event) {
 	case "fill":
 		switch( baseCommands.commandMode ) {
 		case "pointer":
-		case "colorizer":
+		case "colorizer-1":
+		case "colorizer-2":
 			moveItem = "Not moved";
 			break;
 		case "pen":

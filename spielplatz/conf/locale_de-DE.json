@@ -52,6 +52,10 @@
 	"graphics_colorizer_hue"			: "Farbton",
 	"graphics_colorizer_brightness"		: "Helligkeit",
 	"graphics_colorizer_saturation"		: "Sättigung",
+	"graphics_colorizer_contrast"		: "Kontrast",
+	"graphics_colorizer_sharpen"		: "Schärfe",
+	"graphics_colorizer_stackBlur"		: "Unschärfe",
+	"graphics_colorizer_sepia"			: "Sepia",
 
     "login_login"                       : "Anmelden",
     "login_signup"                      : "Neues Konto",

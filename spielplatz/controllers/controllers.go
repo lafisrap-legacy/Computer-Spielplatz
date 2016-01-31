@@ -563,6 +563,10 @@ func (c *GraphicsController) Get() {
 	c.Data["GraphicsColorizerHue"] = T["graphics_colorizer_hue"]
 	c.Data["GraphicsColorizerBrightness"] = T["graphics_colorizer_brightness"]
 	c.Data["GraphicsColorizerSaturation"] = T["graphics_colorizer_saturation"]
+	c.Data["GraphicsColorizerContrast"] = T["graphics_colorizer_contrast"]
+	c.Data["GraphicsColorizerSharpen"] = T["graphics_colorizer_sharpen"]
+	c.Data["GraphicsColorizerStackBlur"] = T["graphics_colorizer_stackBlur"]
+	c.Data["GraphicsColorizerSepia"] = T["graphics_colorizer_sepia"]
 	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
 
 	setTitleData(c.Data)

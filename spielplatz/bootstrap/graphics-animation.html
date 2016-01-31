@@ -108,10 +108,11 @@
                 <button type="button" class="command command-delete click-command btn btn-sm btn-default">
                     <span class="typcn typcn-times"></span>
                 </button>
-                <button type="button" class="command command-colorizer click-command btn btn-sm btn-default">
+                <button type="button" class="command command-colorizer-1 click-command btn btn-sm btn-default">
                     <span class="typcn typcn-adjust-brightness"></span>
                 </button>
-                <button type="button" class="command command-grayscale click-command btn btn-sm btn-default">
+                <button type="button" class="command command-colorizer-2 click-command btn btn-sm btn-default">
+                    <span class="typcn typcn-adjust-contrast"></span>
                 </button>
                 <hr>
                 <button type="button" class="command command-resize btn btn-sm btn-default">
@@ -166,6 +167,10 @@
             hue: "{{ .GraphicsColorizerHue }}",
             brightness: "{{ .GraphicsColorizerBrightness }}",
             saturation: "{{ .GraphicsColorizerSaturation }}",
+            contrast: "{{ .GraphicsColorizerContrast }}",
+            sharpen: "{{ .GraphicsColorizerSharpen }}",
+            stackBlur: "{{ .GraphicsColorizerStackBlur }}",
+            sepia: "{{ .GraphicsColorizerSepia }}",
         }
     };
 })();
