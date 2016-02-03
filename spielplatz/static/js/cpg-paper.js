@@ -570,6 +570,7 @@ var Slider = Base.extend({
 			    }
 			}
 		};
+		group.setSliderFillColor(false);
 
 		return group;
 	},
@@ -666,19 +667,25 @@ var Commands = Base.extend({
 		$(".colorfield").css("background-color", this._currentColor.toCSS());
 
 		//////////////////////////////////////////////////////////////////7
+		// Menü-Command: Undo / Redo
+		$(".command-undo").on("click tap", function(event) {
+			Do.undo();
+		});
+
+		$(".command-redo").on("click tap", function(event) {
+			Do.redo();
+		});
+
+		//////////////////////////////////////////////////////////////////7
 		// Menü-Command: Download 
 		$(".command-download").on("click tap", function(event) {
 			showModalImageFiles(function(res, image) {
 				if( res === "open" ) {
 
 					var r1 = new Raster(image),
-        				r2 = r1.clone();
+						r2 = Do.execute(r1, "Import");
 
 			        r1.remove();
-
-					project.deselectAll();
-					r2.position = new Point(300,300);
-					r2.selected = true;
 
 					var items = project.activeLayer.children;
 					if( items.length === 1 ) baseCropper.set(r2.bounds);
@@ -1031,6 +1038,35 @@ var UndoManager = Base.extend({
 						project.activeLayer.addChild( pathObject );
 					}
 				}
+				break;
+
+			case "Import":
+				var importRaster = null,
+					importIndex = null;
+				this._reverseActions[this._actionPointer] = function() {
+				    importIndex = importRaster.index;
+					importRaster.remove();
+				}
+				this._actions[this._actionPointer] = function() {
+				    
+				    if( importIndex === null ) importRaster = obj.clone();
+					else project.activeLayer.insertChild(importIndex, importRaster);
+
+					project.deselectAll();
+					importRaster.position = new Point(300,300);
+					importRaster.selected = true;
+
+					return importRaster;
+				}
+				break;
+			case "Move":
+				this._reverseActions[this._actionPointer] = function() {
+					obj.position = param2;
+				}
+				this._actions[this._actionPointer] = function() {
+					obj.position = param1;
+				}
+				break;
 		}
 
 		var res = this._actions[this._actionPointer++]();
@@ -1116,7 +1152,7 @@ var UndoManager = Base.extend({
 
 ////////////////////////////////////////////////////////
 // Program startup
-var UM = new UndoManager(); 
+var Do = new UndoManager(); 
 
 
 if( sessionStorage.paperProject ) {
@@ -1226,37 +1262,37 @@ if( sessionStorage.paperProject ) {
 	raster.rotate(0);
 	raster.selected = false;
 
-	UM.startTransaction(raster);
+	Do.startTransaction(raster);
 	for( var i=80 ; i < 100 ; i++ ) for( var j=80 ; j < 100 ; j++ )
 		raster.setPixel(i,j,new Color(1,1,0.5));
-	UM.commit(new Rectangle(80, 80, 20, 20));
+	Do.commit(new Rectangle(80, 80, 20, 20));
 
-	UM.startTransaction(raster);
+	Do.startTransaction(raster);
 	for( var i=100 ; i < 190 ; i++ ) for( var j=10 ; j < 100 ; j++ )
 		raster.setPixel(i,j,new Color(1,0,0.5));
-	UM.commit(new Rectangle(100, 10, 90, 90));
+	Do.commit(new Rectangle(100, 10, 90, 90));
 
-	UM.startTransaction(raster);
+	Do.startTransaction(raster);
 	for( var i=30 ; i < 120 ; i++ ) for( var j=0 ; j < 90 ; j++ )
 		raster.setPixel(i,j,new Color(0,0,0.5));
-	UM.commit(new Rectangle(30, 0, 90, 90));
+	Do.commit(new Rectangle(30, 0, 90, 90));
 
-	UM.startTransaction(raster);
+	Do.startTransaction(raster);
 	for( var i=70 ; i < 90 ; i++ ) for( var j=40 ; j < 60 ; j++ )
 		raster.setPixel(i,j,new Color(0,1,1,0));
-	UM.commit(new Rectangle(30, 0, 90, 90));
+	Do.commit(new Rectangle(30, 0, 90, 90));
 
-	var circle1 = UM.execute( "Path", "Circle", new Point(250,150), 30 )
+	var circle1 = Do.execute( "Path", "Circle", new Point(250,150), 30 )
 	circle1.strokeColor = new Color(0,0,0,1);
-	var circle2 = UM.execute( "Path", "Circle", new Point(350,150), 30 )
+	var circle2 = Do.execute( "Path", "Circle", new Point(350,150), 30 )
 	circle2.strokeColor = new Color(0,0,0,1);
 
-	UM.execute( circle2, "strokeColor", new Color(0,1,0,1) );
-	UM.execute( circle2, "strokeColor", 'red' );
-	UM.execute( circle2, "strokeWidth", 5 );
+	Do.execute( circle2, "strokeColor", new Color(0,1,0,1) );
+	Do.execute( circle2, "strokeColor", 'red' );
+	Do.execute( circle2, "strokeWidth", 5 );
 
-	//UM.undo();
-	//UM.redo();
+	//Do.undo();
+	//Do.redo();
 */
 }
 
@@ -1266,7 +1302,7 @@ baseLayer.bringToFront();
 // Selecting, moving and modifying items with the mouse
 var segment, item, bounds,
 	grabPoint = null,
-	moveItem;
+	moveItem, movePosition;
 
 function onMouseMove(event) {
 	if( baseViewer ) baseViewer.onMouseMove(event);
@@ -1408,6 +1444,7 @@ function onMouseDown(event) {
 		case "colorizer-1":
 		case "colorizer-2":
 			moveItem = "Not moved";
+			movePosition = item.position;
 			break;
 		case "pen":
 			break;
@@ -1494,6 +1531,8 @@ function onMouseUp(event) {
 			setTimeout( function() { $("#page-paper").trigger("itemSelected", hitResult.item); }, 5); 
 			return;
 		}
+	} else if( moveItem === "Moved" ) {
+		Do.execute(item, "Move", item.position, movePosition);
 	}
 };
 
