@@ -830,8 +830,9 @@ var Commands = Base.extend({
 		// check bounds
 		var oldRaster = raster;
 
+		// raster must be cloned??? 
+
 		raster = raster.rasterize();
-		oldRaster.remove();
 
 		var ctx = raster.getContext(),
 			b = raster.size;
@@ -859,6 +860,9 @@ var Commands = Base.extend({
 
 		var newRaster = raster.getSubRaster(new Rectangle(x, y, width, height));
 		raster.remove();
+
+		Do.execute(newRaster, "Crop", oldRaster);
+
 		return newRaster;
 	},
 
@@ -1059,6 +1063,7 @@ var UndoManager = Base.extend({
 					return importRaster;
 				}
 				break;
+
 			case "Move":
 				this._reverseActions[this._actionPointer] = function() {
 					obj.position = param2;
@@ -1067,6 +1072,17 @@ var UndoManager = Base.extend({
 					obj.position = param1;
 				}
 				break;
+
+			case "Crop":
+				this._reverseActions[this._actionPointer] = function() {
+					param1.insertAbove(obj);
+					obj.remove();
+				}
+				this._actions[this._actionPointer] = function() {
+					obj.insertAbove(param1);
+					param1.remove();
+				}
+				break;			
 		}
 
 		var res = this._actions[this._actionPointer++]();
