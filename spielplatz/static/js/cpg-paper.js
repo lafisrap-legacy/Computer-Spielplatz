@@ -830,8 +830,6 @@ var Commands = Base.extend({
 		// check bounds
 		var oldRaster = raster;
 
-		// raster must be cloned??? 
-
 		raster = raster.rasterize();
 
 		var ctx = raster.getContext(),
@@ -904,6 +902,16 @@ var Commands = Base.extend({
 		// workaround for Chrome (part 2)
 		if( bufCorr && p.x < 0 ) p.x += bufCorr;
 		item.setImageData(buffer, p);
+
+		var r1 = new Rectangle(p.x, p.y, buffer.width, buffer.height),
+			r2 = baseCommands.rubberDirtyRect || r1;
+
+		if( r1.left   < r2.left )   r2.left   = r1.left;
+		if( r1.right  > r2.right )  r2.right  = r1.right;
+		if( r1.top    < r2.top )    r2.top    = r1.top;
+		if( r1.bottom > r2.bottom ) r2.bottom = r1.bottom;
+
+		baseCommands.rubberDirtyRect = r2.intersect(new Rectangle(0,0, item.width, item.height));
 	}
 });
 
@@ -1101,7 +1109,7 @@ var UndoManager = Base.extend({
 		this._transactionData.remove();
 	},
 
-	commit: function(rect) {
+	commit: function(rect, join) {
 		// Currently only with Raster objects
 		if( !this._transactionData ) return;
 
@@ -1118,6 +1126,9 @@ var UndoManager = Base.extend({
 		this._actions[this._actionPointer++] = function() {
 			thisObj.setImageData(thisData, rect.topLeft);
 		}
+		// Join this action with the previous (undo/redo them together)
+		this._reverseActions[this._actionPointer].join = join;
+		this._actions[this._actionPointer].join = join;
 
 		this._actions.length = this._actionPointer;
 		this._reverseActions.length = this._actionPointer;
@@ -1132,7 +1143,7 @@ var UndoManager = Base.extend({
 		this._transactionData.remove();
 	},
 
-	commit: function(rect) {
+	commit: function(rect, join) {
 		// Currently only with Raster objects
 		if( !this._transactionData ) return;
 
@@ -1146,20 +1157,33 @@ var UndoManager = Base.extend({
 		this._reverseActions[this._actionPointer] = function() {
 			thisObj.setImageData(lastData, rect.topLeft);
 		}
-		this._actions[this._actionPointer++] = function() {
+		this._actions[this._actionPointer] = function() {
 			thisObj.setImageData(thisData, rect.topLeft);
 		}
+
+		// join this action with the previous (undo/redo them together)
+		this._reverseActions[this._actionPointer].join = join;
+		this._actions[this._actionPointer].join = join;
+
+		this._actionPointer++;
+
+		this._actions.length = this._actionPointer;
+		this._reverseActions.length = this._actionPointer;
 	},
 
 	undo: function() {
 		if( this._actionPointer > 0 ) {
 			this._reverseActions[--this._actionPointer]();
+
+			if( this._reverseActions[this._actionPointer].join ) this.undo();
 		}
 	},
 
 	redo: function() {
 		if( this._actionPointer < this._actions.length) {
 			this._actions[this._actionPointer++]();
+
+			if( this._actions[this._actionPointer].join ) this.redo();
 		}		
 	},
 });
@@ -1449,7 +1473,9 @@ function onMouseDown(event) {
 
 			var ctx = item.getContext();
 
+			Do.startTransaction(item);
 			baseCommands.rubberMask = ctx.createImageData(item.size.width, item.size.height);
+			baseCommands.rubberDirtyRect = null;
 			baseCommands.drawRubberData(item, event.point);
 			break;
 		}
@@ -1549,6 +1575,10 @@ function onMouseUp(event) {
 		}
 	} else if( moveItem === "Moved" ) {
 		Do.execute(item, "Move", item.position, movePosition);
+	}
+
+	if( baseCommands.rubberCircle ) {
+		Do.commit(baseCommands.rubberDirtyRect, true);
 	}
 };
 
