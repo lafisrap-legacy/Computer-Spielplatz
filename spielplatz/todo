@@ -1,4 +1,58 @@
-Weiterlesen:
 
-spielplatz.in/mir
+Image Editor (Grafik & Animation)
+#################################
+
+- mouseDrag of bounds also when they are over cropper
+- löschen
+- nach vorne / hinten
+- Farbe verändern
+- Pixel löschen (nur horizontal / normalisieren!)
+- Bilder von Festplatte / Internet laden
+
+- undo
+
+Cropper erweitern um Färbungsfunktionen
+Gimp-Aufruf
+
+Programm veröffentlichen
+########################
+
+Häckchen: Programm veröffentlichen
+
+-> Kommt in die Übersicht (Name / Programm, wird allen gezeigt, die in einer der Autor-Gruppen sind)
+-> Von der Hauptseite aus, wird die Programmübersicht angezeigt.
+-> Admin der Seite kann einzelne Programm allen anzeigen
+-> Kann einzeln aufgerufen werden
+	- ohne Editor, kann in eigenen Bereich übernommen werden
+
+Einstellungen-Button
+####################
+
+- Gruppen ... (anlegen, eintreten, austreten)
+- Passwort
+- Ausloggen
+Mit Admin-Funktionen:
+- Gruppen verwalten
+- Benutzer verwalten
+- Programm präsentieren
+
+Testen
+######
+mocha Structure
+karma
+chai
+unit-coverage
+
+
+Dateimanager für Live-Editor:
+#############################
+
+- setup a git server
+- during signup ...
+    - create GIT account
+	- create symlinks to default images
+
+
+- Locale-Strings für login, logout und signup
+- Shortcuts für alles!
 

@@ -531,31 +531,789 @@
 </li>
 </ul>
 <div>
-<h2></h2>
-<h2>Code-Schnipsel</h2>
+<h2>Spiel 1</h2>
 <code>
 <pre>
-var x = [0,0,0,0,0,0,0,0,0,0];
-var y = [0,0,0,0,0,0,0,0,0,0];
+// Schlangen-Spiel (#1 Besserer Name) 
+
+var Schlange = [],
+    Elastizität = 12,   // (#2 Elastizität der Schlange ändern)
+    n = 20,             // (#3 Länge der Schlange)
+    Käfer = [],
+    SchlangeAktiv = false,
+    KäferMax = 5,       // (#4 Anzahl der möglichen Käfer zu Beginn, auch unten)
+    GeschwMax = 0.5,    // (#5 Geschwindigkeit der Käfer)
+    ZeitZumNächstenKäfer = 10000,   // (#6 Zeit bis zum nächsten Käfer, auch unten)
+    MultZeit = 0.95,    // (#7 Beschleunigung der Zeit zum nächsten Käfer)
+    Zeit = 0,
+    Punktzahl = 0,
+    GameOver = false;
+
+var Pling = getSound("Spielplatz/Ticken");    // (#8 Sound ändern)
+var Treffer = getSound("Spielplatz/Hallo");   // (#9 Sound ändern)
+
+for( var i=0 ; i < n ; i++ ) {
+    Schlange.push({
+        x: 200,
+        y: 200,
+    });
+}
+
+textAlign(CENTER, CENTER);
 
 var draw = function() {
-    background(255);
+    background(255);    // (#10 Hintergrundfarbe)
     
-    x[0] = x[0] + (mouseX-x[0])/20;
-    y[0] = y[0] + (mouseY-y[0])/20;
+    if( !GameOver ) {
+        for( var i=0 ; i < n ; i++ ) {
+            var s = Schlange[i];
+            
+            if( i===0 ) {
+                s.x += (mouseX - s.x)/Elastizität;
+                s.y += (mouseY - s.y)/Elastizität;
+            } else {
+                s.x += (Schlange[i-1].x - s.x)/Elastizität;
+                s.y += (Schlange[i-1].y - s.y)/Elastizität;
+            }
+            
+            noStroke();
+            fill(255, 0, 0, 255-i*10);  // (#11 Füllfarbe der Schlange)
+            var Größe = 30;             // (#12 Max. Größe eines Kreises)
+            
+            if( i === n-1 ) {
+                if( dist(s.x, s.y, Schlange[i-1].x, Schlange[i-1].y) > 30-i ) {
+                    if( !SchlangeAktiv ) {
+                        playSound(Pling); 
+                        debug("playing Sound");
+                    }
+    
+                    fill(250, random(128,255), 0);  // (#13 Aktiver Schwanz der Schlange)
+                    Größe = 40;                     //   ...
+                    SchlangeAktiv = true;           //   ...
+                } else {
+                    SchlangeAktiv = false;
+                }            
+            }
+            
+            ellipse(s.x, s.y, Größe-i, Größe-i); // (#14 Form eines Schlangenkreises)
+        }
+    }
+    
+    textSize(50);           // (#15 Größe der Punktzahl)
+    fill(255, 0, 0,40);     // dito Farbe
+    text(Punktzahl,40,25);  // dito Punktzahl schreiben
+    
+    textSize(30);           // (#16 Größe der Käfer-Zähler)
+    fill(0, 0, 255,40);     // dito Farbe
+    text(Käfer.length + " / " + floor(KäferMax),331,25);
 
-    for( var i=1 ; i<10 ; i++ ) {
-        x[i] = x[i] + (x[i-1]-x[i])/20;
-        y[i] = y[i] + (y[i-1]-y[i])/20;
+    if( !GameOver && millis() - Zeit > ZeitZumNächstenKäfer ) {
+        Zeit = millis();
+        ZeitZumNächstenKäfer *= MultZeit;
+        
+        var dx = random(-GeschwMax, GeschwMax),
+            dy = random(-GeschwMax, GeschwMax);
+            
+        if( abs(dx+dy) < GeschwMax/2 ) {
+            dx += GeschwMax/2;
+        }
+         
+        Käfer.push({
+            x: 200,                 // (#17 Ort wo Käfer erscheinen)
+            y: 200,                 //  dito y
+            dx: dx,
+            dy: dy,
+            Größe: random(15,30),   // (#18 Zufällige Größe der Käfer)
+        });
+
+        if( Käfer.length > KäferMax ) {
+            GameOver = true;
+        }
+    }
+    
+    for( var i=0 ; i < Käfer.length ; i++ ) {
+        var k = Käfer[i];
+        
+        k.x += k.dx;
+        k.y += k.dy;
+        fill(50, random(128,255), 255, 130);    // (#19 Farbe der Käfer)
+        ellipse(k.x, k.y, k.Größe, k.Größe);    // (#20 Form der Käfer)
+        
+        if( k.x < -k.Größe/2 || k.x > 400+k.Größe/2 ) {
+            k.dx = -k.dx;
+        }
+        if( k.y < -k.Größe/2 || k.y > 400+k.Größe/2 ) {
+            k.dy = -k.dy;
+        }
+        
+        if( !GameOver && SchlangeAktiv &&
+            dist( k.x, k.y, Schlange[n-1].x, Schlange[n-1].y ) < (k.Größe + 20)/2 ) {
+            
+            Käfer.splice(i,1);
+            KäferMax+=0.33;
+            Punktzahl++;
+            playSound(Treffer);
+        }
     }
 
-    fill(255, x, 0);
-    for( var i=0 ; i<10 ; i++ ) {
-        ellipse(x[i], y[i], 50, 50);
+    if( GameOver ) {
+        textSize(70);                   // (#21 Game over, Größe)
+        fill(140, 127, 42);             //  dito Farbe
+        text("Game over!", 200, 200);   //  dito Text
+        
+        if( mouseIsPressed ) {
+            Käfer = [];
+            KäferMax = 5;               // (#4 Anzahl der möglichen Käfer zu Beginn, 
+            Punktzahl = 0;
+            ZeitZumNächstenKäfer = 10000; // (#6 Zeit zum nächsten Käfer)
+            GameOver = false;
+        }
     }
+};
+
+// (#22 EIGENE IDEEN!!!)
+</pre>
+</code>
+<h2>Spiel 2</h2>
+<code>
+<pre>
+///////////////////////////////////////////////
+// Spielsystem
+var currentScene = null;
+(function() {
+    imageMode(CENTER);
+    rectMode(CENTER);
+    textAlign(CENTER, CENTER);
+})();
+var Layer = function(zIndex, images, sounds) {
+    this.zIndex = zIndex;
+    this.images = images;
+    this.sounds = sounds;
+    this.isPaused = false;
+    this.isVisible = true;
+    
+    this.draw = function() {};
+    
+    this.pause = function() {
+        this.isPaused = true;
+    };
+    
+    this.resume = function() {
+        this.isPaused = false;
+    };
+    
+    this.show = function(options) {
+        this.isVisible = true;
+        this.isPaused = false;
+        if( this.init ) {
+            this.init(options);
+        }
+    };
+
+    this.hide = function() {
+        this.isVisible = false;
+        this.isPaused = true;
+    };
+};
+var Scene = function() {
+    this.Layers = [];
+    
+    this.addLayer = function(zIndex, images, sounds) {
+        var layer = new Layer(zIndex, images, sounds);
+        this.Layers.push(layer);
+        this.Layers.sort(function(a,b) {
+            return a.zIndex < b.zIndex? -1 : 1;
+        });
+
+        layer.show();        
+        return layer;
+    };
+    
+    this.each = function(cb) {
+        for( var i=0 ; i < this.Layers.length ; i++ ) {
+            cb(this.Layers[i]);
+        }
+    };
+    
+    this.draw = function() {
+        this.each(function(layer) {
+            pushMatrix();
+            resetMatrix();
+            if( layer.isVisible ) {
+                layer.draw(layer.isPaused);
+            }
+            popMatrix();
+        });
+    };
+};
+var setScene = function(scene) {
+    currentScene = scene;
+
+    if( scene.init ) {
+        scene.init();
+    }
+};
+var mousePressed = function() {
+    currentScene.each(function(layer) {
+        if( layer.mousePressed && !layer.isPaused ) {
+            layer.mousePressed(); 
+        }
+    });
+};
+var keyPressed = function() {
+    currentScene.each(function(layer) {
+        if( layer.keyPressed && !layer.isPaused ) {
+            layer.keyPressed(); 
+        }
+    });
+};
+var draw = function() {
+    background(250);
+    
+    if( currentScene ) {
+        currentScene.draw();
+    }
+};
+
+////////////////////////////////////////////////
+// Szenen (Scenes) und Ebenen (Layers)
+var TitelSzene = new Scene();
+var SpielSzene = new Scene();
+
+////////////////////////////
+// Titel-Szene
+var Fahrrad;
+TitelSzene.init = function() {
+    Fahrrad.show();
+};
+
+var Überschrift = TitelSzene.addLayer(0);
+var Fahrrad = TitelSzene.addLayer(1, {
+        Fahrrad: getImage("Spielplatz/Fahrrad"),    // #1 Bild von Fahrrad
+        Rob: getImage("Spielplatz/Rob_entspannt"),  // #2 Rob auf dem Titel    
+    }, {
+        Klingel: getSound("Spielplatz/Türglocke"),  // #3 Sound für Fahrrad
+    });
+    
+/////////////////////////////
+// Ebenen-Logik
+Überschrift.draw = function(isPaused) {
+    fill(74, 15, 74);
+    textSize(70);
+    text("P . O . N . G", 200, 170);    // #4 Titel des Spiels
+    fill(255, 0, 0);
+};
+
+Fahrrad.init = function() {
+    Fahrrad.x = 320;        // #4 Anfangs-X-Wert für Fahrrad
+    Fahrrad.dx = 0; 
+    Fahrrad.rx = 200;       // #5 Robs x-Wert zu Beginn
+    Fahrrad.ry = 130;       // #6 Robs y-Wert
+};
+
+Fahrrad.draw = function(isPaused) {
+    var i = Fahrrad.images;
+    
+    Fahrrad.rx += (mouseX-Fahrrad.rx)/10;
+    Fahrrad.ry += (mouseY-Fahrrad.ry)/10;
+    
+    image(i.Rob, Fahrrad.rx, Fahrrad.ry);   // #7 Rob wird gemalt
+    scale(1);
+    image(i.Fahrrad, Fahrrad.x, 370);       // #8 Fahrrad wird gemalt
+    
+    Fahrrad.x += Fahrrad.dx;
+    if( Fahrrad.x < -100 ) {            // #9 Spielstart wenn Fahrrad x < -100
+        setScene( SpielSzene );
+    }
+
+    if( Fahrrad.dx === 0 && Fahrrad.rx>300 && Fahrrad.rx < 350 && Fahrrad.ry > 300 ) {
+        Fahrrad.dx = -3;            // #10 Geschwindigkeit des Fahrrads
+        playSound(Fahrrad.sounds.Klingel);
+    }
+};
+
+//////////////////////////////////////////
+// Spielszene
+var Warten, Spielfeld, Tooor, Gewonnen, Figuren;
+
+SpielSzene.init = function() {
+    Tooor.hide();
+    Gewonnen.hide();
+    Figuren.show();
+    Figuren.pause();
+    Spielfeld.show();
+    Warten.show();
+    
+    SpielSzene.PunkteRob = 0;
+    SpielSzene.PunkteFred = 0;
+};
+
+var Warten = SpielSzene.addLayer(2);
+Warten.init = function(Schütze) {
+    cursor();
+    
+    Warten.TasteBob = false;
+    Warten.TasteFred = false;
+};
+
+Warten.draw = function(isPaused) {
+    if( !isPaused ) {
+        textSize(24);
+        fill(87, 35, 35);
+        text("Beide Spieler eine\nihrer Tasten drücken ...", 200, 270);
+                // #11 Text das Spieler ihre Tasten drücken sollen
+    
+        textSize(14);
+        fill(245, 108, 108);
+        text("Hoch: A\nRunter: Y", 30, 380);    // #12 Erklärung der Tasten linker Spieler
+        fill(132, 163, 201);
+        text("Hoch: P\nRunter: L", 370, 380);   // #13 Erklärung der Tasten rechter Spieler
+    }
+};
+
+Warten.keyPressed = function() {
+    switch(key.code) {
+        case 65: 
+        case 89: 
+        case 97: 
+        case 121: 
+            Warten.TasteBob = true;
+            break;
+        case 76: 
+        case 80: 
+        case 108: 
+        case 112: 
+            Warten.TasteFred = true;
+            break;
+    }
+    
+    if( Warten.TasteFred && Warten.TasteBob ) {
+        Warten.hide();
+        Figuren.resume();
+    }
+};
+
+var Spielfeld = SpielSzene.addLayer(0,{},{
+        Tooor: getSound("Spielplatz/Schlagzeug") // #14 Sound der bei Tor
+    });
+
+Spielfeld.draw = function(isPaused) {
+    noStroke();
+    fill(245, 108, 108);    // #15 linkes Tor Farbe und Rechteck
+    rect(5,200,10,200);
+    fill(132, 163, 201);    // #16 rechtes Tor Farbe und Rechteck
+    rect(395,200,10,200);
+
+    textSize(240);           
+    fill(245, 108, 108, 25);    // #17 Punktanzeige links
+    text(SpielSzene.PunkteRob, 100, 200);
+    fill(132, 163, 201, 25);    // #18 Punktanzeige rechts
+    text(SpielSzene.PunkteFred, 300, 200);
+
+    if( !isPaused && Figuren.by > 100 && Figuren.by < 300 ) {
+        if( Figuren.bx < Figuren.BallGr/2 + 5 ) {
+            Tooor.show("Fred");
+            SpielSzene.PunkteFred++;
+            playSound(Spielfeld.sounds.Tooor);
+        } else if( Figuren.bx > 400 - Figuren.BallGr/2 - 5 ) {
+            Tooor.show("Rob");
+            SpielSzene.PunkteRob++;
+            playSound(Spielfeld.sounds.Tooor);
+        } else {
+            return;
+        }
+        Figuren.pause();
+        Spielfeld.pause();
+    }
+};
+
+var Tooor = SpielSzene.addLayer(2);
+
+Tooor.init = function(Schütze) {
+    Tooor.TextGr = 2;
+    Tooor.Zähler = 4;           // #19 Wie oft soll Tooor gezeigt werden
+    Tooor.Schütze = Schütze;
+    if( Schütze === "Rob" ) {
+        Figuren.Gefühl1 = 2;
+        Figuren.Gefühl2 = 4;
+    } else {
+        Figuren.Gefühl1 = 4;
+        Figuren.Gefühl2 = 2;
+    }
+};
+
+Tooor.draw = function(isPaused) {
+    if( Tooor.Schütze === "Rob" ) {
+        fill(245, 108, 108);        // #20 Farbe des TOOOR-Textes linker Spieler
+    } else {
+        fill(132, 163, 201);        // #20 Farbe des TOOOR-Textes rechter Spieler
+    }
+    textSize(Tooor.TextGr);
+    text("Toooor!", 200, 200);      // #21 Tor-Text
+    
+    Tooor.TextGr += 2;              // #22 Geschwinigkeit, in der Text größer wird
+    if( Tooor.TextGr > 80 ) {       // #23 Maximale Größe des TOOOR-Textes
+        Tooor.TextGr = 2;
+        if( --Tooor.Zähler === 0 ) {
+            Tooor.pause();
+            Tooor.hide();
+
+            Figuren.Gefühl1 = 0;
+            Figuren.Gefühl2 = 0;
+            if( SpielSzene.PunkteFred >= 3 ) {
+                Gewonnen.show("Fred");
+            } else if(SpielSzene.PunkteRob >= 3 ) {
+                Gewonnen.show("Rob");
+            } else {
+                Figuren.setBall();
+                Figuren.resume();
+                Spielfeld.resume();
+            }
+        } else if( Tooor.Zähler < 3 ) {
+            if( Tooor.Schütze === "Rob" ) {
+                Figuren.Gefühl1 = 3;
+            } else {
+                Figuren.Gefühl2 = 3;
+            }
+        }   
+    }
+};
+
+var Gewonnen = SpielSzene.addLayer(2);
+Gewonnen.init = function(Schütze) {
+    if( Schütze === "Rob" ) {
+        Gewonnen.x = "x1";
+        Gewonnen.y = "y1";
+        Gewonnen.gr = "gr1";
+        Gewonnen.xInc = (200-Figuren.x1)/60; 
+        Gewonnen.yInc = (200-Figuren.y1)/60; 
+        Figuren.Gefühl1 = 3;
+        Figuren.Gefühl2 = 4;
+    } else {
+        Gewonnen.x = "x2";
+        Gewonnen.y = "y2";
+        Gewonnen.gr = "gr2";
+        Gewonnen.xInc = (200-Figuren.x2)/60; 
+        Gewonnen.yInc = (200-Figuren.y2)/60; 
+        Figuren.Gefühl1 = 4;
+        Figuren.Gefühl2 = 3;
+    }   
+    
+    cursor();
+};
+
+Gewonnen.draw = function(isPaused) {
+    if( round(Figuren[Gewonnen.x]) === 200 ) {
+        textSize(28);
+        fill(87, 35, 35);
+        text("Drücke eine Taste ...", 200, 350);
+    } else {
+        Figuren[Gewonnen.x] += Gewonnen.xInc;
+        Figuren[Gewonnen.y] += Gewonnen.yInc;
+        Figuren[Gewonnen.gr]+=3;
+        Figuren.KreisGr = 0;
+    }
+};
+
+Gewonnen.keyPressed = function() {
+    setScene( TitelSzene );
+};
+
+var Figuren = SpielSzene.addLayer(1,{
+        Fred:  [getImage("Spielplatz/Fred_stehend"),    // #24 Linker Spieler normal
+                getImage("Spielplatz/Fred_anpackend"),  // #24 Linker Spieler Ball kommt
+                getImage("Spielplatz/Fred_Yeah"),       // #24 Linker Spieler Tor
+                getImage("Spielplatz/Fred_lächelnd"),   // #24 Linker Spieler freut sich
+                getImage("Spielplatz/Fred_wütend")],    // #24 Linker Spieler wütend
+        Rob:   [getImage("Spielplatz/Rob_cool"),        // #25 dgl. rechter Spieler
+                getImage("Spielplatz/Rob_cool"),
+                getImage("Spielplatz/Rob_cool"),
+                getImage("Spielplatz/Rob_cool"),
+                getImage("Spielplatz/Rob_cool")],
+        Ball: getImage("Spielplatz/BlauerBall"),        // #26 Ball
+    },{
+        Tock: getSound("Spielplatz/Glas"),      // #27 Sound für Ball
+    });
+    
+Figuren.init = function() {
+    Figuren.setBall();
+    Figuren.x1 = 40;
+    Figuren.y1 = 200;
+    Figuren.gr1 = 100;      // #28 Größe linker Spieler      
+    Figuren.x2 = 360;
+    Figuren.y2 = 200;
+    Figuren.gr2 = 100;      // #29 Größe rechter Spieler
+    Figuren.dY1 = 0;
+    Figuren.dY2 = 0;
+    Figuren.dYMax = 20;
+    Figuren.KreisGr = 80;   // #30 Größe der Spieler-Kreise 
+    Figuren.BallGr = 30;    // #31 Ball-Größe
+    Figuren.BumperGr = 120; // #32 Durchmesser der Bumper
+    Figuren.BumperOffset = 30;  // #33 Position der Bumper
+    Figuren.CollisionTime = 0;
+    Figuren.Gefühl1 = 0;
+    Figuren.Gefühl2 = 0;
+};
+
+Figuren.draw = function(isPaused) {
+    noFill();
+    stroke(245, 108, 108);  // #34 Kreis-Farbe links
+    image(Figuren.images.Fred[Figuren.Gefühl1], Figuren.x1, Figuren.y1, Figuren.gr1, Figuren.gr1*0.7);
+    arc(Figuren.x1, Figuren.y1, Figuren.KreisGr, Figuren.KreisGr, -110, 110);
+    stroke(132, 163, 201); // #35 Kreis-Farbe links
+    image(Figuren.images.Rob[Figuren.Gefühl2], Figuren.x2, Figuren.y2, Figuren.gr2, Figuren.gr2*0.7);
+    arc(Figuren.x2, Figuren.y2, Figuren.KreisGr, Figuren.KreisGr, 70, 290);
+    image(Figuren.images.Ball, Figuren.bx, Figuren.by, Figuren.BallGr, Figuren.BallGr);
+
+    stroke(200,200, 200);   // #36 Bumper-Farbe
+    fill(150, 147, 147,100);
+    ellipse(200, -Figuren.BumperGr/2+Figuren.BumperOffset,  // #37 Bumper 
+            Figuren.BumperGr, Figuren.BumperGr);    
+    ellipse(200, 400+Figuren.BumperGr/2-Figuren.BumperOffset, 
+            Figuren.BumperGr, Figuren.BumperGr);    
+
+    Figuren.dY1 -= Figuren.dY1/10;
+    Figuren.dY2 -= Figuren.dY2/10;
+    
+    if( !isPaused ) {
+        Figuren.dBx *= 1.0005;
+        Figuren.dBy *= 1.0005;
+    
+        if( Figuren.y1 <= Figuren.KreisGr/2 || Figuren.y1 >= 400-Figuren.KreisGr/2 ) {
+            Figuren.dY1 = -Figuren.dY1 * 1.1;
+        }
+    
+        if( Figuren.y2 <= Figuren.KreisGr/2 || Figuren.y2 >= 400-Figuren.KreisGr/2 ) {
+            Figuren.dY2 = -Figuren.dY2 * 1.1;
+        }
+    
+        if( Figuren.bx <= Figuren.BallGr/2 || Figuren.bx >= 400-Figuren.BallGr/2 ) {
+            Figuren.dBx = -Figuren.dBx;
+        }
+        
+        if( Figuren.by <= Figuren.BallGr/2 || Figuren.by >= 400-Figuren.BallGr/2 ) {
+            Figuren.dBy = -Figuren.dBy;
+        }
+        
+        Figuren.collide(Figuren.x1, Figuren.y1, Figuren.dY1, Figuren.KreisGr);            
+        Figuren.collide(Figuren.x2, Figuren.y2, Figuren.dY2, Figuren.KreisGr);            
+        Figuren.collide(200, -Figuren.BumperGr/2+Figuren.BumperOffset, 0, Figuren.BumperGr);
+        Figuren.collide(200, 400+Figuren.BumperGr/2-Figuren.BumperOffset, 
+                        0, Figuren.BumperGr);            
+
+        Figuren.y1 =constrain(Figuren.y1+Figuren.dY1,Figuren.BallGr/2,400-Figuren.BallGr/2);
+        Figuren.y2 =constrain(Figuren.y2+Figuren.dY2,Figuren.BallGr/2,400-Figuren.BallGr/2);
+        Figuren.bx =constrain(Figuren.bx+Figuren.dBx,Figuren.BallGr/2,400-Figuren.BallGr/2);
+        Figuren.by =constrain(Figuren.by+Figuren.dBy,Figuren.BallGr/2,400-Figuren.BallGr/2);
+
+        if( Figuren.bx < 200 && Figuren.Gefühl1 < 2 ) {
+            Figuren.Gefühl1 = 1;
+            Figuren.Gefühl2 = 0;
+        } else {
+            Figuren.Gefühl1 = 0;
+            Figuren.Gefühl2 = 1;
+        }
+    }
+};
+
+Figuren.keyPressed = function() {
+    switch(key.code) {
+        case 65: 
+        case 97: 
+            if( Figuren.dY1 > Figuren.dYMax ) {
+                Figuren.dY1 = -Figuren.dY1;
+            } else {
+                Figuren.dY1 -= 6;
+            }
+            break;
+        case 89: 
+        case 121: 
+            if( Figuren.dY1 < -Figuren.dYMax ) {
+                Figuren.dY1 = -Figuren.dY1;
+            } else {
+                Figuren.dY1 += 6;
+            }
+            break;
+        case 80: 
+        case 112: 
+            if( Figuren.dY2 > Figuren.dYMax ) {
+                Figuren.dY2 = -Figuren.dY2;
+            } else {
+                Figuren.dY2 -= 6;
+            }
+            break;
+        case 76: 
+        case 108: 
+            if( Figuren.dY2 < -Figuren.dYMax ) {
+                Figuren.dY2 = -Figuren.dY2;
+            } else {
+                Figuren.dY2 += 6;
+            }
+            break;
+    }
+};
+
+Figuren.mousePressed = function() {
+};
+
+Figuren.collide = function(x, y, dy, größe) {
+    
+    var minDist = (größe + Figuren.BallGr)/2,
+        geschw = sqrt(Figuren.dBx*Figuren.dBx+Figuren.dBy*Figuren.dBy);
+
+    var d = dist( Figuren.bx, Figuren.by, x, y+dy );
+    
+    if( d < minDist ) {
+        
+        var bx = Figuren.bx,
+            by = Figuren.by,
+            overlapFactor = (minDist - d)/geschw;
+            
+        bx -= Figuren.dBx * overlapFactor;
+        by -= Figuren.dBy * overlapFactor;
+        
+        var kugelWinkel = (atan2(y-by, x-bx)+360)%360,
+            geschwWinkel =(atan2(Figuren.dBy, Figuren.dBx)+360)%360,
+            sign = kugelWinkel - geschwWinkel >= 0? 1:-1,
+            neuerWinkel = geschwWinkel - (90-abs(kugelWinkel - geschwWinkel))*2*sign;
+        
+        Figuren.dBx = cos(neuerWinkel) * geschw;
+        Figuren.dBy = sin(neuerWinkel) * geschw;
+        
+        Figuren.bx = bx + Figuren.dBx * overlapFactor;
+        Figuren.by = by + Figuren.dBy * overlapFactor;
+
+        playSound(Figuren.sounds.Tock);
+    }
+};
+
+Figuren.setBall = function() {
+    var winkel = random(0,360);     // #38 Anfangswinkel des Balles
+    
+    Figuren.bx = 200;
+    Figuren.by = 200;
+    Figuren.dBx = cos(winkel)*5;
+    Figuren.dBy = sin(winkel)*5;
+};
+
+setScene( TitelSzene );
+</pre>
+</code>
+<h2>Beispiel</h2>
+<code>
+<pre>
+var x = 200,
+    y = 162,
+    dx = 3,
+    dy = 0,
+    gravitation = 0.1,
+    john = getImage("Spielplatz/JohnCena");
+    
+imageMode(CENTER);
+    
+var gesicht = function() {
+
+    translate(x,y);
+    scale(0.4);
+    background(255);
+    fill(0);stroke(0);strokeWeight(1);ellipse(0,0,300,300);
+    fill(255);ellipse(-66,-11,100,100);ellipse(69,-11,100,100);
+    fill(0);ellipse(-66,-11,40,40);ellipse(69,-11,40,40);
+    fill(255);ellipse(-56,-19,15,15);ellipse(80,-18,15,15);
+    strokeWeight(7);
+    stroke(204, 67, 204);line(0,-132,-20,-184);
+    stroke(143, 26, 143);line(0,-132,0,-183);
+    stroke(102, 18, 102);line(0,-132,20,-187);
+    stroke(255, 0, 0);strokeWeight(17);noFill();arc(0,59,145,101,30,150);
+    resetMatrix();
+    
+};
+
+var draw = function() {
+    
+    // Figur auf Mausposition setzen
+    if( mouseIsPressed ) {
+        x = mouseX;
+        y = mouseY;
+    }
+    
+    // Position geschwindigkeitsabhängig
+    x += dx;
+    y += dy;
+
+    if( x < 60 || x > 340 ) {
+        dx = -dx;  // Geschwindigkeit umdrehen
+    }
+
+    if( y > 340 ) {
+        dy = -dy; // Geschwindigkeit umdrehen
+    } else {
+        dy += gravitation; // Gravitation setzen
+    }
+
+    //gesicht();
+    background(255);
+    image(john, x,y);
+    
 };
 </pre>
 </code>
+
+<h2>Spiel 1</h2>
+<code>
+<pre>
+var x;
+var y;
+
+x = 0;
+y = 237;
+
+var draw = function() {
+    background(255, 255, 255);
+    
+    // Haare
+    stroke(0);
+    strokeWeight(3);
+    line(x, y-86, x-15, y-120);
+    line(x, y-86, x-2, y-120);
+    line(x, y-86, x+16, y-120);
+    
+    // Kopf
+    strokeWeight(1);
+    fill(62, 81, 130);
+    ellipse(x, y, 144, 200);
+    
+    // Augen
+    fill(255,255,255);
+    ellipse(x-23, y-35, 40, 25);
+    ellipse(x+29, y-35, 40, 25);
+    
+    // Pupillen (Augen innen)
+    fill(0);
+    ellipse(x-23, y-35, 12, 12);
+    ellipse(x+29, y-35, 12, 12);
+    
+    // Nase
+    fill(245, 37, 37);
+    ellipse(x+2, y-2, 20, 20);
+    
+    // Mund
+    noFill();
+    stroke(255);
+    strokeWeight(12);
+    arc(x, y+6, 60, 78, 45, 135);
+    
+    x = x + 1;
+    
+    if( x > 400 ) {
+        x = 0;
+    }
+};
+
+
+</pre>
+</code>
+
 </div>
 </div>
 

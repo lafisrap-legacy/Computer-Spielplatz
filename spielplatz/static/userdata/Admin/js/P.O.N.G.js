@@ -110,10 +110,10 @@ TitelSzene.init = function() {
 
 var Überschrift = TitelSzene.addLayer(0);
 var Fahrrad = TitelSzene.addLayer(1, {
-        Fahrrad: getImage("Spielplatz/Fahrrad"),
-        Rob: getImage("Spielplatz/Rob_entspannt"),
+        Fahrrad: getImage("Spielplatz/Fahrrad"),    // #1 Bild von Fahrrad
+        Rob: getImage("Spielplatz/Rob_entspannt"),  // #2 Rob auf dem Titel    
     }, {
-        Klingel: getSound("Spielplatz/Türglocke"),
+        Klingel: getSound("Spielplatz/Türglocke"),  // #3 Sound für Fahrrad
     });
     
 /////////////////////////////
@@ -121,14 +121,15 @@ var Fahrrad = TitelSzene.addLayer(1, {
 Überschrift.draw = function(isPaused) {
     fill(74, 15, 74);
     textSize(70);
-    text("P . O . N . G", 200, 170); 
+    text("P . O . N . G", 200, 170);    // #4 Titel des Spiels
+    fill(255, 0, 0);
 };
 
 Fahrrad.init = function() {
-    Fahrrad.x = 320;
-    Fahrrad.dx = 0;
-    Fahrrad.rx = 200;
-    Fahrrad.ry = 130;
+    Fahrrad.x = 320;        // #4 Anfangs-X-Wert für Fahrrad
+    Fahrrad.dx = 0; 
+    Fahrrad.rx = 200;       // #5 Robs x-Wert zu Beginn
+    Fahrrad.ry = 130;       // #6 Robs y-Wert
 };
 
 Fahrrad.draw = function(isPaused) {
@@ -137,17 +138,17 @@ Fahrrad.draw = function(isPaused) {
     Fahrrad.rx += (mouseX-Fahrrad.rx)/10;
     Fahrrad.ry += (mouseY-Fahrrad.ry)/10;
     
-    image(i.Rob, Fahrrad.rx, Fahrrad.ry);
+    image(i.Rob, Fahrrad.rx, Fahrrad.ry);   // #7 Rob wird gemalt
     scale(1);
-    image(i.Fahrrad, Fahrrad.x, 370);
+    image(i.Fahrrad, Fahrrad.x, 370);       // #8 Fahrrad wird gemalt
     
     Fahrrad.x += Fahrrad.dx;
-    if( Fahrrad.x < -100 ) {
+    if( Fahrrad.x < -100 ) {            // #9 Spielstart wenn Fahrrad x < -100
         setScene( SpielSzene );
     }
 
     if( Fahrrad.dx === 0 && Fahrrad.rx>300 && Fahrrad.rx<350 && Fahrrad.ry>300 ) {
-        Fahrrad.dx = -3; 
+        Fahrrad.dx = -3;            // #10 Geschwindigkeit des Fahrrads
         playSound(Fahrrad.sounds.Klingel);
     }
 };
@@ -181,24 +182,28 @@ Warten.draw = function(isPaused) {
         textSize(24);
         fill(87, 35, 35);
         text("Beide Spieler eine\nihrer Tasten drücken ...", 200, 270);
+                // #11 Text das Spieler ihre Tasten drücken sollen
     
         textSize(14);
         fill(245, 108, 108);
-        text("Hoch: A\nRunter: Y", 30, 380);
+        text("Hoch: A\nRunter: Y", 30, 380);    // #12 Erklärung der Tasten linker Spieler
         fill(132, 163, 201);
-        text("Hoch: P\nRunter: L", 370, 380);
-        Spielfeld.TastenFade -= 0.2;
+        text("Hoch: P\nRunter: L", 370, 380);   // #13 Erklärung der Tasten rechter Spieler
     }
 };
 
 Warten.keyPressed = function() {
     switch(key.code) {
+        case 65: 
+        case 89: 
         case 97: 
         case 121: 
             Warten.TasteBob = true;
             break;
-        case 112: 
+        case 76: 
+        case 80: 
         case 108: 
+        case 112: 
             Warten.TasteFred = true;
             break;
     }
@@ -210,20 +215,20 @@ Warten.keyPressed = function() {
 };
 
 var Spielfeld = SpielSzene.addLayer(0,{},{
-        Tooor: getSound("Spielplatz/Schlagzeug")
+        Tooor: getSound("Spielplatz/Schlagzeug") // #14 Sound der bei Tor
     });
 
 Spielfeld.draw = function(isPaused) {
     noStroke();
-    fill(245, 108, 108);
+    fill(245, 108, 108);    // #15 linkes Tor Farbe und Rechteck
     rect(5,200,10,200);
-    fill(132, 163, 201);
+    fill(132, 163, 201);    // #16 rechtes Tor Farbe und Rechteck
     rect(395,200,10,200);
 
-    textSize(240);
-    fill(245, 108, 108, 25);
+    textSize(240);           
+    fill(245, 108, 108, 25);    // #17 Punktanzeige links
     text(SpielSzene.PunkteRob, 100, 200);
-    fill(132, 163, 201, 25);
+    fill(132, 163, 201, 25);    // #18 Punktanzeige rechts
     text(SpielSzene.PunkteFred, 300, 200);
 
     if( !isPaused && Figuren.by > 100 && Figuren.by < 300 ) {
@@ -247,7 +252,7 @@ var Tooor = SpielSzene.addLayer(2);
 
 Tooor.init = function(Schütze) {
     Tooor.TextGr = 2;
-    Tooor.Zähler = 4;
+    Tooor.Zähler = 4;           // #19 Wie oft soll Tooor gezeigt werden
     Tooor.Schütze = Schütze;
     if( Schütze === "Rob" ) {
         Figuren.Gefühl1 = 2;
@@ -260,15 +265,15 @@ Tooor.init = function(Schütze) {
 
 Tooor.draw = function(isPaused) {
     if( Tooor.Schütze === "Rob" ) {
-        fill(245, 108, 108);
+        fill(245, 108, 108);        // #20 Farbe des TOOOR-Textes linker Spieler
     } else {
-        fill(132, 163, 201);
+        fill(132, 163, 201);        // #20 Farbe des TOOOR-Textes rechter Spieler
     }
     textSize(Tooor.TextGr);
-    text("Toooor!", 200, 200);
+    text("Toooor!", 200, 200);      // #21 Tor-Text
     
-    Tooor.TextGr += 2;
-    if( Tooor.TextGr > 80 ) {
+    Tooor.TextGr += 2;              // #22 Geschwinigkeit, in der Text größer wird
+    if( Tooor.TextGr > 80 ) {       // #23 Maximale Größe des TOOOR-Textes
         Tooor.TextGr = 2;
         if( --Tooor.Zähler === 0 ) {
             Tooor.pause();
@@ -336,36 +341,36 @@ Gewonnen.keyPressed = function() {
 };
 
 var Figuren = SpielSzene.addLayer(1,{
-        Fred:  [getImage("Spielplatz/Fred_stehend"),
-                getImage("Spielplatz/Fred_anpackend"),
-                getImage("Spielplatz/Fred_Yeah"),
-                getImage("Spielplatz/Fred_lächelnd"),
-                getImage("Spielplatz/Fred_wütend")],
-        Rob:   [getImage("Spielplatz/Rob_cool"),
+        Fred:  [getImage("Spielplatz/Fred_stehend"),    // #24 Linker Spieler normal
+                getImage("Spielplatz/Fred_anpackend"),  // #24 Linker Spieler Ball kommt
+                getImage("Spielplatz/Fred_Yeah"),       // #24 Linker Spieler Tor
+                getImage("Spielplatz/Fred_lächelnd"),   // #24 Linker Spieler freut sich
+                getImage("Spielplatz/Fred_wütend")],    // #24 Linker Spieler wütend
+        Rob:   [getImage("Spielplatz/Rob_cool"),        // #25 dgl. rechter Spieler
                 getImage("Spielplatz/Rob_cool"),
                 getImage("Spielplatz/Rob_cool"),
                 getImage("Spielplatz/Rob_cool"),
                 getImage("Spielplatz/Rob_cool")],
-        Ball: getImage("Spielplatz/BlauerBall"),
+        Ball: getImage("Spielplatz/BlauerBall"),        // #26 Ball
     },{
-        Tock: getSound("Spielplatz/Glas"),
+        Tock: getSound("Spielplatz/Glas"),      // #27 Sound für Ball
     });
     
 Figuren.init = function() {
     Figuren.setBall();
     Figuren.x1 = 40;
     Figuren.y1 = 200;
-    Figuren.gr1 = 100;
+    Figuren.gr1 = 100;      // #28 Größe linker Spieler      
     Figuren.x2 = 360;
     Figuren.y2 = 200;
-    Figuren.gr2 = 100;
+    Figuren.gr2 = 100;      // #29 Größe rechter Spieler
     Figuren.dY1 = 0;
     Figuren.dY2 = 0;
     Figuren.dYMax = 20;
-    Figuren.KreisGr = 80;
-    Figuren.BallGr = 30;
-    Figuren.BumperGr = 120;
-    Figuren.BumperOffset = 30;
+    Figuren.KreisGr = 80;   // #30 Größe der Spieler-Kreise 
+    Figuren.BallGr = 30;    // #31 Ball-Größe
+    Figuren.BumperGr = 120; // #32 Durchmesser der Bumper
+    Figuren.BumperOffset = 30;  // #33 Position der Bumper
     Figuren.CollisionTime = 0;
     Figuren.Gefühl1 = 0;
     Figuren.Gefühl2 = 0;
@@ -373,15 +378,17 @@ Figuren.init = function() {
 
 Figuren.draw = function(isPaused) {
     noFill();
-    stroke(245, 108, 108);
+    stroke(245, 108, 108);  // #34 Kreis-Farbe links
     image(Figuren.images.Fred[Figuren.Gefühl1], Figuren.x1, Figuren.y1, Figuren.gr1, Figuren.gr1*0.7);
     arc(Figuren.x1, Figuren.y1, Figuren.KreisGr, Figuren.KreisGr, -110, 110);
-    stroke(132, 163, 201);
+    stroke(132, 163, 201); // #35 Kreis-Farbe links
     image(Figuren.images.Rob[Figuren.Gefühl2], Figuren.x2, Figuren.y2, Figuren.gr2, Figuren.gr2*0.7);
     arc(Figuren.x2, Figuren.y2, Figuren.KreisGr, Figuren.KreisGr, 70, 290);
     image(Figuren.images.Ball, Figuren.bx, Figuren.by, Figuren.BallGr, Figuren.BallGr);
-    stroke(200,200, 200);
-    ellipse(200, -Figuren.BumperGr/2+Figuren.BumperOffset, 
+
+    stroke(200,200, 200);   // #36 Bumper-Farbe
+    fill(150, 147, 147,100);
+    ellipse(200, -Figuren.BumperGr/2+Figuren.BumperOffset,  // #37 Bumper 
             Figuren.BumperGr, Figuren.BumperGr);    
     ellipse(200, 400+Figuren.BumperGr/2-Figuren.BumperOffset, 
             Figuren.BumperGr, Figuren.BumperGr);    
@@ -432,6 +439,7 @@ Figuren.draw = function(isPaused) {
 
 Figuren.keyPressed = function() {
     switch(key.code) {
+        case 65: 
         case 97: 
             if( Figuren.dY1 > Figuren.dYMax ) {
                 Figuren.dY1 = -Figuren.dY1;
@@ -439,6 +447,7 @@ Figuren.keyPressed = function() {
                 Figuren.dY1 -= 6;
             }
             break;
+        case 89: 
         case 121: 
             if( Figuren.dY1 < -Figuren.dYMax ) {
                 Figuren.dY1 = -Figuren.dY1;
@@ -446,6 +455,7 @@ Figuren.keyPressed = function() {
                 Figuren.dY1 += 6;
             }
             break;
+        case 80: 
         case 112: 
             if( Figuren.dY2 > Figuren.dYMax ) {
                 Figuren.dY2 = -Figuren.dY2;
@@ -453,6 +463,7 @@ Figuren.keyPressed = function() {
                 Figuren.dY2 -= 6;
             }
             break;
+        case 76: 
         case 108: 
             if( Figuren.dY2 < -Figuren.dYMax ) {
                 Figuren.dY2 = -Figuren.dY2;
@@ -498,7 +509,7 @@ Figuren.collide = function(x, y, dy, größe) {
 };
 
 Figuren.setBall = function() {
-    var winkel = random(0,360);
+    var winkel = random(0,360);     // #38 Anfangswinkel des Balles
     
     Figuren.bx = 200;
     Figuren.by = 200;
