@@ -1082,15 +1082,48 @@ var UndoManager = Base.extend({
 				break;
 
 			case "Crop":
+				var cropSelected = null;
 				this._reverseActions[this._actionPointer] = function() {
 					param1.insertAbove(obj);
+					param1.selected = cropSelected; 
 					obj.remove();
 				}
 				this._actions[this._actionPointer] = function() {
 					obj.insertAbove(param1);
+					if( cropSelected !== null ) obj.selected = cropSelected; 
+					else cropSelected = param1.selected;
+
 					param1.remove();
 				}
 				break;			
+
+			case "Select":
+				var selectSelected = null;
+				this._reverseActions[this._actionPointer] = function() {
+					Base.each(project.selectedItems, function(item) {
+						$("#page-paper").trigger("itemDeselected", item); 
+					});
+					project.deselectAll();
+
+					Base.each(selectSelected, function(item) {
+						item.selected = true;
+						$("#page-paper").trigger("itemSelected", item);  
+					});
+				}
+				this._actions[this._actionPointer] = function() {
+					selectSelected = [];
+					Base.each(project.selectedItems, function(item) { 
+						selectSelected.push(item); 
+						$("#page-paper").trigger("itemDeselected", item);
+					});
+					project.deselectAll();
+
+					if( obj ) {
+						obj.selected = true;
+						$("#page-paper").trigger("itemSelected", item); 
+					}
+				}
+				break;
 		}
 
 		var res = this._actions[this._actionPointer++]();
@@ -1423,20 +1456,16 @@ function onMouseDown(event) {
 
 	if( !hitResult ) {
 		if( baseCropper.getRect().contains(event.point) ) {
-			Base.each(project.selectedItems, function(item) {
-				$("#page-paper").trigger("itemDeselected", item);
-			});
+			Base.each(project.selectedItems, function(item) {$("#page-paper").trigger("itemDeselected", item); });
 
-			project.deselectAll();
-
+			Do.execute(null, "Select");
 		}
 		return;
 	}
 
 	item = hitResult.item;
 	item.hasBeenSelected = item.selected;
-	project.deselectAll();	
-	item.selected = true;
+	if( !item.hasBeenSelected ) Do.execute(item, "Select");
 
 	if( !item.hasBeenSelected ) $("#page-paper").trigger("itemSelected", item); 
 
