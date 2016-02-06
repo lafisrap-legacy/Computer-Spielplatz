@@ -683,7 +683,10 @@ var Commands = Base.extend({
 				if( res === "open" ) {
 
 					var r1 = new Raster(image),
-						r2 = Do.execute(r1, "Import");
+						r2 = Do.execute({
+							item: r1,
+							action: "Import"
+						});
 
 			        r1.remove();
 
@@ -859,9 +862,17 @@ var Commands = Base.extend({
 		var newRaster = raster.getSubRaster(new Rectangle(x, y, width, height));
 		raster.remove();
 
-		Do.execute(newRaster, "Crop", oldRaster);
+		Do.execute({
+			item: newRaster,
+			action: "Crop",
+			oldRaster: oldRaster
+		});
 
 		return newRaster;
+	},
+
+	getColor: function() {
+		return this._currentColor;
 	},
 
 	setColor: function(color) {
@@ -1018,24 +1029,24 @@ var UndoManager = Base.extend({
 	initialize: function() {
 	},
 
-	execute: function(obj, action, param1, param2, param3, param4) {
-		switch(action) {
+	execute: function(options) {
+		switch(options.action) {
 			case "strokeWidth": 
 			case "strokeColor": 
-				var lastData = obj[action];
+				var lastData = options.item[options.action];
 				if( typeof lastData === "object" ) {
 					lastData = lastData.clone();
 				}
 				this._reverseActions[this._actionPointer] = function() {
-					obj[action] = lastData;
+					options.item[options.action] = lastData;
 				}
 				this._actions[this._actionPointer] = function() {
-					obj[action] = param1;
+					options.item[options.action] = options.param1;
 				}
 				break;
 
 			case "Circle":
-				if( obj !== "Path") return
+				if( options.item !== "Path") return
 
 				var pathObject;
 				this._reverseActions[this._actionPointer] = function() {
@@ -1043,7 +1054,7 @@ var UndoManager = Base.extend({
 				}
 				this._actions[this._actionPointer] = function() {
 					if( !pathObject ) {
-						pathObject = new Path[action](param1, param2, param3, param4);
+						pathObject = new Path[options.action](options.param1, options.param2, options.param3, options.param4);
 						pathObject.strokeColor = new Color(0,0,0,1);
 						return pathObject;
 					} else {
@@ -1061,7 +1072,7 @@ var UndoManager = Base.extend({
 				}
 				this._actions[this._actionPointer] = function() {
 				    
-				    if( importIndex === null ) importRaster = obj.clone();
+				    if( importIndex === null ) importRaster = options.item.clone();
 					else project.activeLayer.insertChild(importIndex, importRaster);
 
 					project.deselectAll();
@@ -1074,26 +1085,26 @@ var UndoManager = Base.extend({
 
 			case "Move":
 				this._reverseActions[this._actionPointer] = function() {
-					obj.position = param2;
+					options.item.position = options.oldPosition;
 				}
 				this._actions[this._actionPointer] = function() {
-					obj.position = param1;
+					options.item.position = options.newPosition;
 				}
 				break;
 
 			case "Crop":
 				var cropSelected = null;
 				this._reverseActions[this._actionPointer] = function() {
-					param1.insertAbove(obj);
-					param1.selected = cropSelected; 
-					obj.remove();
+					options.oldRaster.insertAbove(options.item);
+					options.oldRaster.selected = cropSelected; 
+					options.item.remove();
 				}
 				this._actions[this._actionPointer] = function() {
-					obj.insertAbove(param1);
-					if( cropSelected !== null ) obj.selected = cropSelected; 
-					else cropSelected = param1.selected;
+					options.item.insertAbove(options.oldRaster);
+					if( cropSelected !== null ) options.item.selected = cropSelected; 
+					else cropSelected = options.oldRaster.selected;
 
-					param1.remove();
+					options.oldRaster.remove();
 				}
 				break;			
 
@@ -1118,13 +1129,46 @@ var UndoManager = Base.extend({
 					});
 					project.deselectAll();
 
-					if( obj ) {
-						obj.selected = true;
+					if( options.item ) {
+						options.item.selected = true;
 						$("#page-paper").trigger("itemSelected", item); 
 					}
 				}
 				break;
+
+			case "Pipette":
+				var pipetteColor = null;
+				this._reverseActions[this._actionPointer] = function() {
+					baseCommands.setColor(pipetteColor);
+				}
+
+				this._actions[this._actionPointer] = function() {
+					pipetteColor = baseCommands.getColor();
+					baseCommands.setColor(options.color);
+				}
+				break;
+
+			case "Delete":
+				var deleteInsertPos = null,
+					deleteSelected = null;
+				this._reverseActions[this._actionPointer] = function() {
+					project.activeLayer.insertChild(deleteInsertPos, options.item);
+					options.item.selected = deleteSelected;
+				}
+
+				this._actions[this._actionPointer] = function() {
+					if( deleteInsertPos === null ) {
+						deleteInsertPos = options.item.index;
+						deleteSelected = options.item.selected;
+					}
+					options.item.remove();
+				}
+				break;
+
 		}
+
+		this._reverseActions[this._actionPointer].join = options.join;
+		this._actions[this._actionPointer].join = options.join;
 
 		var res = this._actions[this._actionPointer++]();
 		this._actions.length = this._actionPointer;
@@ -1432,7 +1476,10 @@ function onMouseDown(event) {
 			data = ctx.getImageData(event.point.x, event.point.y, 1, 1).data,
 			color = new Color(data[0]/255, data[1]/255, data[2]/255, data[3]/255);
 
-		baseCommands.setColor(color);
+		Do.execute({
+			action: "Pipette",
+			color: color
+		});
 		return;
 	} else {	
 		// check if selected item was hit
@@ -1458,16 +1505,23 @@ function onMouseDown(event) {
 		if( baseCropper.getRect().contains(event.point) ) {
 			Base.each(project.selectedItems, function(item) {$("#page-paper").trigger("itemDeselected", item); });
 
-			Do.execute(null, "Select");
+			Do.execute({
+				item: null,
+				action: "Select"
+			});
 		}
 		return;
 	}
 
 	item = hitResult.item;
 	item.hasBeenSelected = item.selected;
-	if( !item.hasBeenSelected ) Do.execute(item, "Select");
-
-	if( !item.hasBeenSelected ) $("#page-paper").trigger("itemSelected", item); 
+	if( !item.hasBeenSelected ) {
+		Do.execute({
+			item: item,
+			action: "Select"
+		});
+		$("#page-paper").trigger("itemSelected", item);
+	}
 
 	switch( hitResult.type ) {
 
@@ -1520,7 +1574,11 @@ function onMouseDown(event) {
 		case "pen":
 			break;
 		case "delete":
-			item.remove();
+			Do.execute({
+				item: item,
+				action: "Delete",
+				join: item.hasBeenSelected? false : true
+			});
 			if( project.activeLayer.isEmpty() ) {
 				$(".command-pointer").trigger("click");	
 			}
@@ -1603,7 +1661,12 @@ function onMouseUp(event) {
 			return;
 		}
 	} else if( moveItem === "Moved" ) {
-		Do.execute(item, "Move", item.position, movePosition);
+		Do.execute({
+			item: item,
+			action: "Move",
+			newPosition: item.position,
+			oldPosition: movePosition
+		});
 	}
 
 	if( baseCommands.rubberCircle ) {
