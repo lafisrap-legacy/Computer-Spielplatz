@@ -1165,6 +1165,31 @@ var UndoManager = Base.extend({
 				}
 				break;
 
+			case "Rotate":
+				var negRotation = null;
+				this._reverseActions[this._actionPointer] = function() {
+					options.item.rotate(negRotation);
+				}
+
+				this._actions[this._actionPointer] = function() {
+					if( negRotation === null ) negRotation = -options.rotation;
+					else options.item.rotate(options.rotation);
+				}
+				break;
+
+			case "Resize":
+				var resizeBounds = null;
+				this._reverseActions[this._actionPointer] = function() {
+					options.item.bounds = options.bounds;
+				}
+
+				this._actions[this._actionPointer] = function() {
+					if( resizeBounds === null ) resizeBounds = options.item.bounds;
+					else options.item.bounds = resizeBounds;
+				}
+				break;
+
+
 		}
 
 		this._reverseActions[this._actionPointer].join = options.join;
@@ -1529,12 +1554,15 @@ function onMouseDown(event) {
 		var position = hitResult.item.position, 
 			point = hitResult.point;
 		
+		startRotation = Math.atan2(event.point.y - position.y, event.point.x - position.x) * 180 / Math.PI;
 		grabPoint = {
-			point: 		point,
-			oppPoint: 	point + (position - point)*2,
-			rotation: 	Math.atan2(event.point.y - position.y, event.point.x - position.x) * 180 / Math.PI, 
-			item: 	  	hitResult.item,
-			name: 		Base.camelize(hitResult.name),
+			bounds: 	   hitResult.item.bounds,
+			point: 		   point,
+			oppPoint: 	   point + (position - point)*2,
+			startRotation: startRotation,
+			rotation: 	   startRotation,
+			item: 	  	   hitResult.item,
+			name: 		   Base.camelize(hitResult.name),
 		}
 		break;
 
@@ -1616,13 +1644,14 @@ function onMouseDrag(event) {
 				hor = gp.name.search(/topCenter|bottomCenter/) !== -1 && !gp.item.rotation? 1 : zoom,
 				ver = gp.name.search(/leftCenter|rightCenter/) !== -1 && !gp.item.rotation? 1 : zoom;
 
+			console.log(hor+" : "+ver);
 			gp.item.scale(hor, ver, gp.oppPoint );
 			gp.point = point;
 			break;
 		case COMMAND_ROTATE:
 			var rotation = Math.atan2(y - b.center.y, x - b.center.x) * 180 / Math.PI - grabPoint.rotation;
 
-			grabPoint.item.rotate(rotation);			
+			grabPoint.item.rotate(rotation);
 			grabPoint.rotation += rotation;			
 			break;
 		}
@@ -1640,7 +1669,25 @@ function onMouseDrag(event) {
 
 function onMouseUp(event) {
 	baseCropper.isDragging = false;
-	grabPoint = null;
+
+	if( grabPoint ) {
+
+		if( baseCommands.resizeMode === COMMAND_RESIZE ) {
+			Do.execute({
+				item: grabPoint.item,
+				action: "Resize",
+				bounds: grabPoint.bounds,
+			});
+		} else if( baseCommands.resizeMode === COMMAND_ROTATE ) {
+			Do.execute({
+				item: grabPoint.item,
+				action: "Rotate",
+				rotation: grabPoint.rotation - startRotation
+			});
+		}
+
+		grabPoint = null;
+	}
 
 	if( moveItem === "Not moved" && item.hasBeenSelected ) {
 		$("#page-paper").trigger("itemDeselected", item); 
