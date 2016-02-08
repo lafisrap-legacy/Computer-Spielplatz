@@ -768,20 +768,17 @@ var Commands = Base.extend({
 		}).addClass("active btn-primary");
 		//////////////////////////////////////////////////////////////////7
 		// Menü-Command: Arrange etc.
-		$(".command-arrange-down").on("click tap", function(event) {
-			Base.each(project.selectedItems, function(item) { item.sendToBack(); });
-			if( project.selectedItems.length ) buttonBlink($(this));
-		});
-		$(".command-arrange-up").on("click tap", function(event) {
-			Base.each(project.selectedItems, function(item) { item.bringToFront(); });
-			if( project.selectedItems.length ) buttonBlink($(this));
-		});
 		$(".command-clone").on("click tap", function(event) {
 			Base.each(project.selectedItems, function(item) {
 				var newItem = item.clone();
 				$("#page-paper").trigger("itemDeselected", item); 
 				setTimeout( function() { $("#page-paper").trigger("itemSelected", newItem); }, 5); 
 				item.selected = false;
+
+				Do.execute({
+					item: newItem,
+					action: "Clone"
+				});
 			});
 			if( project.selectedItems.length ) buttonBlink($(this));
 		});
@@ -791,6 +788,24 @@ var Commands = Base.extend({
 					item = self.cropRaster(item);
 					item.selected = true;					
 				}
+			});
+			if( project.selectedItems.length ) buttonBlink($(this));
+		});
+		$(".command-arrange-down").on("click tap", function(event) {
+			Base.each(project.selectedItems, function(item) { 
+				Do.execute({
+					item: item,
+					action: "SendToBack"
+				});
+			});
+			if( project.selectedItems.length ) buttonBlink($(this));
+		});
+		$(".command-arrange-up").on("click tap", function(event) {
+			Base.each(project.selectedItems, function(item) { 
+				Do.execute({
+					item: item,
+					action: "BringToFront"
+				});  
 			});
 			if( project.selectedItems.length ) buttonBlink($(this));
 		});
@@ -1165,6 +1180,22 @@ var UndoManager = Base.extend({
 				}
 				break;
 
+			case "Clone":
+				var cloneInsertPos = null;
+				this._reverseActions[this._actionPointer] = function() {
+					options.item.remove();
+				}
+
+				this._actions[this._actionPointer] = function() {
+					if( cloneInsertPos === null ) cloneInsertPos = options.item.index;
+					else {
+						project.activeLayer.insertChild(cloneInsertPos, options.item);
+						options.item.selected = true;
+					}
+				}
+				break;
+
+
 			case "Rotate":
 				var negRotation = null;
 				this._reverseActions[this._actionPointer] = function() {
@@ -1189,7 +1220,31 @@ var UndoManager = Base.extend({
 				}
 				break;
 
+			case "BringToFront":
+				var toFrontIndex = null;
+				this._reverseActions[this._actionPointer] = function() {
+					options.item.remove();
+					project.activeLayer.insertChild(toFrontIndex, options.item);
+				}
 
+				this._actions[this._actionPointer] = function() {
+					if( toFrontIndex === null ) toFrontIndex = options.item.index;
+					options.item.bringToFront();
+				}
+				break;
+
+			case "SendToBack":
+				var toBackIndex = null;
+				this._reverseActions[this._actionPointer] = function() {
+					options.item.remove();
+					project.activeLayer.insertChild(toBackIndex, options.item);
+				}
+
+				this._actions[this._actionPointer] = function() {
+					if( toBackIndex === null ) toBackIndex = options.item.index;
+					options.item.sendToBack();
+				}
+				break;
 		}
 
 		this._reverseActions[this._actionPointer].join = options.join;
