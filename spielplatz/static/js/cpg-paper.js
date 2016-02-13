@@ -364,6 +364,7 @@ var Viewer = Base.extend({
 var Colorizer = Base.extend({
 	_class: 'Colorizer',
 	_enabled: true,
+	_oldValues: {},
 	_serializeFields: {
 
 	},
@@ -387,6 +388,8 @@ var Colorizer = Base.extend({
 				camanValue: options[i].camanValue,
 				parent: this,
 			}));
+
+			this._oldValues[options[i].filter] = options[i].startValue;
 		};
 		this.item = new Group(children);
 
@@ -398,13 +401,11 @@ var Colorizer = Base.extend({
 
 		this.item.visible = true;
 
-		$("#page-paper").on("itemSelected", function(event, item) {
-			self.enable(item);
-			console.log("event: itemSelected");
+		$("#page-paper").on("itemSelected", function(event, options) {
+			self.enable(options.item, options.join);
 		});
-		$("#page-paper").on("itemDeselected", function(event, item) {
-			self.disable();
-			console.log("event: itemDeselected");
+		$("#page-paper").on("itemDeselected", function(event, options) {
+			self.disable(options.item, options.join);
 		});
 
 		this.enable(project.selectedItems[0]);
@@ -413,41 +414,54 @@ var Colorizer = Base.extend({
 	hide: function() {
 		this.item.visible = false;
 
-		this.disable();
+		this.disable(this.item);
 
 		$("#page-paper").off("itemSelected");
 		$("#page-paper").off("itemDeselected");
 	},
 
-	enable: function(item) {
+	enable: function(item, join) {
 		this._enabled = true;
 
 		if( item === this._orgItem ) return;
 
 		if( this._orgItem ) {
-			this._orgItem.filter({commit: true});
+			Do.execute({
+				item: this._orgItem,
+				oldValues: this._oldValues,
+				action: "ColorizeCommit",
+				join: join
+			});
+			item.joinDirty = true;
 			this._orgItem = null;
 		}
 
 		if( item.className === "Raster" ) {
 
 			this._orgItem = item;
+			this._oldValues = {};
 
 			Base.each(this.item.children, function(slider) {
 				slider.resetValue();
 				slider.setSliderFillColor(true);
 			});
 
-			this.update();
+			//this.update();
 		}
 	},
 
-	disable: function() {
+	disable: function(item, join) {
 		if( !this._orgItem ) return;
 
 		this._enabled = false;
-		this._orgItem.filter({commit: true});
+		Do.execute({
+			item: this._orgItem,
+			oldValues: this._oldValues,
+			action: "ColorizeCommit",
+			join: join
+		});
 		this._orgItem = null;
+		item.joinDirty = true;
 
 		Base.each(this.item.children, function(slider) {
 			slider.resetValue();
@@ -461,9 +475,16 @@ var Colorizer = Base.extend({
 
 	update: function() {
 
-		var options = {};
-		Base.each(this.item.children, function(slider) { slider.getValue(options); });
-		this._orgItem.filter(options);
+		var newValues = {};
+		Base.each(this.item.children, function(slider) { slider.getValue(newValues); });
+		Do.execute({
+			item: this._orgItem,
+			action: "Colorize",
+			oldValues: this._oldValues,
+			newValues: newValues,
+		});
+
+		this._oldValues = newValues;
 	},
 }, {
 
@@ -770,14 +791,14 @@ var Commands = Base.extend({
 		// Menü-Command: Arrange etc.
 		$(".command-clone").on("click tap", function(event) {
 			Base.each(project.selectedItems, function(item) {
-				var newItem = item.clone();
-				$("#page-paper").trigger("itemDeselected", item); 
-				setTimeout( function() { $("#page-paper").trigger("itemSelected", newItem); }, 5); 
-				item.selected = false;
+				item.joinDirty = false;
+				$("#page-paper").trigger("itemDeselected", { item: item, join: false }); // joinDirty may be set by a triggered function
+				setTimeout( function() { $("#page-paper").trigger("itemSelected", { item: newItem, join: true }); }, 5); 
 
-				Do.execute({
-					item: newItem,
-					action: "Clone"
+				var newItem = Do.execute({
+					item: item,
+					action: "Clone",
+					join: item.joinDirty
 				});
 			});
 			if( project.selectedItems.length ) buttonBlink($(this));
@@ -1126,28 +1147,18 @@ var UndoManager = Base.extend({
 			case "Select":
 				var selectSelected = null;
 				this._reverseActions[this._actionPointer] = function() {
-					Base.each(project.selectedItems, function(item) {
-						$("#page-paper").trigger("itemDeselected", item); 
-					});
 					project.deselectAll();
 
-					Base.each(selectSelected, function(item) {
-						item.selected = true;
-						$("#page-paper").trigger("itemSelected", item);  
-					});
+					Base.each(selectSelected, function(item) { item.selected = true; });
 				}
 				this._actions[this._actionPointer] = function() {
 					selectSelected = [];
 					Base.each(project.selectedItems, function(item) { 
 						selectSelected.push(item); 
-						$("#page-paper").trigger("itemDeselected", item);
 					});
 					project.deselectAll();
 
-					if( options.item ) {
-						options.item.selected = true;
-						$("#page-paper").trigger("itemSelected", item); 
-					}
+					if( options.item ) options.item.selected = true; 
 				}
 				break;
 
@@ -1181,17 +1192,25 @@ var UndoManager = Base.extend({
 				break;
 
 			case "Clone":
-				var cloneInsertPos = null;
+				var cloneItem = null,
+					cloneInsertPos = null;
 				this._reverseActions[this._actionPointer] = function() {
-					options.item.remove();
+					cloneItem.remove();
+					options.item.selected = true;
 				}
 
 				this._actions[this._actionPointer] = function() {
-					if( cloneInsertPos === null ) cloneInsertPos = options.item.index;
-					else {
-						project.activeLayer.insertChild(cloneInsertPos, options.item);
-						options.item.selected = true;
+					if( cloneInsertPos === null ) {
+						cloneItem = options.item.clone();
+						cloneInsertPos = cloneItem.index;
+					} else {
+						project.activeLayer.insertChild(cloneInsertPos, cloneItem);
 					}
+
+					cloneItem.selected = true;
+					options.item.selected = false;
+
+					return cloneItem;
 				}
 				break;
 
@@ -1243,6 +1262,30 @@ var UndoManager = Base.extend({
 				this._actions[this._actionPointer] = function() {
 					if( toBackIndex === null ) toBackIndex = options.item.index;
 					options.item.sendToBack();
+				}
+				break;
+
+			case "Colorize":
+				var colorizeItem = null;
+				this._reverseActions[this._actionPointer] = function() {
+					colorizeItem.filter(options.oldValues);
+				}
+
+				this._actions[this._actionPointer] = function() {
+					if( colorizeItem === null ) colorizeItem = options.item;
+					colorizeItem.filter(options.newValues);
+				}
+				break;
+
+			case "ColorizeCommit":
+				var colorizeItem = null,
+					colorizeIndex = null;
+				this._reverseActions[this._actionPointer] = function() {
+					options.item.filter(options.oldValues);
+				}
+
+				this._actions[this._actionPointer] = function() {
+					options.oldValues.rollback = options.item.filter({commit: true});
 				}
 				break;
 		}
@@ -1330,7 +1373,8 @@ var UndoManager = Base.extend({
 
 	undo: function() {
 		if( this._actionPointer > 0 ) {
-			this._reverseActions[--this._actionPointer]();
+			this._actionPointer--;
+			this._reverseActions[this._actionPointer]();
 
 			if( this._reverseActions[this._actionPointer].join ) this.undo();
 		}
@@ -1340,7 +1384,7 @@ var UndoManager = Base.extend({
 		if( this._actionPointer < this._actions.length) {
 			this._actions[this._actionPointer++]();
 
-			if( this._actions[this._actionPointer].join ) this.redo();
+			if( this._actionPointer < this._actions.length && this._actions[this._actionPointer].join ) this.redo();
 		}		
 	},
 });
@@ -1583,7 +1627,9 @@ function onMouseDown(event) {
 
 	if( !hitResult ) {
 		if( baseCropper.getRect().contains(event.point) ) {
-			Base.each(project.selectedItems, function(item) {$("#page-paper").trigger("itemDeselected", item); });
+			setTimeout( function() { 
+				Base.each(project.selectedItems, function(item) {$("#page-paper").trigger("itemDeselected", { item: item, join: false }); });
+			}, 0);
 
 			Do.execute({
 				item: null,
@@ -1600,7 +1646,7 @@ function onMouseDown(event) {
 			item: item,
 			action: "Select"
 		});
-		$("#page-paper").trigger("itemSelected", item);
+		$("#page-paper").trigger("itemSelected", { item: item });
 	}
 
 	switch( hitResult.type ) {
@@ -1745,21 +1791,20 @@ function onMouseUp(event) {
 	}
 
 	if( moveItem === "Not moved" && item.hasBeenSelected ) {
-		$("#page-paper").trigger("itemDeselected", item); 
+		project.deselectAll();
+		$("#page-paper").trigger("itemDeselected", { item: item, join: false }); 
 
 		var next = item;
 		while( next = next.previousSibling ) {
 			if( next.hitTest( event.point ) ) {
-				project.deselectAll();
 				next.selected = true;
-				setTimeout( function() { $("#page-paper").trigger("itemSelected", next); }, 5); 
+				setTimeout( function() { $("#page-paper").trigger("itemSelected", { item: next, join: true }); }, 5); 
 				return;
 			}
 		}
-		if( hitResult = project.hitTest( event.point ) ) {
-			project.deselectAll();
+		if( hitResult = project.hitTest( event.point ) && hitResult && hitResult.item !== item ) {
 			hitResult.item.selected = true;
-			setTimeout( function() { $("#page-paper").trigger("itemSelected", hitResult.item); }, 5); 
+			setTimeout( function() { $("#page-paper").trigger("itemSelected", { item: hitResult.item, join: true }); }, 5); 
 			return;
 		}
 	} else if( moveItem === "Moved" ) {
