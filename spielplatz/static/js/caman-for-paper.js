@@ -29,7 +29,7 @@ with(paper) {
 		Caman(this._canvas, function () {
 
 			for( option in options ) {
-				this[option](options[option]);
+				if( typeof this[option] === "function" ) this[option](options[option]);
 			}
 
 			this.render(function () {

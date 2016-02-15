@@ -373,23 +373,23 @@ var Colorizer = Base.extend({
 	size:  new Size(parseInt($("#colorizerOptions").css("width")), parseInt($("#colorizerOptions").css("height"))),
 	item: null,
 
-	initialize: function(options) {
+	initialize: function(sliders) {
 
 		var currentLayer = project.activeLayer;
 		baseLayer.activate();
 
 		var children = [];
-		for( var i=0 ; i<options.length ; i++ ) {
+		for( var i=0 ; i<sliders.length ; i++ ) {
 			children.push(new Slider({
-				name: window.CPG_Locale.Colorizer[options[i].filter],
-				filter: options[i].filter,
-				startValue: options[i].startValue,
-				bounds: new Rectangle( this.point + new Point(0,options[i].yPos), this.size ),
-				camanValue: options[i].camanValue,
+				name: window.CPG_Locale.Colorizer[sliders[i].filter],
+				filter: sliders[i].filter,
+				startValue: sliders[i].startValue,
+				bounds: new Rectangle( this.point + new Point(0, sliders[i].yPos), this.size ),
+				camanValue: sliders[i].camanValue,
 				parent: this,
 			}));
 
-			this._oldValues[options[i].filter] = options[i].startValue;
+			this._oldValues[sliders[i].filter] = sliders[i].startValue;
 		};
 		this.item = new Group(children);
 
@@ -407,6 +407,15 @@ var Colorizer = Base.extend({
 		$("#page-paper").on("itemDeselected", function(event, options) {
 			self.disable(options.item, options.join);
 		});
+		$("#page-paper").on("undoUpdate redoUpdate", function(event, item) {
+			if( !item || item.className !== "Raster" ) return;
+
+			if( item === self._orgItem ) {
+				self.setValues( item.colorizeValues );
+			} else {
+				self.setValues( item.colorizeValues );
+			} 
+ 		});
 
 		this.enable(project.selectedItems[0]);
 	},
@@ -418,6 +427,8 @@ var Colorizer = Base.extend({
 
 		$("#page-paper").off("itemSelected");
 		$("#page-paper").off("itemDeselected");
+		$("#page-paper").off("undoUpdate");
+		$("#page-paper").off("redoUpdate");
 	},
 
 	enable: function(item, join) {
@@ -438,15 +449,15 @@ var Colorizer = Base.extend({
 
 		if( item.className === "Raster" ) {
 
+			var self = this;
 			this._orgItem = item;
-			this._oldValues = {};
-
+			self._oldValues = {};
+			
 			Base.each(this.item.children, function(slider) {
+				slider.getValue(self._oldValues);
 				slider.resetValue();
 				slider.setSliderFillColor(true);
 			});
-
-			//this.update();
 		}
 	},
 
@@ -486,9 +497,20 @@ var Colorizer = Base.extend({
 
 		this._oldValues = newValues;
 	},
+
+	setValues: function(values) {
+		for( childId in this.item.children ) {
+			var child = this.item.children[childId],
+				filter = child.getFilter();
+
+			if( values[filter] !== undefined ) {
+				child.setValue(values["slider_"+filter]);
+			}
+		}
+	}
 }, {
 
-});
+ });
 
 var Slider = Base.extend({
 	_class: 'Slider',
@@ -558,8 +580,15 @@ var Slider = Base.extend({
 		});
 
 		group.getValue = function(opt) {
-			if( typeof opt === "object" ) opt[options.filter] = options.camanValue(value);
+			if( typeof opt === "object" ) {
+				opt[options.filter] = options.camanValue(value);
+				opt["slider_"+options.filter] = value;
+			}
 			return value;
+		};
+
+		group.getFilter = function() {
+			return options.filter;
 		};
 
 		group.setValue = function(val) {
@@ -599,6 +628,7 @@ var Slider = Base.extend({
 	resetValue: function() { this.group.resetValue(); },
 	setSliderFillColor: function(enable) { this.group.setSliderFillColor(enable); },
 	getValue: function(options) { this.group.getValue(options); },
+	getFilter: function() { this.group.getFilter(); },
 }, {
 
 });
@@ -1268,12 +1298,15 @@ var UndoManager = Base.extend({
 			case "Colorize":
 				var colorizeItem = null;
 				this._reverseActions[this._actionPointer] = function() {
-					colorizeItem.filter(options.oldValues);
+					options.item.filter(options.oldValues);
+					options.item.colorizeValues = options.oldValues;
+					return options.item;
 				}
 
 				this._actions[this._actionPointer] = function() {
-					if( colorizeItem === null ) colorizeItem = options.item;
-					colorizeItem.filter(options.newValues);
+					options.item.filter(options.newValues);
+					options.item.colorizeValues = options.newValues;
+					return options.item;
 				}
 				break;
 
@@ -1282,10 +1315,14 @@ var UndoManager = Base.extend({
 					colorizeIndex = null;
 				this._reverseActions[this._actionPointer] = function() {
 					options.item.filter(options.oldValues);
+					options.item.colorizeValues = options.oldValues;
+					return options.item;
 				}
 
 				this._actions[this._actionPointer] = function() {
 					options.oldValues.rollback = options.item.filter({commit: true});
+					options.item.colorizeValues = {};
+					return options.item;
 				}
 				break;
 		}
@@ -1374,7 +1411,8 @@ var UndoManager = Base.extend({
 	undo: function() {
 		if( this._actionPointer > 0 ) {
 			this._actionPointer--;
-			this._reverseActions[this._actionPointer]();
+			var item = this._reverseActions[this._actionPointer]();
+			$("#page-paper").trigger("undoUpdate", item);
 
 			if( this._reverseActions[this._actionPointer].join ) this.undo();
 		}
@@ -1382,7 +1420,8 @@ var UndoManager = Base.extend({
 
 	redo: function() {
 		if( this._actionPointer < this._actions.length) {
-			this._actions[this._actionPointer++]();
+			var item = this._actions[this._actionPointer++]();
+			$("#page-paper").trigger("redoUpdate", item);
 
 			if( this._actionPointer < this._actions.length && this._actions[this._actionPointer].join ) this.redo();
 		}		
