@@ -18,7 +18,7 @@ var Cropper = Base.extend( {
 	_cursor: null,								// Cursor shape
 	_serializeFields: { },						// Paper.js serialize
 
-	////////////////////////////////////////////////////////////////////7
+	/////////////////////////////////////////////////////////////////////
 	// Method initialize is called at construction time
 	//
 	initialize: function( rect ) {
@@ -46,7 +46,7 @@ var Cropper = Base.extend( {
 		this._rect.onMouseUp = function( event ) { self.onMouseUp( event ); };
 	},
 
-	////////////////////////////////////////////////////////////////////7
+	/////////////////////////////////////////////////////////////////////
 	// Method set sets the cropper rectangle
 	//
 	set: function( x1, y1, x2, y2 ) {
@@ -95,14 +95,14 @@ var Cropper = Base.extend( {
 		}
 	},
 
-	////////////////////////////////////////////////////////////////////7
+	/////////////////////////////////////////////////////////////////////
 	// Method getRect returns cropper rectangle
 	//
 	getRect: function() {
 		return this._areaRect;
 	},
 
-	////////////////////////////////////////////////////////////////////7
+	/////////////////////////////////////////////////////////////////////
 	// Method getInnerRect returns inner rectangle
 	//
 	getInnerRect: function() {
@@ -114,7 +114,7 @@ var Cropper = Base.extend( {
 		return rect;
 	},
 
-	////////////////////////////////////////////////////////////////////7
+	/////////////////////////////////////////////////////////////////////
 	// Method getCursor returns the current cursor
 	//
 	getCursor: function() {
@@ -122,7 +122,7 @@ var Cropper = Base.extend( {
 	}
 }, {
 
-	////////////////////////////////////////////////////////////////////7
+	/////////////////////////////////////////////////////////////////////
 	// Method onMouseDrag changes the size of the cropper rect
 	//
 	onMouseDrag: function( event ) {
@@ -143,7 +143,7 @@ var Cropper = Base.extend( {
 		this.isDragging = true;
 	},
 
-	////////////////////////////////////////////////////////////////////7
+	/////////////////////////////////////////////////////////////////////
 	// Method onMouseMove changes the cursor shape according to mouse position
 	//
 	onMouseMove: function( event ) {
@@ -182,7 +182,7 @@ var Cropper = Base.extend( {
 		this._cursor = "resize";
 	},
 
-	////////////////////////////////////////////////////////////////////7
+	/////////////////////////////////////////////////////////////////////
 	// Method onMouseLeave resets the cursor shape
 	//
 	onMouseLeave: function( event ) {
@@ -190,7 +190,7 @@ var Cropper = Base.extend( {
 		this._cursor = null;
 	},
 
-	////////////////////////////////////////////////////////////////////7
+	/////////////////////////////////////////////////////////////////////
 	// Method onMouseUp
 	//
 	onMouseUp: function( event ) {
@@ -215,7 +215,7 @@ var Viewer = Base.extend( {
 	_cropper: null,				// Connected cropper
 	_context: null,				// Canvas context
 	_ctx: null,					// Canvas ctx
-	_colorPickerImageData : null, 
+	_colorPickerImageData: null,// ImageData cache for color picker
 	_colorPickerValue: 0,		// Value of color picker slider
 	_colorPickerOffset: null,	// Css offset of color picker slider
 	_colorPickerMode: "green",	// Initial Color picker mode
@@ -225,7 +225,7 @@ var Viewer = Base.extend( {
 	_serializeFields: {
 	},
 
-	////////////////////////////////////////////////////////////////////7
+	/////////////////////////////////////////////////////////////////////
 	// Method initialized is called at object creation
 	//
 	initialize: function( cropper ) {
@@ -272,12 +272,11 @@ var Viewer = Base.extend( {
 										event.pageY;
 		} );
 
-		this.setColorPickerMode(this._colorPickerMode);
+		this.setColorPickerMode( this._colorPickerMode );
 
 		// Catch color picker drag in mouse move event
 		$( window ).mousemove( function( event ) {
 			if ( self._colorPickerIsDragging ) {
-				console.log("Dragging ..."+event.pageY);
 				var top = event.pageY + self._colorPickerYOffset;
 				if ( top < self._colorPickerTopOffset ) {
 					top = self._colorPickerTopOffset;
@@ -419,70 +418,86 @@ var Viewer = Base.extend( {
 	//
 	drawColorPicker: function( pos ) {
 		var mode = this._colorPickerMode,
-			mod  = mode === "red"? 0 : mode === "green"? 1 : 2;
+			mod  = mode === "red" ? 0 : mode === "green" ? 1 : 2;
 
 		// Fill color picker square
 		this._colorPickerValue = pos || this._colorPickerValue;
-		for( var i=0 ; i<256 ; i++ ) {
+		for ( var i = 0 ; i < 256 ; i++ ) {
 			var row = i * 256 * 4;
-			for( var j=0 ; j<256 ; j++ ) {
+			for ( var j = 0 ; j < 256 ; j++ ) {
 				var col = row + j * 4;
 				this._colorPickerImageData.data[ col + mod ] = this._colorPickerValue;
-			}	
+			}
 		}
-		this._zoomctx.putImageData( this._colorPickerImageData, 0, 0 );			
+		this._zoomctx.putImageData( this._colorPickerImageData, 0, 0 );
 	},
+
+	/////////////////////////////////////////////////////////////////////
+	// Method getColorPickerMode
+	//
 	getColorPickerMode: function() {
 		return this._colorPickerMode;
 	},
+
+	/////////////////////////////////////////////////////////////////////
+	// Method setColorPickerMode prepared the imageData field with all fixed colors
+	//
 	setColorPickerMode: function( mode ) {
 		this._colorPickerMode = mode;
 
 		var	imageData = this._colorPickerImageData = this._zoomctx.createImageData( 256, 256 ),
-			fix1 = mode === "red"? 1 : mode === "green"? 0 : 0,
-			fix2 = mode === "red"? 2 : mode === "green"? 2 : 1;
+			fix1 = mode === "red" ? 1 : mode === "green" ? 0 : 0,
+			fix2 = mode === "red" ? 2 : mode === "green" ? 2 : 1;
 
-		for( var i=0 ; i<256 ; i++ ) {
+		for ( var i = 0 ; i < 256 ; i++ ) {
 			var row = i * 256 * 4;
-			for( var j=0 ; j<256 ; j++ ) {
+			for ( var j = 0 ; j < 256 ; j++ ) {
 				var col = row + j * 4;
 				imageData.data[ col + fix1 ] = i;
 				imageData.data[ col + fix2 ] = j;
 				imageData.data[ col + 3 ] = 255;
-			}	
+			}
 		}
 
 		this.drawColorPicker();
-	},
+	}
 } );
 
-var Colorizer = Base.extend({
-	_class: 'Colorizer',
-	_enabled: true,
-	_oldValues: {},
+////////////////////////////////////////////////////////////////////////
+// Colorizer provides means to change colors of rasters with caman library
+//
+var Colorizer = Base.extend( {
+	_class: "Colorizer",
+	_enabled: true,			// Flag if the colorizer is enabled
+	_oldValues: {},			// Saving the last slider values
 	_serializeFields: {
-
 	},
-	
-	point: new Point( parseInt($( "#colorizerOptions" ).css( "left" )), parseInt($( "#colorizerOptions" ).css( "top" ))),
-	size:  new Size( parseInt($( "#colorizerOptions" ).css( "width" )), parseInt($( "#colorizerOptions" ).css( "height" ))),
-	item: null,
 
+	point: new Point( parseInt( $( "#colorizerOptions" ).css( "left" ) ),
+						parseInt( $( "#colorizerOptions" ).css( "top" ) ) ),		// Position
+	size: new Size( parseInt( $( "#colorizerOptions" ).css( "width" ) ),
+						parseInt( $( "#colorizerOptions" ).css( "height" ) ) ),	// Size
+	item: null,				// The raster that is to be modified
+
+	/////////////////////////////////////////////////////////////////////
+	// Method initialized is called at object creation
+	//
 	initialize: function( sliders ) {
 
 		var currentLayer = project.activeLayer;
 		baseLayer.activate();
 
+		// Initialize all sliders
 		var children = [];
-		for( var i=0 ; i<sliders.length ; i++ ) {
-			children.push( new Slider({
-				name: window.CPG_Locale.Colorizer[ sliders[ i ].filter ],
+		for ( var i = 0 ; i < sliders.length ; i++ ) {
+			children.push( new Slider( {
+				name: window.CPGLocale.Colorizer[ sliders[ i ].filter ],
 				filter: sliders[ i ].filter,
 				startValue: sliders[ i ].startValue,
 				bounds: new Rectangle( this.point + new Point( 0, sliders[ i ].yPos ), this.size ),
 				camanValue: sliders[ i ].camanValue,
-				parent: this,
-			} ));
+				parent: this
+			} ) );
 
 			this._oldValues[ sliders[ i ].filter ] = sliders[ i ].startValue;
 		};
@@ -491,17 +506,25 @@ var Colorizer = Base.extend({
 		currentLayer.activate();
 	},
 
+	/////////////////////////////////////////////////////////////////////
+	// Method show shows the colorizer
+	//
 	show: function() {
 		var self = this;
 
 		this.item.visible = true;
 
+		// Enable the colorizers if an item is selected
 		$( "#page-paper" ).on( "itemSelected", function( event, options ) {
 			self.enable( options.item, options.join );
 		} );
+
+		// Disable the colorizers if an item is deselected
 		$( "#page-paper" ).on( "itemDeselected", function( event, options ) {
 			self.disable( options.item, options.join );
 		} );
+
+		// React on undo and redo events
 		$( "#page-paper" ).on( "undoUpdate redoUpdate", function( event, item ) {
 			if ( !item || item.className !== "Raster" ) return;
 
@@ -510,44 +533,54 @@ var Colorizer = Base.extend({
 			} else {
 				self.setValues( item.colorizeValues );
 			}
- 		} );
+		} );
 
-		this.enable( project.selectedItems[ 0 ]);
+		this.enable( project.selectedItems[ 0 ] );
 	},
 
+	/////////////////////////////////////////////////////////////////////
+	// Method hide hides the colorizer
+	//
 	hide: function() {
 		this.item.visible = false;
 
 		this.disable( this.item );
 
+		// Off all event listeners
 		$( "#page-paper" ).off( "itemSelected" );
 		$( "#page-paper" ).off( "itemDeselected" );
 		$( "#page-paper" ).off( "undoUpdate" );
 		$( "#page-paper" ).off( "redoUpdate" );
 	},
 
+	/////////////////////////////////////////////////////////////////////
+	// Method enable activates the colorizes (sliders movable)
+	//
 	enable: function( item, join ) {
 		this._enabled = true;
 
+		// Nothing to do if the item is the same as before
 		if ( item === this._orgItem ) return;
 
+		// Commit former item if is still active
 		if ( this._orgItem ) {
-			Do.execute({
+			Do.execute( {
 				item: this._orgItem,
 				oldValues: this._oldValues,
 				action: "ColorizeCommit",
 				join: join
 			} );
-			item.joinDirty = true;
+			item.joinDirty = true;	// Connect this for undo to the next action (if there is any)
 			this._orgItem = null;
 		}
 
+		// Set slider values
 		if ( item.className === "Raster" ) {
 
 			var self = this;
 			this._orgItem = item;
 			self._oldValues = {};
-			
+
 			Base.each( this.item.children, function( slider ) {
 				slider.getValue( self._oldValues );
 				slider.resetValue();
@@ -556,11 +589,15 @@ var Colorizer = Base.extend({
 		}
 	},
 
+	/////////////////////////////////////////////////////////////////////
+	// Method disable deactivates sliders
+	//
 	disable: function( item, join ) {
 		if ( !this._orgItem ) return;
 
+		// Commit the color changes
 		this._enabled = false;
-		Do.execute({
+		Do.execute( {
 			item: this._orgItem,
 			oldValues: this._oldValues,
 			action: "ColorizeCommit",
@@ -569,85 +606,108 @@ var Colorizer = Base.extend({
 		this._orgItem = null;
 		item.joinDirty = true;
 
+		// Show disabled sliders
 		Base.each( this.item.children, function( slider ) {
 			slider.resetValue();
 			slider.setSliderFillColor( false );
 		} );
 	},
 
+	/////////////////////////////////////////////////////////////////////
+	// Method enabled
+	//
 	enabled: function() {
 		return this._enabled;
 	},
 
+	/////////////////////////////////////////////////////////////////////
+	// Method update changes color values
+	//
 	update: function() {
 
 		var newValues = {};
+
+		// Move the sliders to new positions
 		Base.each( this.item.children, function( slider ) { slider.getValue( newValues ); } );
-		Do.execute({
+
+		// Change color
+		Do.execute( {
 			item: this._orgItem,
 			action: "Colorize",
 			oldValues: this._oldValues,
-			newValues: newValues,
+			newValues: newValues
 		} );
 
 		this._oldValues = newValues;
 	},
 
+	/////////////////////////////////////////////////////////////////////
+	// Method setValues set the values of the individual sliders
+	//
 	setValues: function( values ) {
-		for( childId in this.item.children ) {
+		for ( childId in this.item.children ) {
 			var child = this.item.children[ childId ],
 				filter = child.getFilter();
 
-			if ( values[ filter ] !== undefined ) {
-				child.setValue( values["slider_"+filter ]);
+			if ( values && values[ filter ] !== undefined ) {
+				child.setValue( values[ "slider_" + filter ] );
 			}
 		}
 	}
 }, {
 
- } );
+} );
 
-var Slider = Base.extend({
-	_class: 'Slider',
+var Slider = Base.extend( {
+	_class: "Slider",
 	_serializeFields: {
 
 	},
 
-	group: null,
-	
+	group: null,	// Group that the slider belongs to
+
+	/////////////////////////////////////////////////////////////////////
+	// Method initialized is called at object creation
+	//
 	initialize: function( options ) {
 		var self = this,
-			point = this._point = options.bounds.topLeft,
-			size = this._size = options.bounds.size,
-			value = this._startValue = options.startValue,
-			sWidth = 20,
-			sHeight = 40,
-			margin = 20,
-			width = size.width - margin*2,
-			enabled = false;
+			point = this._point = options.bounds.topLeft,	// Top left corner of slider track
+			size = this._size = options.bounds.size,		// Size of slider track
+			value = this._startValue = options.startValue,	// Start value (0 ... 1)
+			sWidth = 20,									// Slider width
+			sHeight = 40,									// Slider height
+			margin = 20,									// Margin around slider track
+			width = size.width - margin * 2,				// Total width
+			enabled = false;								// Activated?
 
-		var group = this.group = new Group([
-			new PointText({
+		////////////////////////////////////////////////////////////
+		// Create the slider using paperjs items
+		//
+		var group = this.group = new Group( [
+			new PointText( {
 				point: new Point( point.x + margin, point.y ),
 			    content: options.name,
-			    fillColor: 'black',
-			    fontFamily: 'Courier New',
-			    fontSize: 16,
+			    fillColor: "black",
+			    fontFamily: "Exo",
+			    fontSize: 16
 			} ),
-			new Path.Rectangle({
+			new Path.Rectangle( {
 				point: new Point( point.x + margin, point.y + 15 ),
 				size: new Size( width, sWidth ),
 				radius: 10,
-				strokeColor: "black",
+				strokeColor: "black"
 			} ),
-			new Path.Rectangle({
-				point: new Point( point.x + margin + value*width, point.y + 5 ),
+			new Path.Rectangle( {
+				point: new Point( point.x + margin + value * width, point.y + 5 ),
 				size: new Size( sWidth, sHeight ),
 				radius: 10,
 				strokeColor: "black"
-			} ),
-		]);
+			} )
+		] );
 
+		////////////////////////////////////////////////////////////
+		// Setting up the slider, with events
+		//
 		var slider = group.children[ 2 ],
 			xOffset = null;
 
@@ -662,22 +722,24 @@ var Slider = Base.extend({
 
 			slider.position.x = event.point.x - xOffset;
 			if ( slider.position.x < point.x + margin ) slider.position.x = point.x + margin;
-			if ( slider.position.x >= point.x + margin + width ) slider.position.x = point.x + margin + width;
+			if ( slider.position.x >= point.x + margin + width ) {
+				slider.position.x = point.x + margin + width;
+			}
 
-			value = ( slider.position.x - point.x - margin )/width;
+			value = ( slider.position.x - point.x - margin ) / width;
 		};
 
 		$( "#page-paper" ).on( "mouseup", function( event ) {
 			if ( !options.parent.enabled() || xOffset === null ) return;
-				
-			options.parent.update();		
-			xOffset = null;	
+
+			options.parent.update();
+			xOffset = null;
 		} );
 
 		group.getValue = function( opt ) {
 			if ( typeof opt === "object" ) {
 				opt[ options.filter ] = options.camanValue( value );
-				opt["slider_"+options.filter ] = value;
+				opt[ "slider_" + options.filter ] = value;
 			}
 			return value;
 		};
@@ -700,19 +762,19 @@ var Slider = Base.extend({
 			if ( enable ) {
 				slider.fillColor = {
 			        gradient: {
-			            stops: ['yellow', 'red', 'blue']
+			            stops: [ "yellow", "red", "blue" ]
 			        },
 			        origin: [ 0, point.y + 5 ],
-			        destination: [ 0, point.y + sHeight ],
-			    }
+			        destination: [ 0, point.y + sHeight ]
+			    };
 			} else {
 				slider.fillColor = {
 			        gradient: {
-			            stops: ['grey', 'blue', 'gray']
+			            stops: [ "grey", "blue", "gray" ]
 			        },
 			        origin: [ 0, point.y + 5 ],
-			        destination: [ 0, point.y + sHeight ],
-			    }
+			        destination: [ 0, point.y + sHeight ]
+			    };
 			}
 		};
 		group.setSliderFillColor( false );
@@ -720,10 +782,12 @@ var Slider = Base.extend({
 		return group;
 	},
 
+	//////////////////////////////////////////////////////////7777
+	// Interface functions
 	resetValue: function() { this.group.resetValue(); },
 	setSliderFillColor: function( enable ) { this.group.setSliderFillColor( enable ); },
 	getValue: function( options ) { this.group.getValue( options ); },
-	getFilter: function() { this.group.getFilter(); },
+	getFilter: function() { this.group.getFilter(); }
 }, {
 
 } );
@@ -731,37 +795,42 @@ var Slider = Base.extend({
 ////////////////////////////////////////////////////////////////////////
 // Commands shows and handles all commands
 //
-var COMMAND_POINTER 	= 1,
-	COMMAND_PEN 		= 2,
-	COMMAND_RUBBER 		= 3,
-	COMMAND_DELETE 		= 4,
-	COMMAND_MAGIC 		= 5,
+var COMMAND_POINTER		= 1,
+	COMMAND_PEN			= 2,
+	COMMAND_RUBBER		= 3,
+	COMMAND_DELETE		= 4,
+	COMMAND_MAGIC		= 5,
 	COMMAND_PIPETTE		= 6,
-	COMMAND_COLORIZER 	= 7,
-	COMMAND_RESIZE 		= 11,
-	COMMAND_ROTATE 		= 12;
-	BRUSH_RADII			= [ 0.5,1,2,4,8,12,18,24 ];
+	COMMAND_COLORIZER	= 7,
+	COMMAND_RESIZE		= 11,
+	COMMAND_ROTATE		= 12;
+	BRUSH_RADII			= [ 0.5, 1, 2, 4, 8, 12, 18, 24 ];
 
-var Commands = Base.extend({
-	_class: 'Commands',
-	_currentColor: new Color( "red" ),
-	_cursorShapes: {},
+var Commands = Base.extend( {
+	_class: "Commands",
+	_currentColor: new Color( "red" ),	// Start color is red
+	_cursorShapes: {},					// Cursor shapes for command mode
 
 	_serializeFields: {
-
 	},
-	_initFns: {},
-	_exitFns: [],
+	_initFns: {},						// Initialization functions for single commands
+	_exitFns: [],						// Deinitialization functions
 
-	commandMode: "pointer",
-	resizeMode: COMMAND_RESIZE,
-	cursorMode: null,
-	cursorShape: "default",
-	rubberCircle: null,
+	commandMode: "pointer",				// Current command mode (default: normal pointer)
+	resizeMode: COMMAND_RESIZE,			// Current resize/rotate mode
+	cursorMode: null,					// Current cursor mode
+	cursorShape: "default",				// Current cursor shape
+	rubberCircle: null,					// Current rubber circle
 
+	///////////////////////////////////////////////////////////////////
+	// Method initialize ist the setup for all command, the command window
+	//
 	initialize: function() {
 		var self = this;
 
+		///////////////////////////////////////////////////
+		// Method buttonBlink shows short activation of a button
+		//
 		var buttonBlink = function( button ) {
 			button.addClass( "active btn-success" );
 			setTimeout( function() {
@@ -769,67 +838,94 @@ var Commands = Base.extend({
 			}, 200 );
 		};
 
-		var initClickCommand = function( type, mode, cursorShape, initFn, exitFn ) {
+		///////////////////////////////////////////////////
+		// Method initModeCmd sets up a command that stays active
+		//
+		var initModeCmd = function( type, mode, cursorShape, initFn, exitFn ) {
+
+			// Set cursor shape and init/exit functions for a command
 			self._cursorShapes[ type ] = cursorShape;
 			self._initFns[ type ] = initFn;
 			if ( exitFn ) self._exitFns.push( exitFn );
 
-			return $( ".command-"+type ).on( "click tap", function( event ) {
+			// Activate command on click
+			return $( ".command-" + type ).on( "click tap", function( event ) {
 				self.activateCommand( type, event );
 			} );
 		};
 
+		///////////////////////////////////////////////////
+		// Method getRubberBrush prepares the current brush to remove background
+		//
 		var getRubberBrush = function( index ) {
-			var currentLayer = project.activeLayer,
-				layer = new Layer(),
-				radius = BRUSH_RADII[ index ],
-				maxRadius = BRUSH_RADII[ BRUSH_RADII.length-1 ];
 
-			new Path.Rectangle({
-				point: [ 0,0 ],
-				size: [ maxRadius*2, maxRadius*2 ],
-				strokeColor: new Color( 0,0,0,0 )
+			// Variables
+			var currentLayer = project.activeLayer,					// Save current layer
+				layer = new Layer(),								// Create a new one
+				radius = BRUSH_RADII[ index ],						// Get radius
+				maxRadius = BRUSH_RADII[ BRUSH_RADII.length - 1 ];	// Get biggest radius
+
+			// Create rectangle that surrounds brush (always same size)
+			new Path.Rectangle( {
+				point: [ 0, 0 ],
+				size: [ maxRadius * 2, maxRadius * 2 ],
+				strokeColor: new Color( 0, 0, 0, 0 )
 			} );
-			var path = new Path.Circle({
-			    center: [ maxRadius,maxRadius ],
+
+			// Create brush circle
+			var path = new Path.Circle( {
+			    center: [ maxRadius, maxRadius ],
 			    radius: radius,
-			    strokeColor: new Color( 0,0,0,0 )
+			    strokeColor: new Color( 0, 0, 0, 0 )
 			} );
+
+			// Set gradient for brush
 			path.fillColor = {
 				gradient: {
-	        		stops: [['black', 0.70 ], [ new Color( 0,0,0,0 ), 1 ]],
-	        		radial: true
-    			},
+					stops: [ [ "black", 0.70 ], [ new Color( 0, 0, 0, 0 ), 1 ] ],
+					radial: true
+				},
 			    origin: path.position,
-	    		destination: path.bounds.rightCenter
+				destination: path.bounds.rightCenter
 			};
 
+			// Get raster image from circle brush
 			var image = layer.rasterize( undefined, false ).toDataURL();
+
 			layer.remove();
 			project.activeLayer = currentLayer;
 			return image;
 		};
 
-		$( ".colorfield" ).css( "background-color", this._currentColor.toCSS());
+		///////////////////////////////////////////////////////////////////
+		// Set color of current color field
+		//
+		$( ".colorfield" ).css( "background-color", this._currentColor.toCSS() );
 
-		//////////////////////////////////////////////////////////////////7
-		// Menü-Command: Undo / Redo
+		///////////////////////////////////////////////////////////////////
+		// Menü-Command: Undo
+		//
 		$( ".command-undo" ).on( "click tap", function( event ) {
 			Do.undo();
 		} );
 
+		///////////////////////////////////////////////////////////////////
+		// Menü-Command: Redo
+		//
 		$( ".command-redo" ).on( "click tap", function( event ) {
 			Do.redo();
 		} );
 
-		//////////////////////////////////////////////////////////////////7
+		///////////////////////////////////////////////////////////////////
 		// Menü-Command: Download
+		//
 		$( ".command-download" ).on( "click tap", function( event ) {
 			showModalImageFiles( function( res, image ) {
 				if ( res === "open" ) {
 
+					// Create a new raster of the returned image
 					var r1 = new Raster( image ),
-						r2 = Do.execute({
+						r2 = Do.execute( {
 							item: r1,
 							action: "Import"
 						} );
@@ -843,30 +939,38 @@ var Commands = Base.extend({
 		} );
 
 		///////////////////////////////////////////////////////////////////
-		// Menü-Command: Click-Commands
+		// Menü-Command: Mode-Commands
+		//
+		///////////////////////////////////////////////
+		// Method rubberInit prepares cursor circle and the brush image data
+		//
 		var rubberInit = function( event ) {
 			var currentLayer = project.activeLayer,
 				brush = $( "#rubberOptions .cursorShape .commandBox.selected" ),
-				radius = BRUSH_RADII[ brush.attr( "index" )],
+				radius = BRUSH_RADII[ brush.attr( "index" ) ],
 				offset = $( "#paperCanvasWrapper" ).offset();
-			
+
 			baseLayer.activate();
 
-			self.rubberCircle = new Path.Circle({
+			// Circle that follows the mouse movement
+			self.rubberCircle = new Path.Circle( {
 			    center: [ event.pageX - offset.left, event.pageY - offset.top ],
 			    radius: radius,
-			    strokeColor: new Color( 0,0,0,255 ),
+			    strokeColor: new Color( 0, 0, 0, 255 ),
 			    dashArray: [ 1 ]
 			} );
 
-			var raster = new Raster($( "img", brush )[ 0 ]);
-			
+			// Take the raster from the DOM and take it as brush
+			var raster = new Raster( $( "img", brush )[ 0 ] );
 			self.rubberBrush = raster.getImageData();
 			raster.remove();
 
 			currentLayer.activate();
 		};
 
+		///////////////////////////////////////////////
+		// Method rubberExit
+		//
 		var rubberExit = function( event ) {
 			if ( self.rubberCircle ) {
 				self.rubberCircle.remove();
@@ -874,93 +978,139 @@ var Commands = Base.extend({
 			}
 		};
 
+		///////////////////////////////////////////////
+		// Method colorizer1Init inits the first Colorizer
+		//
 		var colorizer1Init = function( event ) {
 			baseColorizer1.show();
 		};
 
+		///////////////////////////////////////////////
+		// Method colorizer1Exit exits the first Colorizer
+		//
 		var colorizer1Exit = function( event ) {
 			baseColorizer1.hide();
 		};
 
+		///////////////////////////////////////////////
+		// Method colorizer2Init inits the second Colorizer
+		//
 		var colorizer2Init = function( event ) {
 			baseColorizer2.show();
 		};
 
+		///////////////////////////////////////////////
+		// Method colorizer2Exit exits the second Colorizer
+		//
 		var colorizer2Exit = function( event ) {
 			baseColorizer2.hide();
 		};
 
-		initClickCommand( "pointer"	   , COMMAND_POINTER	 , "default" ).addClass( "active btn-primary" );
-		initClickCommand( "pen"    	   , COMMAND_PEN		 , "url('static/img/cur_pen.png') 0 22, auto" );
-		initClickCommand( "rubber" 	   , COMMAND_RUBBER	 , "url('static/img/cur_rubber.png') 4 4, auto", rubberInit, rubberExit );
-		initClickCommand( "delete" 	   , COMMAND_DELETE	 , "url('static/img/cur_delete.png') 8 8, auto" );
-		initClickCommand( "magic"  	   , COMMAND_MAGIC	 , "url('static/img/cur_magic.png') 11 11, auto" );
-		initClickCommand( "pipette"	   , COMMAND_PIPETTE	 , "url('static/img/cur_pipette.png') 1 21, auto" );
-		initClickCommand( "colorizer-1" , COMMAND_COLORIZER, "default", colorizer1Init, colorizer1Exit );
-		initClickCommand( "colorizer-2" , COMMAND_COLORIZER, "default", colorizer2Init, colorizer2Exit );
+		///////////////////////////////////////////////
+		// Init all mode commands
+		//
+		initModeCmd( "pointer", COMMAND_POINTER, "default" ).addClass( "active btn-primary" );
+		initModeCmd( "pen", COMMAND_PEN, "url( 'static/img/cur_pen.png' ) 0 22, auto" );
+		initModeCmd( "rubber", COMMAND_RUBBER, "url( 'static/img/cur_rubber.png' ) 4 4, auto",
+							rubberInit, rubberExit );
+		initModeCmd( "delete", COMMAND_DELETE, "url( 'static/img/cur_delete.png' ) 8 8, auto" );
+		initModeCmd( "magic", COMMAND_MAGIC, "url( 'static/img/cur_magic.png' ) 11 11, auto" );
+		initModeCmd( "pipette", COMMAND_PIPETTE, "url( 'static/img/cur_pipette.png' ) 1 21, auto" );
+		initModeCmd( "colorizer-1", COMMAND_COLORIZER, "default", colorizer1Init, colorizer1Exit );
+		initModeCmd( "colorizer-2", COMMAND_COLORIZER, "default", colorizer2Init, colorizer2Exit );
 
-		//////////////////////////////////////////////////////////////////7
-		// Menü-Command: Rotate
+		///////////////////////////////////////////////////////////////////
+		// Command: Rotate
+		//
 		$( ".command-rotate" ).on( "click tap", function( event ) {
 			$( ".command-resize" ).removeClass( "active btn-primary" );
 			$( ".command-rotate" ).addClass( "active btn-primary" );
 			self.resizeMode = COMMAND_ROTATE;
 		} );
-		// Menü-Command: Resize
+
+		///////////////////////////////////////////////////////////////////
+		// Command: Resize
+		//
 		$( ".command-resize" ).on( "click tap", function( event ) {
 			$( ".command-rotate" ).removeClass( "active btn-primary" );
 			$( ".command-resize" ).addClass( "active btn-primary" );
 			self.resizeMode = COMMAND_RESIZE;
 		} ).addClass( "active btn-primary" );
-		//////////////////////////////////////////////////////////////////7
-		// Menü-Command: Arrange etc.
+
+		///////////////////////////////////////////////////////////////////
+		// Menü-Command: Clone
+		//
 		$( ".command-clone" ).on( "click tap", function( event ) {
 			Base.each( project.selectedItems, function( item ) {
-				item.joinDirty = false;
-				$( "#page-paper" ).trigger( "itemDeselected", { item: item, join: false } ); // joinDirty may be set by a triggered function
-				setTimeout( function() { $( "#page-paper" ).trigger( "itemSelected", { item: newItem, join: true } ); }, 5 );
+				item.joinDirty = false; // Attribute joinDirty may be set by a triggered function
+				$( "#page-paper" ).trigger( "itemDeselected", { item: item, join: false } );
 
-				var newItem = Do.execute({
+				// Clone item
+				var newItem = Do.execute( {
 					item: item,
 					action: "Clone",
 					join: item.joinDirty
 				} );
+
+				setTimeout( function() {
+					$( "#page-paper" ).trigger( "itemSelected", { item: newItem, join: true } );
+				}, 5 );
 			} );
-			if ( project.selectedItems.length ) buttonBlink($( this ));
+
+			if ( project.selectedItems.length ) buttonBlink( $( this ) );
 		} );
+
+		///////////////////////////////////////////////////////////////////
+		// Menü-Command: Rasterize
+		//
 		$( ".command-rasterize" ).on( "click tap", function( event ) {
 			Base.each( project.selectedItems, function( item ) {
 				if ( item.className === "Raster" ) {
 					item = self.cropRaster( item );
-					item.selected = true;					
+					item.selected = true;
 				}
 			} );
-			if ( project.selectedItems.length ) buttonBlink($( this ));
+			if ( project.selectedItems.length ) buttonBlink( $( this ) );
 		} );
+
+		///////////////////////////////////////////////////////////////////
+		// Menü-Command: Send to back
+		//
 		$( ".command-arrange-down" ).on( "click tap", function( event ) {
 			Base.each( project.selectedItems, function( item ) {
-				Do.execute({
+				Do.execute( {
 					item: item,
 					action: "SendToBack"
 				} );
 			} );
-			if ( project.selectedItems.length ) buttonBlink($( this ));
+			if ( project.selectedItems.length ) buttonBlink( $( this ) );
 		} );
+
+		//////////////////////////////////////////////////////////////////
+		// Menü-Command: Bring to Front
+		//
 		$( ".command-arrange-up" ).on( "click tap", function( event ) {
 			Base.each( project.selectedItems, function( item ) {
-				Do.execute({
+				Do.execute( {
 					item: item,
 					action: "BringToFront"
-				} ); 
+				} );
 			} );
-			if ( project.selectedItems.length ) buttonBlink($( this ));
+			if ( project.selectedItems.length ) buttonBlink( $( this ) );
 		} );
 
 		/////////////////////////////////////////////////////////////////////////////////
-		// Command options
+		// Prepare command options
+		//
+		////////////////////////////////////////////////////////////////////
 		// Delete Options
-		$( ".commandOptions" ).fadeOut();
-		var cursorShapeBoxes = $( "#rubberOptions .cursorShape .commandBox" ).on( "tap click", function( event ) {
+		//
+		$( ".commandOptions" ).fadeOut(); // Don't show at start
+
+		var cursorShapeBoxes = $( "#rubberOptions .cursorShape .commandBox" );
+
+		// Click events for delete boxes
+		cursorShapeBoxes.on( "tap click", function( event ) {
 			cursorShapeBoxes.removeClass( "selected" );
 			$( this ).addClass( "selected" );
 
@@ -969,61 +1119,87 @@ var Commands = Base.extend({
 				rubberInit( event );
 			}
 		} );
+
+		// Draw delete brush boxes
 		$.each( cursorShapeBoxes, function( index, box ) {
-			$( box ).html( "<img src='"+getRubberBrush( index )+"' />" );
+			$( box ).html( "<img src='" + getRubberBrush( index ) + "' />" );
 		} );
 	},
 
+	/////////////////////////////////////////////////////////////////////////////////
+	// Method activateCommand is called after user click on a command
+	//
 	activateCommand: function( type, event ) {
-		// deactivate all commands
-		$( ".click-command" ).removeClass( "active btn-primary" );
+
+		// Deactivate all commands
+		$( ".mode-command" ).removeClass( "active btn-primary" );
 		$( ".commandOptions" ).fadeOut();
 		Base.each( this._exitFns, function( fn ) { fn( event ); } );
 
-		// activate selected command
-		$( ".command-"+type ).addClass( "active btn-primary" );
-		$( "#"+type+"Options" ).fadeIn();			
+		// Activate selected command
+		$( ".command-" + type ).addClass( "active btn-primary" );
+		$( "#" + type + "Options" ).fadeIn();
 
 		this.commandMode = type;
 		this.cursorShape = this._cursorShapes[ type ];
 		document.body.style.cursor = this.cursorShape;
 		if ( this._initFns[ type ] ) this._initFns[ type ]( event );
-	},
-},{
+	}
+}, {
+
+	/////////////////////////////////////////////////////////////////////////////////
+	// Method cropRaster normalizes and crops a raster
+	//
 	cropRaster: function( raster ) {
-		// check bounds
 		var oldRaster = raster;
 
+		// Normalize raster
 		raster = raster.rasterize();
+		var ctx = raster.getContext(),	// Canvas context
+			b = raster.size;			// Raster bounds
 
-		var ctx = raster.getContext(),
-			b = raster.size;
-
+		// Check if there is pixel data in provided image data
 		var findPixel = function( data ) {
-			for( var i=0 ; i<data.length ; i+=4 ) if ( data[ i + 3 ] !== 0 ) return true;
+			for ( var i = 0 ; i < data.length ; i += 4 ) if ( data[ i + 3 ] !== 0 ) return true;
 			return false;
 		};
 
-		for( var i=0, found=false ; i<b.width && !found ; i++ ) found = findPixel( ctx.getImageData( i, 0, 1, b.height ).data );
+		// Check verticals lines from left side
+		for ( var i = 0, found = false ; i < b.width && !found ; i++ ) {
+			found = findPixel( ctx.getImageData( i, 0, 1, b.height ).data );
+		}
 		if ( !found ) {
+
+			// Remove raster if it is completly empty
 			raster.remove();
 			return;
 		}
-		var x = i-1;
+		var x = i - 1;	// New left side
 
-		for( var i=0, found=false ; i<b.height && !found ; i++ ) found = findPixel( ctx.getImageData( x, i, b.width-x, 1 ).data );
-		var y = i-1;
+		// Check horizontal lines from top to bottom
+		for ( var i = 0, found = false ; i < b.height && !found ; i++ ) {
+			found = findPixel( ctx.getImageData( x, i, b.width - x, 1 ).data );
+		}
+		var y = i - 1;
 
-		for( var i=b.width-1, found=false ; i>=x && !found ; i-- ) found = findPixel( ctx.getImageData( i, y, 1, b.height-y ).data );
+		// Check verticals lines from right side
+		for ( var i = b.width - 1, found = false ; i >= x && !found ; i-- ) {
+			found = findPixel( ctx.getImageData( i, y, 1, b.height - y ).data );
+		}
 		var width = i + 2 - x;
 
-		for( var i=b.height-1, found=false ; i>=y && !found ; i-- ) found = findPixel( ctx.getImageData( x, i, width, 1 ).data );
+		// Check horizontal lines from bottom to top
+		for ( var i = b.height - 1, found = false ; i >= y && !found ; i-- ) {
+			found = findPixel( ctx.getImageData( x, i, width, 1 ).data );
+		}
 		var height = i + 2 - y;
 
-		var newRaster = raster.getSubRaster( new Rectangle( x, y, width, height ));
+		// Create a new raster and remove the old
+		var newRaster = raster.getSubRaster( new Rectangle( x, y, width, height ) );
 		raster.remove();
 
-		Do.execute({
+		// Send old and new raster to undo manager
+		Do.execute( {
 			item: newRaster,
 			action: "Crop",
 			oldRaster: oldRaster
@@ -1032,63 +1208,74 @@ var Commands = Base.extend({
 		return newRaster;
 	},
 
+	/////////////////////////////////////////////////////////////////////////////////
+	// Method getColor
+	//
 	getColor: function() {
 		return this._currentColor;
 	},
 
+	/////////////////////////////////////////////////////////////////////////////////
+	// Method setColor
+	//
 	setColor: function( color ) {
 		this._currentColor = color;
-		$( ".colorfield" ).css( "background-color", color.toCSS())		
+		$( ".colorfield" ).css( "background-color", color.toCSS() );
 	},
 
+	/////////////////////////////////////////////////////////////////////////////////
+	// Method drawRubberData erases image data at mouse position
+	//
 	drawRubberData: function( item, point ) {
 		var w = this.rubberBrush.width,
 			h = this.rubberBrush.height,
-			p = point - item.position + item.size/2 - new Point( w/2, h/2 ),
+			p = point - item.position + item.size / 2 - new Point( w / 2, h / 2 ),
 			brush = this.rubberBrush.data,
 			mask = this.rubberMask.data,
-			buffer = item.getImageData( new Rectangle( p.x, p.y, w, h ));
+			buffer = item.getImageData( new Rectangle( p.x, p.y, w, h ) );
 
-		// workaround for Chrome ( part 1 )
+		// Workaround for Chrome ( part 1 )
 		if ( buffer.width !== w ) {
 			var bufCorr = w - buffer.width;
-			buffer = item.getImageData( new Rectangle( p.x, p.y, w + bufCorr, h ));
+			buffer = item.getImageData( new Rectangle( p.x, p.y, w + bufCorr, h ) );
 		}
 
-		for( var i=0 ; i<h ; i++ ) {
+		// Erase image data using a mask to remember where we already erased
+		for ( var i = 0 ; i < h ; i++ ) {
 			var y = p.y + i;
 			if ( y >= 0 && y < item.size.height ) {
-				for( var j=0 ; j<w ; j++ ) {
+				for ( var j = 0 ; j < w ; j++ ) {
 					var x = p.x + j,
-						mp = y*item.size.width*4 + x*4 + 3,
-						bp = i*h*4 + j*4 + 3;
+						mp = y * item.size.width * 4 + x * 4 + 3,
+						bp = i * h * 4 + j * 4 + 3;
 
 					if ( x >= 0 && x < item.size.width && mask[ mp ] < brush[ bp ] ) {
 						buffer.data[ bp ] -= brush[ bp ] - mask[ mp ];
 						mask[ mp ] = brush[ bp ];
 					}
-				}				
+				}
 			}
 		}
 
-		// workaround for Chrome ( part 2 )
+		// Workaround for Chrome ( part 2 )
 		if ( bufCorr && p.x < 0 ) p.x += bufCorr;
 		item.setImageData( buffer, p );
 
+		// Set the dirty rect for undo manager
 		var r1 = new Rectangle( p.x, p.y, buffer.width, buffer.height ),
 			r2 = baseCommands.rubberDirtyRect || r1;
-
 		if ( r1.left   < r2.left )   r2.left   = r1.left;
 		if ( r1.right  > r2.right )  r2.right  = r1.right;
 		if ( r1.top    < r2.top )    r2.top    = r1.top;
 		if ( r1.bottom > r2.bottom ) r2.bottom = r1.bottom;
-
-		baseCommands.rubberDirtyRect = r2.intersect( new Rectangle( 0,0, item.width, item.height ));
+		baseCommands.rubberDirtyRect =
+			r2.intersect( new Rectangle( 0, 0, item.width, item.height ) );
 	}
 } );
 
-///////////////////////////////////////////
-// showModalCodeFiles shows the code file info and modification dialog
+////////////////////////////////////////////////////////////////////////
+// showModalImageFiles shows the image files for import
+//
 var showModalImageFiles = function( cb ) {
 	var modal = $( "#commands-image-import-modal" );
 
@@ -1100,7 +1287,7 @@ var showModalImageFiles = function( cb ) {
     //$( ".content .playgroundfiles" ).hide();
     $( ".content .worldfiles", modal ).hide();
 
-    for( var i=0 ; i<afl.length ; i++ ) {
+    for ( var i = 0 ; i < afl.length ; i++ ) {
 
     	var groupName = afl[ i ].groupName;
     	if ( groupName === "Spielplatz" ) target = ownFiles;
@@ -1108,7 +1295,7 @@ var showModalImageFiles = function( cb ) {
 
     	target.append( "<div class='title'>"+groupName+"</div>" );
 
-    	for( var j=0 ; j<afl[ i ].images.length ; j++ ) {
+    	for ( var j = 0 ; j < afl[ i ].images.length ; j++ ) {
 	        target.append(
 	            "<div class='file file"+i+" pull-left' filename='"+afl[ i ].images[ j ]+"'>"+
 	            "   <div class='top'>"+
@@ -1134,47 +1321,47 @@ var showModalImageFiles = function( cb ) {
     $( ".file", modal ).on( "click", function( e ) {
         var lcb = cb;
         cb = null;
-        modal.modal('hide');
+        modal.modal( "hide" );
 
 		baseCommands.activateCommand( "pointer" );
 
-        if ( lcb ) lcb( "open", "modal-image-"+$( this ).attr( "filename" ));    	
+        if ( lcb ) lcb( "open", "modal-image-"+$( this ).attr( "filename" ) );
     } );
 
     $( ".modal-cancel", modal ).off( "click" ).one( "click", function( e ) {
-        modal.modal('hide');
+        modal.modal( "hide" );
     } );
 
-    modal.one('hidden.bs.modal', function( e ) {
+    modal.one( 'hidden.bs.modal', function( e ) {
         if ( cb ) cb( "cancel" );
     } );
 
-    modal.one('shown.bs.modal', function( e ) {
+    modal.one( 'shown.bs.modal', function( e ) {
 	    // Vertically center images after they are shown
 	    $( ".file img", modal ).each( function( index ) {
 		    var img = $( this ),
 		    	w = img.width(),
 		    	h = img.height(),
-		    	maxW = parseInt( img.attr( "max-width" )),
-		    	maxH = parseInt( img.attr( "max-height" ));
+		    	maxW = parseInt( img.attr( "max-width" ) ),
+		    	maxH = parseInt( img.attr( "max-height" ) );
 
-		    img.animate({
-		    	marginLeft: (( maxW-w )/2 )+"px",
-		    	marginTop:  (( maxH-h )/2 )+"px",
+		    img.animate( {
+		    	marginLeft: ( ( maxW-w )/2 )+"px",
+		    	marginTop:  ( ( maxH-h )/2 )+"px",
 		    	zoom: 1,
 		    	opacity: 1,
 		    }, 300 );
 	    } );
     } );
 
-    modal.modal('show');
+    modal.modal( "show" );
 };
 
 ////////////////////////////////////////////////////////
 // Global functions
-var UndoManager = Base.extend({
-	_class: 'UndoManager',
-	
+var UndoManager = Base.extend( {
+	_class: "UndoManager",
+
 	_actions: [],
 	_reverseActions: [],
 	_actionPointer: 0,
@@ -1216,7 +1403,7 @@ var UndoManager = Base.extend({
 				this._actions[ this._actionPointer ] = function() {
 					if ( !pathObject ) {
 						pathObject = new Path[ options.action ]( options.param1, options.param2, options.param3, options.param4 );
-						pathObject.strokeColor = new Color( 0,0,0,1 );
+						pathObject.strokeColor = new Color( 0, 0, 0, 1 );
 						return pathObject;
 					} else {
 						project.activeLayer.addChild( pathObject );
@@ -1232,12 +1419,12 @@ var UndoManager = Base.extend({
 					importRaster.remove();
 				}
 				this._actions[ this._actionPointer ] = function() {
-				   
+
 				    if ( importIndex === null ) importRaster = options.item.clone();
 					else project.activeLayer.insertChild( importIndex, importRaster );
 
 					project.deselectAll();
-					importRaster.position = new Point( 300,300 );
+					importRaster.position = new Point( 300, 300 );
 					importRaster.selected = true;
 
 					return importRaster;
@@ -1267,7 +1454,7 @@ var UndoManager = Base.extend({
 
 					options.oldRaster.remove();
 				}
-				break;			
+				break;
 
 			case "Select":
 				var selectSelected = null;
@@ -1415,7 +1602,7 @@ var UndoManager = Base.extend({
 				}
 
 				this._actions[ this._actionPointer ] = function() {
-					options.oldValues.rollback = options.item.filter({commit: true} );
+					options.oldValues.rollback = options.item.filter( {commit: true} );
 					options.item.colorizeValues = {};
 					return options.item;
 				}
@@ -1437,7 +1624,7 @@ var UndoManager = Base.extend({
 		if ( obj.getClassName() !== "Raster" ) return;
 
 		this._transactionObject = obj;
-		this._transactionData = obj.getSubRaster( new Point( 0,0 ), obj.size );
+		this._transactionData = obj.getSubRaster( new Point( 0, 0 ), obj.size );
 		this._transactionData.remove();
 	},
 
@@ -1471,7 +1658,7 @@ var UndoManager = Base.extend({
 		if ( obj.getClassName() !== "Raster" ) return;
 
 		this._transactionObject = obj;
-		this._transactionData = obj.getSubRaster( new Point( 0,0 ), obj.size );
+		this._transactionData = obj.getSubRaster( new Point( 0, 0 ), obj.size );
 		this._transactionData.remove();
 	},
 
@@ -1519,7 +1706,7 @@ var UndoManager = Base.extend({
 			$( "#page-paper" ).trigger( "redoUpdate", item );
 
 			if ( this._actionPointer < this._actions.length && this._actions[ this._actionPointer ].join ) this.redo();
-		}		
+		}
 	},
 } );
 
@@ -1537,14 +1724,14 @@ if ( sessionStorage.paperProject ) {
 	var baseLayer = project.layers[ project.layers.length-1 ],
 		cropperBounds = baseLayer.children[ 0 ].children[ 1 ].bounds;
 
-	baseLayer.removeChildren();	
+	baseLayer.removeChildren();
 	baseLayer.activate();
-	
+
 	cropperBounds.point -= CropperTopLeft;
 	var baseCropper = new Cropper( cropperBounds );
 	var baseViewer = new Viewer( baseCropper );
 	var baseCommands = new Commands( baseCropper );
-	var baseColorizer1 = new Colorizer([{
+	var baseColorizer1 = new Colorizer( [{
 		filter: "brightness",
 		yPos: 30,
 		startValue: 0.5,
@@ -1558,24 +1745,24 @@ if ( sessionStorage.paperProject ) {
 		filter: "hue",
 		yPos: 170,
 		startValue: 0.0,
-		camanValue: function( value ) { return value*100; },
-	}]);
-	var baseColorizer2 = new Colorizer([{
+		camanValue: function( value ) { return value * 100; },
+	}] );
+	var baseColorizer2 = new Colorizer( [{
 		filter: "sharpen",
 		yPos: 30,
 		startValue: 0.0,
-		camanValue: function( value ) { return value*100; },
+		camanValue: function( value ) { return value * 100; },
 	},{
 		filter: "stackBlur",
 		yPos: 100,
 		startValue: 0.0,
-		camanValue: function( value ) { return value*100; },
+		camanValue: function( value ) { return value * 100; },
 	},{
 		filter: "sepia",
 		yPos: 170,
 		startValue: 0.0,
-		camanValue: function( value ) { return value*100; },
-	}]);
+		camanValue: function( value ) { return value * 100; },
+	}] );
 
 	baseColorizer1.hide();
 	baseColorizer2.hide();
@@ -1586,7 +1773,7 @@ if ( sessionStorage.paperProject ) {
 	var baseCropper = new Cropper();
 	var baseViewer = new Viewer( baseCropper );
 	var baseCommands = new Commands( baseCropper );
-	var baseColorizer1 = new Colorizer([{
+	var baseColorizer1 = new Colorizer( [{
 		filter: "brightness",
 		yPos: 30,
 		startValue: 0.5,
@@ -1600,70 +1787,70 @@ if ( sessionStorage.paperProject ) {
 		filter: "hue",
 		yPos: 170,
 		startValue: 0.0,
-		camanValue: function( value ) { return value*100; },
+		camanValue: function( value ) { return value * 100; },
 	},{
 		filter: "contrast",
 		yPos: 240,
 		startValue: 0.5,
 		camanValue: function( value ) { return ( value-0.5 )*200; },
-	}]);
-	var baseColorizer2 = new Colorizer([{
+	}] );
+	var baseColorizer2 = new Colorizer( [{
 		filter: "sharpen",
 		yPos: 30,
 		startValue: 0.0,
-		camanValue: function( value ) { return value*100; },
+		camanValue: function( value ) { return value * 100; },
 	},{
 		filter: "stackBlur",
 		yPos: 100,
 		startValue: 0.0,
-		camanValue: function( value ) { return value*100; },
+		camanValue: function( value ) { return value * 100; },
 	},{
 		filter: "sepia",
 		yPos: 170,
 		startValue: 0.0,
-		camanValue: function( value ) { return value*100; },
-	}]);
+		camanValue: function( value ) { return value * 100; },
+	}] );
 	baseColorizer1.hide();
 	baseColorizer2.hide();
 
 	var activeLayer = new Layer();
 /*
-	// Action 1	
-	var tmp = new Raster('fred');
+	// Action 1
+	var tmp = new Raster( "fred" );
 	raster = tmp.clone();
 	tmp.remove();
-	raster.position = new Point( 300,300 );
+	raster.position = new Point( 300, 300 );
 	raster.scale( 1.0 );
 	raster.rotate( 0 );
 	raster.selected = false;
 
 	Do.startTransaction( raster );
-	for( var i=80 ; i < 100 ; i++ ) for( var j=80 ; j < 100 ; j++ )
-		raster.setPixel( i,j,new Color( 1,1,0.5 ));
-	Do.commit( new Rectangle( 80, 80, 20, 20 ));
+	for ( var i = 80 ; i < 100 ; i++ ) for ( var j = 80 ; j < 100 ; j++ )
+		raster.setPixel( i, j, new Color( 1, 1, 0.5 ) );
+	Do.commit( new Rectangle( 80, 80, 20, 20 ) );
 
 	Do.startTransaction( raster );
-	for( var i=100 ; i < 190 ; i++ ) for( var j=10 ; j < 100 ; j++ )
-		raster.setPixel( i,j,new Color( 1,0,0.5 ));
-	Do.commit( new Rectangle( 100, 10, 90, 90 ));
+	for ( var i = 100 ; i < 190 ; i++ ) for ( var j = 10 ; j < 100 ; j++ )
+		raster.setPixel( i, j, new Color( 1, 0, 0.5 ) );
+	Do.commit( new Rectangle( 100, 10, 90, 90 ) );
 
 	Do.startTransaction( raster );
-	for( var i=30 ; i < 120 ; i++ ) for( var j=0 ; j < 90 ; j++ )
-		raster.setPixel( i,j,new Color( 0,0,0.5 ));
-	Do.commit( new Rectangle( 30, 0, 90, 90 ));
+	for ( var i = 30 ; i < 120 ; i++ ) for ( var j = 0 ; j < 90 ; j++ )
+		raster.setPixel( i, j, new Color( 0, 0, 0.5 ) );
+	Do.commit( new Rectangle( 30, 0, 90, 90 ) );
 
 	Do.startTransaction( raster );
-	for( var i=70 ; i < 90 ; i++ ) for( var j=40 ; j < 60 ; j++ )
-		raster.setPixel( i,j,new Color( 0,1,1,0 ));
-	Do.commit( new Rectangle( 30, 0, 90, 90 ));
+	for ( var i = 70 ; i < 90 ; i++ ) for ( var j = 40 ; j < 60 ; j++ )
+		raster.setPixel( i, j, new Color( 0, 1, 1, 0 ) );
+	Do.commit( new Rectangle( 30, 0, 90, 90 ) );
 
-	var circle1 = Do.execute( "Path", "Circle", new Point( 250,150 ), 30 )
-	circle1.strokeColor = new Color( 0,0,0,1 );
-	var circle2 = Do.execute( "Path", "Circle", new Point( 350,150 ), 30 )
-	circle2.strokeColor = new Color( 0,0,0,1 );
+	var circle1 = Do.execute( "Path", "Circle", new Point( 250, 150 ), 30 )
+	circle1.strokeColor = new Color( 0, 0, 0, 1 );
+	var circle2 = Do.execute( "Path", "Circle", new Point( 350, 150 ), 30 )
+	circle2.strokeColor = new Color( 0, 0, 0, 1 );
 
-	Do.execute( circle2, "strokeColor", new Color( 0,1,0,1 ) );
-	Do.execute( circle2, "strokeColor", 'red' );
+	Do.execute( circle2, "strokeColor", new Color( 0, 1, 0, 1 ) );
+	Do.execute( circle2, "strokeColor", "red" );
 	Do.execute( circle2, "strokeWidth", 5 );
 
 	//Do.undo();
@@ -1693,23 +1880,23 @@ function onMouseMove( event ) {
 	} );
 
 	// No hit, nothing to do
-	if (!hitResult ) {
+	if ( !hitResult ) {
 		if ( baseCommands.cursorMode ) {
 			document.body.style.cursor = baseCommands.cursorShape;
 			baseCommands.cursorMode = null;
-		}	
+		}
 		return;
 	}
 
 	if ( hitResult.type === "bounds" ) {
 		var c = baseCommands.resizeMode === COMMAND_ROTATE? "cur_rotate.png" : "cur_resize.png";
 
-		document.body.style.cursor = "url('static/img/"+c+"') 11 11, auto";
+		document.body.style.cursor = "url( 'static/img/"+c+"' ) 11 11, auto";
 		baseCommands.cursorMode = "bounds";
 
 		console.log( "Cursor command: "+c );
 	} else {
-		document.body.style.cursor = baseCommands.cursorShape;		
+		document.body.style.cursor = baseCommands.cursorShape;
 	}
 };
 
@@ -1734,12 +1921,12 @@ function onMouseDown( event ) {
 			data = ctx.getImageData( event.point.x, event.point.y, 1, 1 ).data,
 			color = new Color( data[ 0 ]/255, data[ 1 ]/255, data[ 2 ]/255, data[ 3 ]/255 );
 
-		Do.execute({
+		Do.execute( {
 			action: "Pipette",
 			color: color
 		} );
 		return;
-	} else {	
+	} else {
 		// check if selected item was hit
 		var hitResult = project.activeLayer.hitTest( event.point, {
 			selected: true,
@@ -1765,7 +1952,7 @@ function onMouseDown( event ) {
 				Base.each( project.selectedItems, function( item ) {$( "#page-paper" ).trigger( "itemDeselected", { item: item, join: false } ); } );
 			}, 0 );
 
-			Do.execute({
+			Do.execute( {
 				item: null,
 				action: "Select"
 			} );
@@ -1776,7 +1963,7 @@ function onMouseDown( event ) {
 	item = hitResult.item;
 	item.hasBeenSelected = item.selected;
 	if ( !item.hasBeenSelected ) {
-		Do.execute({
+		Do.execute( {
 			item: item,
 			action: "Select"
 		} );
@@ -1788,7 +1975,7 @@ function onMouseDown( event ) {
 	case "bounds":
 		var position = hitResult.item.position,
 			point = hitResult.point;
-		
+
 		startRotation = Math.atan2( event.point.y - position.y, event.point.x - position.x ) * 180 / Math.PI;
 		grabPoint = {
 			bounds: 	   hitResult.item.bounds,
@@ -1837,13 +2024,13 @@ function onMouseDown( event ) {
 		case "pen":
 			break;
 		case "delete":
-			Do.execute({
+			Do.execute( {
 				item: item,
 				action: "Delete",
 				join: item.hasBeenSelected? false : true
 			} );
 			if ( project.activeLayer.isEmpty() ) {
-				$( ".command-pointer" ).trigger( "click" );	
+				$( ".command-pointer" ).trigger( "click" );
 			}
 			break;
 		}
@@ -1862,10 +2049,10 @@ function onMouseDrag( event ) {
 	}
 
 	if ( grabPoint ) {
-		function getSpPoint( A,B,C ){
-		    var x1=A.x, y1=A.y, x2=B.x, y2=B.y, x3=C.x, y3=C.y;
-		    var px = x2-x1, py = y2-y1, dAB = px*px + py*py;
-		    var u = (( x3 - x1 ) * px + ( y3 - y1 ) * py ) / dAB;
+		function getSpPoint( A, B, C ){
+		    var x1 = A.x, y1 = A.y, x2 = B.x, y2 = B.y, x3 = C.x, y3 = C.y;
+		    var px = x2-x1, py = y2-y1, dAB = px * px + py * py;
+		    var u = ( ( x3 - x1 ) * px + ( y3 - y1 ) * py ) / dAB;
 		    var x = x1 + u * px, y = y1 + u * py;
 		    return {x:x, y:y}; //this is D
 		}
@@ -1874,10 +2061,10 @@ function onMouseDrag( event ) {
 		switch ( baseCommands.resizeMode ) {
 		case COMMAND_RESIZE:
 			var gp = grabPoint,
-				point = new Point( getSpPoint( gp.point, gp.oppPoint, event.point )),
+				point = new Point( getSpPoint( gp.point, gp.oppPoint, event.point ) ),
 				zoom = gp.oppPoint.getDistance( point ) / gp.oppPoint.getDistance( gp.point ),
-				hor = gp.name.search(/topCenter|bottomCenter/) !== -1 && !gp.item.rotation? 1 : zoom,
-				ver = gp.name.search(/leftCenter|rightCenter/) !== -1 && !gp.item.rotation? 1 : zoom;
+				hor = gp.name.search( /topCenter|bottomCenter/ ) !== -1 && !gp.item.rotation? 1 : zoom,
+				ver = gp.name.search( /leftCenter|rightCenter/ ) !== -1 && !gp.item.rotation? 1 : zoom;
 
 			console.log( hor+" : "+ver );
 			gp.item.scale( hor, ver, gp.oppPoint );
@@ -1887,7 +2074,7 @@ function onMouseDrag( event ) {
 			var rotation = Math.atan2( y - b.center.y, x - b.center.x ) * 180 / Math.PI - grabPoint.rotation;
 
 			grabPoint.item.rotate( rotation );
-			grabPoint.rotation += rotation;			
+			grabPoint.rotation += rotation;
 			break;
 		}
 	} else if ( segment ) {
@@ -1908,13 +2095,13 @@ function onMouseUp( event ) {
 	if ( grabPoint ) {
 
 		if ( baseCommands.resizeMode === COMMAND_RESIZE ) {
-			Do.execute({
+			Do.execute( {
 				item: grabPoint.item,
 				action: "Resize",
 				bounds: grabPoint.bounds,
 			} );
 		} else if ( baseCommands.resizeMode === COMMAND_ROTATE ) {
-			Do.execute({
+			Do.execute( {
 				item: grabPoint.item,
 				action: "Rotate",
 				rotation: grabPoint.rotation - startRotation
@@ -1942,7 +2129,7 @@ function onMouseUp( event ) {
 			return;
 		}
 	} else if ( moveItem === "Moved" ) {
-		Do.execute({
+		Do.execute( {
 			item: item,
 			action: "Move",
 			newPosition: item.position,
