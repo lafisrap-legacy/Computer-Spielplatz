@@ -103,6 +103,13 @@ var Cropper = Base.extend( {
 	},
 
 	/////////////////////////////////////////////////////////////////////
+	// Method getRect returns cropper rectangle
+	//
+	getMaxSize: function() {
+		return this._maxSize;
+	},
+
+	/////////////////////////////////////////////////////////////////////
 	// Method getInnerRect returns inner rectangle
 	//
 	getInnerRect: function() {
@@ -147,8 +154,9 @@ var Cropper = Base.extend( {
 	// Method onMouseMove changes the cursor shape according to mouse position
 	//
 	onMouseMove: function( event ) {
-		if ( baseViewer ) baseViewer.onMouseMove( event );
+		//if ( baseViewer ) baseViewer.onMouseMove( event );
 
+		console.log("Cropper onMouseMove");
 		if ( this.isDragging ) return;
 
 		var rect = this._rect.bounds,
@@ -925,7 +933,17 @@ var Commands = Base.extend( {
 
 					// Create a new raster of the returned image
 					var r1 = new Raster( image ),
-						r2 = Do.execute( {
+						size = r1.size,
+						maxSize = baseCropper.getMaxSize(),
+						scaleX, scaleY;
+
+					// Crop size to max if larger
+					scaleX = size.width > maxSize.width ? maxSize.width / size.width : 1;
+					scaleY = size.height > maxSize.height ? maxSize.height / size.height : 1;
+					r1.scale( Math.min( scaleX, scaleY ) );
+					r1 = scaleX < 1 || scaleY < 1 ? self.cropRaster( r1 ) : r1;
+
+					var	r2 = Do.execute( {
 							item: r1,
 							action: "Import"
 						} );
@@ -1280,43 +1298,34 @@ var showModalImageFiles = function( cb ) {
 	var modal = $( "#commands-image-import-modal" );
 
     var afl = window.AllImages,
-        ownFiles = $( "<div id='modal-imagefiles' class='files ownfiles'>" ),
-        playgroundFiles = $( "<div id='modal-imagefiles' class='files playgroundfiles'>" );
-
-    $( ".content .ownfiles", modal ).hide();
-    //$( ".content .playgroundfiles" ).hide();
-    $( ".content .worldfiles", modal ).hide();
+        imageGroups = $( "<div id='modal-imagefiles' class='files'>" );
 
     for ( var i = 0 ; i < afl.length ; i++ ) {
 
     	var groupName = afl[ i ].groupName;
-    	if ( groupName === "Spielplatz" ) target = ownFiles;
-    	else target = playgroundFiles;
 
-    	target.append( "<div class='title'>"+groupName+"</div>" );
+    	imageGroups.append( "<div class='title'>"+groupName+"</div>" );
 
     	for ( var j = 0 ; j < afl[ i ].images.length ; j++ ) {
-	        target.append(
-	            "<div class='file file"+i+" pull-left' filename='"+afl[ i ].images[ j ]+"'>"+
-	            "   <div class='top'>"+
-	            "   </div>"+
-	            "   <div class='middle'>"+
-	            "       <img id='modal-image-"+afl[ i ].images[ j ]+"' src='static/userdata/"+window.UserNameForImages+"/images/"+groupName+"/"+( afl[ i ].images[ j ]+".png'" )+" max-width='100' max-height='100'>"+
-	            "   </div>"+
-	            "   <div class='bottom'>"+
-	            "       <span class='filename text-center'>"+afl[ i ].images[ j ]+"</span>"+
-	            "   </div>"+
+	        imageGroups.append(
+	            "<div class='file file" + i + " pull-left' filename='" + afl[ i ].images[ j ] + "'>" +
+	            "   <div class='top'>" +
+	            "   </div>" +
+	            "   <div class='middle'>" +
+	            "       <img id='modal-image-" + afl[ i ].images[ j ] + "' src='static/userdata/" + window.UserNameForImages + "/images/" + groupName + "/" + ( afl[ i ].images[ j ] + ".png'" ) + " max-width='100' max-height='100'>" +
+	            "   </div>" +
+	            "   <div class='bottom'>" +
+	            "       <span class='filename text-center'>" + afl[ i ].images[ j ] + "</span>" +
+	            "   </div>" +
 	            "</div>"
 	        );
     	}
     }
 
-    $( ".content .ownfiles" ).append( ownFiles );
-    $( ".content .playgroundfiles" ).append( playgroundFiles );
-    $( ".content .worldfiles" ).append();
+    $( ".content" ).append( imageGroups );
 
     // Correct font size of filenames
-    $( ".modal-body", modal ).html( target );
+    $( ".modal-body", modal ).prepend( imageGroups );
 
     $( ".file", modal ).on( "click", function( e ) {
         var lcb = cb;
@@ -1325,7 +1334,7 @@ var showModalImageFiles = function( cb ) {
 
 		baseCommands.activateCommand( "pointer" );
 
-        if ( lcb ) lcb( "open", "modal-image-"+$( this ).attr( "filename" ) );
+        if ( lcb ) lcb( "open", "modal-image-" + $( this ).attr( "filename" ) );
     } );
 
     $( ".modal-cancel", modal ).off( "click" ).one( "click", function( e ) {
@@ -1346,16 +1355,36 @@ var showModalImageFiles = function( cb ) {
 		    	maxH = parseInt( img.attr( "max-height" ) );
 
 		    img.animate( {
-		    	marginLeft: ( ( maxW-w )/2 )+"px",
-		    	marginTop:  ( ( maxH-h )/2 )+"px",
+		    	marginLeft: ( ( maxW - w )/2 ) + "px",
+		    	marginTop:  ( ( maxH - h )/2 ) + "px",
 		    	zoom: 1,
 		    	opacity: 1,
 		    }, 300 );
 	    } );
     } );
 
-    modal.modal( "show" );
+	$("#image-import-local").on('change', function() {
+		var input = $(this),
+			numFiles = input.get(0).files ? input.get(0).files.length : 1,
+			label = input.val().replace(/\\/g, '/').replace(/.*\//, ''),
+			reader = new FileReader(),
+			lcb = cb;
+        
+        cb = null;
+        modal.modal( "hide" );
+
+		baseCommands.activateCommand( "pointer" );
+    
+	    reader.onload = function ( event ) {
+	        if ( lcb ) lcb( "open", event.target.result );
+	    };
+    
+	    reader.readAsDataURL( document.getElementById("image-import-local").files[0] );    
+	});
+	
+	modal.modal( "show" );
 };
+
 
 ////////////////////////////////////////////////////////
 // Global functions
@@ -1893,16 +1922,16 @@ function onMouseMove( event ) {
 
 		document.body.style.cursor = "url( 'static/img/"+c+"' ) 11 11, auto";
 		baseCommands.cursorMode = "bounds";
-
-		console.log( "Cursor command: "+c );
 	} else {
-		document.body.style.cursor = baseCommands.cursorShape;
+		if( baseCropper.getCursor() !== "resize" ) document.body.style.cursor = baseCommands.cursorShape;
 	}
 };
 
 function onMouseDown( event ) {
 
 	segment = item = moveItem = null;
+
+	if( baseCropper.getCursor() === "resize" ) return; 
 
 	//////////////////////////////////////////////////////////////////////////////
 	// Checking for selected items

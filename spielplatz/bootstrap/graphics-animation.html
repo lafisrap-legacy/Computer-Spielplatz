@@ -27,16 +27,11 @@
             <h4 class="modal-title">{{ .GraphicsCommandsImportTitle }}</h4>
           </div>
           <div class="modal-body">
-            <ul class="pagination">
-              <li><a href="#" class="ownfiles">{{ .GraphicsCommandsImportSource1 }}</a></li>
-              <li><a href="#" class="playgroundfiles">{{ .GraphicsCommandsImportSource2 }}</a></li>
-              <li><a href="#" class="worldfiles">{{ .GraphicsCommandsImportSource3 }}</a></li>
-            </ul>
-            <ul class="content">
-              <div class="ownfiles"></div>
-              <div class="playgroundfiles"></div>
-              <div class="worldfiles"></div>
-            </ul>
+            <div class="clearfix"></div>
+            <div class='title'>{{ .GraphicsCommandsImportLocal1 }}</div>
+            <span class="btn btn-default btn-file">
+              {{ .GraphicsCommandsImportLocal2 }} <input id="image-import-local" type="file">
+            </span>
           </div>
             <div class="clearfix"></div>
           <div class="modal-footer">
@@ -46,7 +41,7 @@
           </div>
         </div><!-- /.modal-content -->
       </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->    
+    </div><!-- /.modal -->
     <div class="login-area">
         {{if not .UserName }}
             <a href="/login/" class="btn btn-info btn-sm pull-right">{{ .LoginLogin }} <span class="glyphicon glyphicon-share-alt"></span></a>
@@ -90,28 +85,28 @@
                 </button>
                 <div class="colorfield">
                 </div>
-                <button type="button" class="command command-pointer click-command btn btn-sm btn-default">
+                <button type="button" class="command command-pointer mode-command btn btn-sm btn-default">
                     <span class="typcn typcn-arrow-left-outline" style="transform: rotate(45deg);"></span>
                 </button>
-                <button type="button" class="command command-pen click-command btn btn-sm btn-default">
+                <button type="button" class="command command-pen mode-command btn btn-sm btn-default">
                     <span class="typcn typcn-pen"></span>
                 </button>
-                <button type="button" class="command command-rubber click-command btn btn-sm btn-default">
+                <button type="button" class="command command-rubber mode-command btn btn-sm btn-default">
                     <span class="typcn typcn-bookmark" style="transform: rotate(-12.5deg);"></span>
                 </button>
-                <button type="button" class="command command-magic click-command btn btn-sm btn-default">
+                <button type="button" class="command command-magic mode-command btn btn-sm btn-default">
                     <span class="typcn typcn-weather-snow"></span>
                 </button>
-                <button type="button" class="command command-pipette click-command btn btn-sm btn-default">
+                <button type="button" class="command command-pipette mode-command btn btn-sm btn-default">
                     <span class="typcn typcn-pipette"></span>
                 </button>
-                <button type="button" class="command command-delete click-command btn btn-sm btn-default">
+                <button type="button" class="command command-delete mode-command btn btn-sm btn-default">
                     <span class="typcn typcn-times"></span>
                 </button>
-                <button type="button" class="command command-colorizer-1 click-command btn btn-sm btn-default">
+                <button type="button" class="command command-colorizer-1 mode-command btn btn-sm btn-default">
                     <span class="typcn typcn-adjust-brightness"></span>
                 </button>
-                <button type="button" class="command command-colorizer-2 click-command btn btn-sm btn-default">
+                <button type="button" class="command command-colorizer-2 mode-command btn btn-sm btn-default">
                     <span class="typcn typcn-adjust-contrast"></span>
                 </button>
                 <hr>
@@ -162,7 +157,7 @@
 (function() {
     window.AllImages = JSON.parse({{ .AllImages }});
     window.UserNameForImages = "{{ .UserNameForImages }}";
-    window.CPG_Locale = {
+    window.CPGLocale = {
         Colorizer: {
             hue: "{{ .GraphicsColorizerHue }}",
             brightness: "{{ .GraphicsColorizerBrightness }}",
