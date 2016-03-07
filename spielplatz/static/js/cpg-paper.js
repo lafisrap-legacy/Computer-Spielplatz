@@ -112,11 +112,13 @@ var Cropper = Base.extend( {
 	/////////////////////////////////////////////////////////////////////
 	// Method getInnerRect returns inner rectangle
 	//
-	getInnerRect: function() {
+	getInnerRect: function(border) {
 		var rect = this._tintedArea.children[ 1 ].bounds.clone();
 
-		rect.topLeft -= this._border;
-		rect.bottomRight += this._border;
+		if( border ) {
+			rect.topLeft -= this._border;
+			rect.bottomRight += this._border;			
+		}
 
 		return rect;
 	},
@@ -128,27 +130,6 @@ var Cropper = Base.extend( {
 		return this._cursor;
 	}
 }, {
-
-	/////////////////////////////////////////////////////////////////////
-	// Method onMouseDrag changes the size of the cropper rect
-	//
-	onMouseDrag: function( event ) {
-
-		if ( baseCommands.cursorMode === "bounds" || moveItem ) return;
-
-		var rect = this._tintedArea.children[ 1 ].bounds,
-			point = event.point - this._topLeft + this._rect.moveOffset,
-			mx = this._rect.moveX,
-			my = this._rect.moveY,
-			x1 = mx === 1 ? point.x : rect.point.x - this._topLeft.x,
-			y1 = my === 1 ? point.y : rect.point.y - this._topLeft.y,
-			x2 = mx === 2 ? point.x : rect.point.x + rect.size.width - this._topLeft.x,
-			y2 = my === 2 ? point.y : rect.point.y + rect.size.height - this._topLeft.y;
-
-		this.set( x1, y1, x2, y2 );
-
-		this.isDragging = true;
-	},
 
 	/////////////////////////////////////////////////////////////////////
 	// Method onMouseMove changes the cursor shape according to mouse position
@@ -191,6 +172,33 @@ var Cropper = Base.extend( {
 	},
 
 	/////////////////////////////////////////////////////////////////////
+	// Method onMouseDrag changes the size of the cropper rect
+	//
+	onMouseDrag: function( event ) {
+
+		if ( baseCommands.cursorMode === "bounds" || moveItem ) return;
+
+		var xy = this.getNewInnerRect( event );
+		this.set( xy.x1, xy.y1, xy.x2, xy.y2 );
+
+		this.isDragging = true;
+	},
+
+	/////////////////////////////////////////////////////////////////////
+	// Method onMouseUp
+	//
+	onMouseUp: function( event ) {
+		if ( baseCommands.cursorMode === "bounds" || moveItem ) return;
+
+		var xy = this.getNewInnerRect( event );
+		this.set( xy.x1, xy.y1, xy.x2, xy.y2 );
+
+		this.isDragging = false;
+
+		document.body.style.cursor = baseCommands.cursorShape;
+	},
+
+	/////////////////////////////////////////////////////////////////////
 	// Method onMouseLeave resets the cursor shape
 	//
 	onMouseLeave: function( event ) {
@@ -199,11 +207,22 @@ var Cropper = Base.extend( {
 	},
 
 	/////////////////////////////////////////////////////////////////////
-	// Method onMouseUp
+	// Method getNewInnerRect returns the new rect positions after a mouse event
 	//
-	onMouseUp: function( event ) {
-		document.body.style.cursor = baseCommands.cursorShape;
+	getNewInnerRect: function( event ) {
+		var rect = this._tintedArea.children[ 1 ].bounds,
+			point = event.point - this._topLeft + this._rect.moveOffset,
+			mx = this._rect.moveX,
+			my = this._rect.moveY;
+
+		return {
+			x1: mx === 1 ? point.x : rect.point.x - this._topLeft.x,
+			y1: my === 1 ? point.y : rect.point.y - this._topLeft.y,
+			x2: mx === 2 ? point.x : rect.point.x + rect.size.width - this._topLeft.x,
+			y2: my === 2 ? point.y : rect.point.y + rect.size.height - this._topLeft.y			
+		};
 	}
+
 } );
 
 ////////////////////////////////////////////////////////////////////////
@@ -392,7 +411,7 @@ var Viewer = Base.extend( {
 		var size = this._viewRect.size;
 
 		// If mouse is in cropper rect ...
-		if ( this._cropper.getInnerRect().contains( event.point ) ) {
+		if ( this._cropper.getInnerRect(true).contains( event.point ) ) {
 			if ( !this._zoomActive ) $( ".colorpicker-scroll" ).fadeOut();
 			this._zoomActive = true;
 
@@ -933,17 +952,7 @@ var Commands = Base.extend( {
 
 					// Create a new raster of the returned image
 					var r1 = new Raster( image ),
-						size = r1.size,
-						maxSize = baseCropper.getMaxSize(),
-						scaleX, scaleY;
-
-					// Crop size to max if larger
-					scaleX = size.width > maxSize.width ? maxSize.width / size.width : 1;
-					scaleY = size.height > maxSize.height ? maxSize.height / size.height : 1;
-					r1.scale( Math.min( scaleX, scaleY ) );
-					r1 = scaleX < 1 || scaleY < 1 ? self.cropRaster( r1 ) : r1;
-
-					var	r2 = Do.execute( {
+						r2 = Do.execute( {
 							item: r1,
 							action: "Import"
 						} );
@@ -1169,12 +1178,22 @@ var Commands = Base.extend( {
 	// Method cropRaster normalizes and crops a raster
 	//
 	cropRaster: function( raster ) {
-		var oldRaster = raster;
 
 		// Normalize raster
-		raster = raster.rasterize();
-		var ctx = raster.getContext(),	// Canvas context
-			b = raster.size;			// Raster bounds
+		var normalizedRaster = raster.rasterize();
+
+		// Crop image to cropper rect
+		var rect1 = baseCropper.getInnerRect();
+			rect2 = normalizedRaster.bounds;
+			rect3 = rect2.intersect( rect1 );
+
+		rect3.point -= rect2.topLeft;
+
+		var croppedRaster = normalizedRaster.getSubRaster( rect3 ),
+			ctx = croppedRaster.getContext(),	// Canvas context
+			b = croppedRaster.size;				// Raster size
+
+		normalizedRaster.remove();
 
 		// Check if there is pixel data in provided image data
 		var findPixel = function( data ) {
@@ -1189,7 +1208,7 @@ var Commands = Base.extend( {
 		if ( !found ) {
 
 			// Remove raster if it is completly empty
-			raster.remove();
+			croppedRaster.remove();
 			return;
 		}
 		var x = i - 1;	// New left side
@@ -1213,14 +1232,14 @@ var Commands = Base.extend( {
 		var height = i + 2 - y;
 
 		// Create a new raster and remove the old
-		var newRaster = raster.getSubRaster( new Rectangle( x, y, width, height ) );
-		raster.remove();
+		var newRaster = croppedRaster.getSubRaster( new Rectangle( x, y, width, height ) );
+		croppedRaster.remove();
 
 		// Send old and new raster to undo manager
 		Do.execute( {
 			item: newRaster,
 			action: "Crop",
-			oldRaster: oldRaster
+			oldRaster: raster
 		} );
 
 		return newRaster;
