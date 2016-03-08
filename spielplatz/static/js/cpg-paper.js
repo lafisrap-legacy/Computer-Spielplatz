@@ -25,25 +25,32 @@ var Cropper = Base.extend( {
 		var self = this,
 			rect = rect || new Rectangle( new Point( 0, 0 ), this._maxSize );
 
-		var point = rect.getPoint();
-		var size = rect.getSize();
 		this._tintedArea = new CompoundPath( {
 			children: [
 				new Path.Rectangle( this._areaRect ),
-				new Path.Rectangle( this._topLeft + point, size )
+				new Path.Rectangle( this._topLeft + rect.point, rect.size )
 			],
 			fillColor: "black",
 			opacity: 0.7
 		} );
-		this._rect = new Path.Rectangle( this._topLeft - this._border / 2 + point,
-										size + this._border );
+		this._rect = new Path.Rectangle( this._topLeft - this._border / 2 + rect.point,
+										rect.size + this._border );
 		this._rect.strokeWidth = this._border;
 		this._rect.strokeColor = "#aaa";
 		this._rect.opacity = 0.5;
+
+		var viewerBackground = new Path.Rectangle( this._areaRect.topRight, new Size( 600 , this._areaRect.height ) );
+		viewerBackground.fillColor = "white";
+
 		this._rect.onMouseMove = function( event ) { self.onMouseMove( event ); };
 		this._rect.onMouseLeave = function( event ) { self.onMouseLeave( event ); };
 		this._rect.onMouseDrag = function( event ) { self.onMouseDrag( event ); };
-		this._rect.onMouseUp = function( event ) { self.onMouseUp( event ); };
+		$( "#page-paper" ).on( "mouseup", function( event ) {
+			var offset = $("#paperCanvasWrapper").offset();
+
+			event.point = new Point( event.pageX - offset.left, event.pageY - offset.top );
+			self.onMouseUp( event );
+		});	
 	},
 
 	/////////////////////////////////////////////////////////////////////
@@ -178,8 +185,9 @@ var Cropper = Base.extend( {
 
 		if ( baseCommands.cursorMode === "bounds" || moveItem ) return;
 
-		var xy = this.getNewInnerRect( event );
-		this.set( xy.x1, xy.y1, xy.x2, xy.y2 );
+		if( !this.isDragging ) this._oldRect = this.getInnerRect();
+
+		this.set( this.getNewInnerRect( event ) );
 
 		this.isDragging = true;
 	},
@@ -188,11 +196,15 @@ var Cropper = Base.extend( {
 	// Method onMouseUp
 	//
 	onMouseUp: function( event ) {
-		if ( baseCommands.cursorMode === "bounds" || moveItem ) return;
+		if ( baseCommands.cursorMode === "bounds" || moveItem || !this.isDragging ) return;
 
-		var xy = this.getNewInnerRect( event );
-		this.set( xy.x1, xy.y1, xy.x2, xy.y2 );
-
+		Do.execute( {
+			item: this,
+			oldRect: this._oldRect,
+			newRect: this.getNewInnerRect( event ),
+			action: "ResizeCropper",
+			join: false
+		} );
 		this.isDragging = false;
 
 		document.body.style.cursor = baseCommands.cursorShape;
@@ -211,16 +223,17 @@ var Cropper = Base.extend( {
 	//
 	getNewInnerRect: function( event ) {
 		var rect = this._tintedArea.children[ 1 ].bounds,
-			point = event.point - this._topLeft + this._rect.moveOffset,
+			point = event.point + this._rect.moveOffset,
 			mx = this._rect.moveX,
-			my = this._rect.moveY;
+			my = this._rect.moveY,
+			newRect = new Rectangle();
 
-		return {
-			x1: mx === 1 ? point.x : rect.point.x - this._topLeft.x,
-			y1: my === 1 ? point.y : rect.point.y - this._topLeft.y,
-			x2: mx === 2 ? point.x : rect.point.x + rect.size.width - this._topLeft.x,
-			y2: my === 2 ? point.y : rect.point.y + rect.size.height - this._topLeft.y			
-		};
+		newRect.left = mx === 1 ? point.x : rect.point.x,
+		newRect.top = my === 1 ? point.y : rect.point.y,
+		newRect.right = mx === 2 ? point.x : rect.point.x + rect.size.width,
+		newRect.bottom = my === 2 ? point.y : rect.point.y + rect.size.height			
+
+		return newRect;
 	}
 
 } );
@@ -1655,6 +1668,22 @@ var UndoManager = Base.extend( {
 					return options.item;
 				}
 				break;
+
+			case "ResizeCropper":
+				this._reverseActions[ this._actionPointer ] = function() {
+
+					options.item.set( options.oldRect );
+
+					return options.item;
+				}
+
+				this._actions[ this._actionPointer ] = function() {
+
+					options.item.set( options.newRect );
+
+					return options.item;
+				}
+			break;
 		}
 
 		this._reverseActions[ this._actionPointer ].join = options.join;

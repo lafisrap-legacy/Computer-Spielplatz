@@ -2,17 +2,10 @@
 Image Editor (Grafik & Animation)
 #################################
 
-- mouseDrag of bounds also when they are over cropper
-- löschen
-- nach vorne / hinten
-- Farbe verändern
-- Pixel löschen (nur horizontal / normalisieren!)
 - Bilder von Festplatte / Internet laden
-
-- undo
-
-Cropper erweitern um Färbungsfunktionen
-Gimp-Aufruf
+- Hintergrund für rechte Seite mit paperjs
+- undo für Cropper
+- Tastatur-Kommandos
 
 Programm veröffentlichen
 ########################
