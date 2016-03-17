@@ -102,6 +102,7 @@ type ErrorController struct {
 // imageGroup stores png images of one group
 type imageGroup struct {
 	GroupName string   `json:"groupName"`
+	Readonly  bool     `json:"readonly"`
 	Images    []string `json:"images"`
 }
 
@@ -422,16 +423,27 @@ func (c *LiveEditorController) Get() {
 	}
 }
 
+//////////////////////////////////////////////////////////
+// getImageInfo retrieves a list of all images for one particular user
 func (c *CPGController) getImageInfo(userName string) string {
 	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::imagefiles")
+	admin := userName == beego.AppConfig.String("userdata::admin")
+	examples := beego.AppConfig.String("userdata::examples")
+
 	imageInfo := make([]imageGroup, 0, 21)
 
+	imageInfo = append(imageInfo, imageGroup{
+		GroupName: "/",
+		Readonly:  false,
+		Images:    []string{},
+	})
 	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		matches := imageRegexp.FindSubmatch([]byte(path))
 		if matches != nil {
 			folder := string(matches[1])
 			file := string(matches[2])
 			found := false
+			readonly := false
 			var i int
 
 			for i = 0; i < len(imageInfo); i++ {
@@ -440,9 +452,14 @@ func (c *CPGController) getImageInfo(userName string) string {
 					break
 				}
 			}
-			if found == false {
+			beego.Trace("XXXXXXXXXXXXXXXXXXXXXX", admin, folder, examples)
+			if !admin && folder == examples {
+				readonly = true
+			}
+			if !found {
 				imageInfo = append(imageInfo, imageGroup{
 					GroupName: folder,
+					Readonly:  readonly,
 					Images:    []string{file},
 				})
 			} else {
@@ -460,6 +477,8 @@ func (c *CPGController) getImageInfo(userName string) string {
 	}
 }
 
+//////////////////////////////////////////////////////////
+// getSoundInfo retrieves a list of all sounds for one particular user
 func (c *CPGController) getSoundInfo(userName string) string {
 	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::soundfiles")
 	soundInfo := make([]soundGroup, 0, 21)
@@ -559,6 +578,15 @@ func (c *GraphicsController) Get() {
 	c.Data["GraphicsCommandsImportLocal2"] = T["graphics_commands_import_local_2"]
 	c.Data["GraphicsCommandsImportOpen"] = T["graphics_commands_import_open"]
 	c.Data["GraphicsCommandsImportCancel"] = T["graphics_commands_import_cancel"]
+	c.Data["GraphicsCommandsExportTitle"] = T["graphics_commands_export_title"]
+	c.Data["GraphicsCommandsExportFilename"] = T["graphics_commands_export_filename"]
+	c.Data["GraphicsCommandsExportExport"] = T["graphics_commands_export_export"]
+	c.Data["GraphicsCommandsExportCancel"] = T["graphics_commands_export_cancel"]
+	c.Data["GraphicsCommandsExportNewFolder"] = T["graphics_commands_export_new_folder"]
+	c.Data["GraphicsCommandsModalYes"] = T["graphics_commands_modal_yes"]
+	c.Data["GraphicsCommandsModalNo"] = T["graphics_commands_modal_no"]
+	c.Data["GraphicsCommandsModalLogin1"] = T["graphics_commands_modal_login1"]
+	c.Data["GraphicsCommandsModalLogin2"] = T["graphics_commands_modal_login2"]
 	c.Data["GraphicsColorizerHue"] = T["graphics_colorizer_hue"]
 	c.Data["GraphicsColorizerBrightness"] = T["graphics_colorizer_brightness"]
 	c.Data["GraphicsColorizerSaturation"] = T["graphics_colorizer_saturation"]

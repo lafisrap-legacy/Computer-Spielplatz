@@ -964,10 +964,10 @@ var Commands = Base.extend( {
 		} );
 
 		///////////////////////////////////////////////////////////////////
-		// Menü-Command: Download
+		// Menü-Command: Import images
 		//
-		$( ".command-download" ).on( "click tap", function( event ) {
-			showModalImageFiles( function( res, image ) {
+		$( ".command-import" ).on( "click tap", function( event ) {
+			importModal( function( res, image ) {
 				if ( res === "open" ) {
 
 					// Create a new raster of the returned image
@@ -984,6 +984,26 @@ var Commands = Base.extend( {
 				}
 			} );
 		} );
+
+		///////////////////////////////////////////////////////////////////
+		// Menü-Command: Export images
+		//
+		$( ".command-export" ).on( "click tap", function( event ) {
+			if ( window.CPGLocale.User === "" ) {
+				showModalYesNo( window.CPGLocale.Modals.login1, window.CPGLocale.Modals.login2, function( yes ) {
+					if( yes ) {
+						window.location.href="/login/graphics-animation";
+					}
+				});
+			} else {			
+				exportModal( function( res, image ) {
+					if ( res === "export" ) {
+
+					}
+				} );
+			}
+		} );
+
 
 		///////////////////////////////////////////////////////////////////
 		// Menü-Command: Mode-Commands
@@ -1331,40 +1351,16 @@ var Commands = Base.extend( {
 } );
 
 ////////////////////////////////////////////////////////////////////////
-// showModalImageFiles shows the image files for import
+// importModal shows the image files for import
 //
-var showModalImageFiles = function( cb ) {
-	var modal = $( "#commands-image-import-modal" );
+var importModal = function( cb ) {
+	var modal = $( "#commands-image-import-modal", modal );
 
     var afl = window.AllImages,
-        imageGroups = $( "<div id='modal-imagefiles' class='files'>" );
-
-    for ( var i = 0 ; i < afl.length ; i++ ) {
-
-    	var groupName = afl[ i ].groupName;
-
-    	imageGroups.append( "<div class='title'>"+groupName+"</div>" );
-
-    	for ( var j = 0 ; j < afl[ i ].images.length ; j++ ) {
-	        imageGroups.append(
-	            "<div class='file file" + i + " pull-left' filename='" + afl[ i ].images[ j ] + "'>" +
-	            "   <div class='top'>" +
-	            "   </div>" +
-	            "   <div class='middle'>" +
-	            "       <img id='modal-image-" + afl[ i ].images[ j ] + "' src='static/userdata/" + window.UserNameForImages + "/images/" + groupName + "/" + ( afl[ i ].images[ j ] + ".png'" ) + " max-width='100' max-height='100'>" +
-	            "   </div>" +
-	            "   <div class='bottom'>" +
-	            "       <span class='filename text-center'>" + afl[ i ].images[ j ] + "</span>" +
-	            "   </div>" +
-	            "</div>"
-	        );
-    	}
-    }
-
-    $( ".content" ).append( imageGroups );
+        imageGroups = getModelFileImages( afl, true );
 
     // Correct font size of filenames
-    $( ".modal-body", modal ).prepend( imageGroups );
+    $( ".modal-body", modal ).html( imageGroups );
 
     $( ".file", modal ).on( "click", function( e ) {
         var lcb = cb;
@@ -1422,6 +1418,151 @@ var showModalImageFiles = function( cb ) {
 	});
 	
 	modal.modal( "show" );
+};
+
+////////////////////////////////////////////////////////////////////////
+// exportModal is the modal dialog for exporting images
+//
+var exportModal = function( cb ) {
+	var modal = $( "#commands-image-export-modal" );
+
+    var afl = window.AllImages,
+        imageGroups = getModelFileImages( afl, false );
+
+    $( ".modal-body", modal ).html( imageGroups );
+
+	$( ".filename-folder", modal ).text( sessionStorage.exportFolder );
+
+	//$( ".title", modal ).on( "click tap", function( e ) {
+	//	sessionStorage.exportFolder = $( this ).text();
+	//	$( ".filename-folder", modal ).text( sessionStorage.exportFolder );
+	//} );
+
+    $( ".file", modal ).on( "click tap", function( e ) {
+    	$( ".filename-input", modal ).val( $( this ).attr("filename") );
+    } );
+
+    $( ".file", modal ).on( "dblclick taphold", function( e ) {
+        var lcb = cb;
+        cb = null;
+        modal.modal( "hide" );
+
+		baseCommands.activateCommand( "pointer" );
+
+        if ( lcb ) lcb( "export", "modal-image-" + $( this ).attr( "filename" ) );
+    } );
+
+    $( ".modal-cancel", modal ).off( "click" ).one( "click", function( e ) {
+        modal.modal( "hide" );
+    } );
+
+    modal.one( 'hidden.bs.modal', function( e ) {
+        if ( cb ) cb( "cancel" );
+    } );
+
+    modal.on( 'shown.bs.collapse', function( e ) {
+	    // Vertically center images after they are shown
+	    $( ".file img", $( this ) ).each( function( index ) {
+		    var img = $( this ),
+		    	w = img.width(),
+		    	h = img.height(),
+		    	maxW = parseInt( img.attr( "max-width" ) ),
+		    	maxH = parseInt( img.attr( "max-height" ) );
+
+		    img.animate( {
+		    	marginLeft: ( ( maxW - w )/2 ) + "px",
+		    	marginTop:  ( ( maxH - h )/2 ) + "px",
+		    	zoom: 1,
+		    	opacity: 1,
+		    }, 300 );
+	    } );
+    } );
+
+	$( "#image-import-local" ).on('change', function() {
+		var input = $(this),
+			numFiles = input.get(0).files ? input.get(0).files.length : 1,
+			label = input.val().replace(/\\/g, '/').replace(/.*\//, ''),
+			reader = new FileReader(),
+			lcb = cb;
+        
+        cb = null;
+        modal.modal( "hide" );
+
+		baseCommands.activateCommand( "pointer" );
+    
+	    reader.onload = function ( event ) {
+	        if ( lcb ) lcb( "open", event.target.result );
+	    };
+    
+	    reader.readAsDataURL( document.getElementById("image-import-local").files[0] );    
+	});
+	
+	modal.modal( "show" );
+};
+
+////////////////////////////////////////////////////////////////////////
+// getModelFileImages fill in the images into modal dialog
+//
+var getModelFileImages = function( afl, readonly ) {
+	
+	var imageGroups = $( "<div class='panel-group' id='image-export-accordion'>" );
+
+    for ( var i = 0 ; i < afl.length ; i++ ) {
+
+    	if( !readonly && afl[i].readonly ) continue;
+
+    	var groupName = afl[ i ].groupName;
+
+    	imageGroups.append( "<div class='panel panel-default'>" + 
+    							"<div class='panel-heading'>" + 
+    								"<div class='panel-title'>" + 
+    									"<a class='bigfont lightcolor' data-toggle='collapse' data-parent='#image-export-accordion' href='#image-group-"+i+"'>"+groupName+"</a>" +
+    								"</div>" + 
+    							"</div>" + 
+	    						"<div id='image-group-"+i+"' class='panel-collapse collapse fade" + ( sessionStorage[ readonly? "importFolder":"exportFolder" ] === afl[i].groupName? " in" : "") + "'></div>" +
+    						"</div>"
+	    				);
+    	var imageGroup = $( "#image-group-"+i, imageGroups );
+
+    	for ( var j = 0 ; j < afl[ i ].images.length ; j++ ) {
+	        imageGroup.append(
+	            "<div class='file file" + i + " pull-left' filename='" + afl[ i ].images[ j ] + "'>" +
+	            "   <div class='top'>" +
+	            "   </div>" +
+	            "   <div class='middle'>" +
+	            "       <img id='modal-image-" + afl[ i ].images[ j ] + "' src='static/userdata/" + window.UserNameForImages + "/images/" + groupName + "/" + ( afl[ i ].images[ j ] + ".png'" ) + " max-width='100' max-height='100'>" +
+	            "   </div>" +
+	            "   <div class='bottom'>" +
+	            "       <span class='filename text-center'>" + afl[ i ].images[ j ] + "</span>" +
+	            "   </div>" +
+	            "</div>"
+	        );
+    	}
+    }
+
+    return imageGroups;
+};
+
+var showModalYesNo = function( title, body, cb ) {
+    var modal = $("#commands-yes-no-modal");
+
+    $(".modal-title", modal).text(title);
+    $(".modal-body p", modal).text(body);
+    $(".modal-yes", modal).off("click").one("click", function(e) {
+        var lcb = cb;
+        cb = null;
+        modal.modal('hide');
+        if( lcb ) lcb(true);
+    });
+    $(".modal-no", modal).off("click").one("click", function(e) {
+        // cb is called on hide event
+        modal.modal('hide');
+    });
+
+    modal.modal('show');
+    modal.one('hidden.bs.modal', function(e) {
+        if( cb ) cb(false);
+    });
 };
 
 
@@ -1794,156 +1935,6 @@ var UndoManager = Base.extend( {
 	},
 } );
 
-
-
-////////////////////////////////////////////////////////
-// Program startup
-var Do = new UndoManager();
-
-
-if ( sessionStorage.paperProject ) {
-	project.clear();
-	project.importJSON( sessionStorage.paperProject );
-
-	var baseLayer = project.layers[ project.layers.length-1 ],
-		cropperBounds = baseLayer.children[ 0 ].children[ 1 ].bounds;
-
-	baseLayer.removeChildren();
-	baseLayer.activate();
-
-	cropperBounds.point -= CropperTopLeft;
-	var baseCropper = new Cropper( cropperBounds );
-	var baseViewer = new Viewer( baseCropper );
-	var baseCommands = new Commands( baseCropper );
-	var baseColorizer1 = new Colorizer( [{
-		filter: "brightness",
-		yPos: 30,
-		startValue: 0.5,
-		camanValue: function( value ) { return ( value-0.5 )*200; },
-	},{
-		filter: "saturation",
-		yPos: 100,
-		startValue: 0.5,
-		camanValue: function( value ) { return ( value-0.5 )*200; },
-	},{
-		filter: "hue",
-		yPos: 170,
-		startValue: 0.0,
-		camanValue: function( value ) { return value * 100; },
-	}] );
-	var baseColorizer2 = new Colorizer( [{
-		filter: "sharpen",
-		yPos: 30,
-		startValue: 0.0,
-		camanValue: function( value ) { return value * 100; },
-	},{
-		filter: "stackBlur",
-		yPos: 100,
-		startValue: 0.0,
-		camanValue: function( value ) { return value * 100; },
-	},{
-		filter: "sepia",
-		yPos: 170,
-		startValue: 0.0,
-		camanValue: function( value ) { return value * 100; },
-	}] );
-
-	baseColorizer1.hide();
-	baseColorizer2.hide();
-
-	project.layers[ project.layers.length-2 ].activate();
-} else {
-	var baseLayer = project.activeLayer;
-	var baseCropper = new Cropper();
-	var baseViewer = new Viewer( baseCropper );
-	var baseCommands = new Commands( baseCropper );
-	var baseColorizer1 = new Colorizer( [{
-		filter: "brightness",
-		yPos: 30,
-		startValue: 0.5,
-		camanValue: function( value ) { return ( value-0.5 )*200; },
-	},{
-		filter: "saturation",
-		yPos: 100,
-		startValue: 0.5,
-		camanValue: function( value ) { return ( value-0.5 )*200; },
-	},{
-		filter: "hue",
-		yPos: 170,
-		startValue: 0.0,
-		camanValue: function( value ) { return value * 100; },
-	},{
-		filter: "contrast",
-		yPos: 240,
-		startValue: 0.5,
-		camanValue: function( value ) { return ( value-0.5 )*200; },
-	}] );
-	var baseColorizer2 = new Colorizer( [{
-		filter: "sharpen",
-		yPos: 30,
-		startValue: 0.0,
-		camanValue: function( value ) { return value * 100; },
-	},{
-		filter: "stackBlur",
-		yPos: 100,
-		startValue: 0.0,
-		camanValue: function( value ) { return value * 100; },
-	},{
-		filter: "sepia",
-		yPos: 170,
-		startValue: 0.0,
-		camanValue: function( value ) { return value * 100; },
-	}] );
-	baseColorizer1.hide();
-	baseColorizer2.hide();
-
-	var activeLayer = new Layer();
-/*
-	// Action 1
-	var tmp = new Raster( "fred" );
-	raster = tmp.clone();
-	tmp.remove();
-	raster.position = new Point( 300, 300 );
-	raster.scale( 1.0 );
-	raster.rotate( 0 );
-	raster.selected = false;
-
-	Do.startTransaction( raster );
-	for ( var i = 80 ; i < 100 ; i++ ) for ( var j = 80 ; j < 100 ; j++ )
-		raster.setPixel( i, j, new Color( 1, 1, 0.5 ) );
-	Do.commit( new Rectangle( 80, 80, 20, 20 ) );
-
-	Do.startTransaction( raster );
-	for ( var i = 100 ; i < 190 ; i++ ) for ( var j = 10 ; j < 100 ; j++ )
-		raster.setPixel( i, j, new Color( 1, 0, 0.5 ) );
-	Do.commit( new Rectangle( 100, 10, 90, 90 ) );
-
-	Do.startTransaction( raster );
-	for ( var i = 30 ; i < 120 ; i++ ) for ( var j = 0 ; j < 90 ; j++ )
-		raster.setPixel( i, j, new Color( 0, 0, 0.5 ) );
-	Do.commit( new Rectangle( 30, 0, 90, 90 ) );
-
-	Do.startTransaction( raster );
-	for ( var i = 70 ; i < 90 ; i++ ) for ( var j = 40 ; j < 60 ; j++ )
-		raster.setPixel( i, j, new Color( 0, 1, 1, 0 ) );
-	Do.commit( new Rectangle( 30, 0, 90, 90 ) );
-
-	var circle1 = Do.execute( "Path", "Circle", new Point( 250, 150 ), 30 )
-	circle1.strokeColor = new Color( 0, 0, 0, 1 );
-	var circle2 = Do.execute( "Path", "Circle", new Point( 350, 150 ), 30 )
-	circle2.strokeColor = new Color( 0, 0, 0, 1 );
-
-	Do.execute( circle2, "strokeColor", new Color( 0, 1, 0, 1 ) );
-	Do.execute( circle2, "strokeColor", "red" );
-	Do.execute( circle2, "strokeWidth", 5 );
-
-	//Do.undo();
-	//Do.redo();
-*/
-}
-
-baseLayer.bringToFront();
-
 /////////////////////////////////////////////////////////////
 // Selecting, moving and modifying items with the mouse
 var segment, item, bounds,
@@ -2233,3 +2224,114 @@ function onFrame() {
 window.paperOnbeforeunload = function() {
 	sessionStorage.paperProject = project.exportJSON();
 };
+
+////////////////////////////////////////////////////////
+// Program startup
+var Do = new UndoManager();
+
+if ( sessionStorage.paperProject ) {
+	project.clear();
+	project.importJSON( sessionStorage.paperProject );
+
+	var baseLayer = project.layers[ project.layers.length-1 ],
+		cropperBounds = baseLayer.children[ 0 ].children[ 1 ].bounds;
+
+	baseLayer.removeChildren();
+	baseLayer.activate();
+
+	cropperBounds.point -= CropperTopLeft;
+	var baseCropper = new Cropper( cropperBounds );
+	var baseViewer = new Viewer( baseCropper );
+	var baseCommands = new Commands( baseCropper );
+	var baseColorizer1 = new Colorizer( [{
+		filter: "brightness",
+		yPos: 30,
+		startValue: 0.5,
+		camanValue: function( value ) { return ( value-0.5 )*200; },
+	},{
+		filter: "saturation",
+		yPos: 100,
+		startValue: 0.5,
+		camanValue: function( value ) { return ( value-0.5 )*200; },
+	},{
+		filter: "hue",
+		yPos: 170,
+		startValue: 0.0,
+		camanValue: function( value ) { return value * 100; },
+	}] );
+	var baseColorizer2 = new Colorizer( [{
+		filter: "sharpen",
+		yPos: 30,
+		startValue: 0.0,
+		camanValue: function( value ) { return value * 100; },
+	},{
+		filter: "stackBlur",
+		yPos: 100,
+		startValue: 0.0,
+		camanValue: function( value ) { return value * 100; },
+	},{
+		filter: "sepia",
+		yPos: 170,
+		startValue: 0.0,
+		camanValue: function( value ) { return value * 100; },
+	}] );
+
+	baseColorizer1.hide();
+	baseColorizer2.hide();
+
+	project.layers[ project.layers.length-2 ].activate();
+} else {
+	sessionStorage.importFolder = window.AllImages[0].groupName;
+	sessionStorage.exportFolder = "/";
+
+	var baseLayer = project.activeLayer;
+	var baseCropper = new Cropper();
+	var baseViewer = new Viewer( baseCropper );
+	var baseCommands = new Commands( baseCropper );
+
+	var baseColorizer1 = new Colorizer( [{
+		filter: "brightness",
+		yPos: 30,
+		startValue: 0.5,
+		camanValue: function( value ) { return ( value-0.5 )*200; },
+	},{
+		filter: "saturation",
+		yPos: 100,
+		startValue: 0.5,
+		camanValue: function( value ) { return ( value-0.5 )*200; },
+	},{
+		filter: "hue",
+		yPos: 170,
+		startValue: 0.0,
+		camanValue: function( value ) { return value * 100; },
+	},{
+		filter: "contrast",
+		yPos: 240,
+		startValue: 0.5,
+		camanValue: function( value ) { return ( value-0.5 )*200; },
+	}] );
+
+	var baseColorizer2 = new Colorizer( [{
+		filter: "sharpen",
+		yPos: 30,
+		startValue: 0.0,
+		camanValue: function( value ) { return value * 100; },
+	},{
+		filter: "stackBlur",
+		yPos: 100,
+		startValue: 0.0,
+		camanValue: function( value ) { return value * 100; },
+	},{
+		filter: "sepia",
+		yPos: 170,
+		startValue: 0.0,
+		camanValue: function( value ) { return value * 100; },
+	}] );
+	baseColorizer1.hide();
+	baseColorizer2.hide();
+
+	var activeLayer = new Layer();
+}
+
+baseLayer.bringToFront();
+

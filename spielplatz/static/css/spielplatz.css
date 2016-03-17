@@ -103,6 +103,7 @@ body {
   background-color: #fff;
 }
 
+
 .form-signin, .form-signup {
 	width: 480px;
 	margin: 0 auto;
@@ -391,18 +392,18 @@ body {
   margin-left: 5px;
 }
 
-#commands-image-import-modal .file {
+.commands-image-modal .file {
   margin: 5px;
 }
 
-#commands-image-import-modal .middle {
+.commands-image-modal .middle {
   width: 110px;
   height: 110px;
   margin: auto 0;
   text-align: center;  
 }
 
-#commands-image-import-modal img {
+.commands-image-modal img {
   max-width: 100px;
   max-height: 100px;
   text-align: center;  
@@ -410,36 +411,56 @@ body {
   opacity: 0;
 }
 
-#commands-image-import-modal .filename {
+.commands-image-modal .filename {
   font-size: 0.9em;
 }
 
-#commands-image-import-modal .modal-dialog {
+.commands-image-modal .modal-dialog {
   overflow-y: initial !important
 }
 
-#commands-image-import-modal .modal-body {
+.commands-image-modal .modal-body {
   height: 550px;
   width: 888px;
   overflow-y: auto;
   background-color: #f8f8f8;
 }
 
-#commands-image-import-modal .modal-body .bottom {
+.commands-image-modal .modal-body .bottom {
   background-color: #e8e8e8;
   border-top: 1px solid #c8c8c8;
   height: 28px;
   text-align: center;
 }
 
-#commands-image-import-modal .title {
+.commands-image-modal .bigfont {
   font-size: 3.0em;
+  text-decoration: none;
+}
+
+.commands-image-modal .lightcolor {
   color: lightgrey;
 }
 
-/* leave this part out */
-body{text-align:center; padding-top:30px;}
-/* leave this part out */
+#commands-image-import-modal .title {
+  text-align: right;  
+}
+
+#commands-image-export-modal .filename-input {
+  display: inline-block;
+  color: black;
+  padding: 5px;
+}
+
+#commands-image-export-modal .filename-folder {
+  padding: 7px;
+}
+
+#commands-image-export-modal .filename-input::-webkit-input-placeholder,
+#commands-image-export-modal .filename-input::-moz-placeholder {
+  color: lightgrey;
+}
+
 
 .btn-file {
     position: relative;

@@ -13,38 +13,79 @@
 <script src="static/js/paper.js"></script>
 <script src="static/js/caman.full.js"></script>
 <script src="static/js/caman-for-paper.js"></script>
-    <script src="static/js/cpg-sessions.js"></script>
+<script src="static/js/cpg-sessions.js"></script>
 <script src="static/js/cpg-graphics-animation.js"></script>
 </head>
 <body>
 <div class="container" style="height: 1024px;">
     
-    <div id="commands-image-import-modal" class="modal fade">
+    <div id="commands-image-import-modal" class="commands-image-modal modal fade">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <h4 class="modal-title">{{ .GraphicsCommandsImportTitle }}</h4>
-          </div>
-          <div class="modal-body">
             <div class="clearfix"></div>
-            <div class='title'>{{ .GraphicsCommandsImportLocal1 }}</div>
-            <span class="btn btn-default btn-file">
+            <div class='title pull-right'>{{ .GraphicsCommandsImportLocal1 }}</div>
+            <div class="clearfix"></div>
+            <span class="btn btn-default btn-file pull-right">
               {{ .GraphicsCommandsImportLocal2 }} <input id="image-import-local" type="file">
             </span>
+            <div class="clearfix"></div>
+          </div>
+          <div class="modal-body">
           </div>
             <div class="clearfix"></div>
           <div class="modal-footer">
             <button type="button" class="modal-open pull-right btn btn-primary" data-dismiss="modal">{{ .GraphicsCommandsImportOpen }}</button>
-            <button type="button" class="modal-cancel pull-right btn btn-default" data-dismiss="modal">{{ .GraphicsCommandsImportCancel }}
+            <button type="button" class="modal-cancel pull-right btn btn-default" data-dismiss="modal">{{ .GraphicsCommandsImportCancel }}</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+    <div id="commands-image-export-modal" class="commands-image-modal modal fade">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">{{ .GraphicsCommandsExportTitle }}</h4>
+            <div class="clearfix"></div>
+            <input class="filename-input bigfont lightcolor pull-right" type="text" class="form-control" placeholder="{{ .GraphicsCommandsExportFilename }}">
+            <div class="filename-folder bigfont lightcolor pull-right">TEST</div>
+            <div class="clearfix"></div>
+          </div>
+          <div class="modal-body">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="modal-open pull-right btn btn-primary" data-dismiss="modal">{{ .GraphicsCommandsExportExport }}</button>
+            <button type="button" class="modal-cancel pull-right btn btn-default" data-dismiss="modal">{{ .GraphicsCommandsExportCancel }}
+            <button type="button" class="modal-new-folder pull-left btn btn-default" data-dismiss="modal">{{ .GraphicsCommandsExportNewFolder }}</button>
             </button>
           </div>
         </div><!-- /.modal-content -->
       </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
+    <div id="commands-yes-no-modal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">You forgot to set the title!</h4>
+          </div>
+          <div class="modal-body">
+            <p>You forgot to set the body text&hellip;</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="modal-no btn btn-default" data-dismiss="modal">{{ .GraphicsCommandsModalNo }}</button>
+            <button type="button" class="modal-yes btn btn-primary" data-dismiss="modal">{{ .GraphicsCommandsModalYes }}</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->    
+
     <div class="login-area">
         {{if not .UserName }}
-            <a href="/login/" class="btn btn-info btn-sm pull-right">{{ .LoginLogin }} <span class="glyphicon glyphicon-share-alt"></span></a>
+            <a href="/login/graphics-animation" class="btn btn-info btn-sm pull-right">{{ .LoginLogin }} <span class="glyphicon glyphicon-share-alt"></span></a>
             <a href="/signup/" class="btn btn-info btn-sm pull-right">{{ .LoginSignup }} <span class="glyphicon glyphicon-book"></span></a>
         {{else}}
             <a href="/logout" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>        
@@ -77,10 +118,10 @@
                 <button type="button" class="command command-redo btn btn-sm btn-default">
                     <span class="typcn typcn-arrow-forward-outline"></span>
                 </button>
-                <button type="button" class="command command-download btn btn-sm btn-default">
+                <button type="button" class="command command-import btn btn-sm btn-default">
                     <span class="typcn typcn-download-outline"></span>
                 </button>
-                <button type="button" class="command command-upload btn btn-sm btn-default">
+                <button type="button" class="command command-export btn btn-sm btn-default">
                     <span class="typcn typcn-upload-outline"></span>
                 </button>
                 <div class="colorfield">
@@ -158,6 +199,7 @@
     window.AllImages = JSON.parse({{ .AllImages }});
     window.UserNameForImages = "{{ .UserNameForImages }}";
     window.CPGLocale = {
+        User: "{{ .UserName }}",
         Colorizer: {
             hue: "{{ .GraphicsColorizerHue }}",
             brightness: "{{ .GraphicsColorizerBrightness }}",
@@ -166,6 +208,10 @@
             sharpen: "{{ .GraphicsColorizerSharpen }}",
             stackBlur: "{{ .GraphicsColorizerStackBlur }}",
             sepia: "{{ .GraphicsColorizerSepia }}",
+        },
+        Modals: {
+            login1: "{{ .GraphicsCommandsModalLogin1 }}",
+            login2: "{{ .GraphicsCommandsModalLogin2 }}"
         }
     };
 })();
