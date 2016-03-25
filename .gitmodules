@@ -1,3 +1,6 @@
+[submodule "spielplatz/bootstrap/--force"]
+	path = spielplatz/bootstrap/--force
+	url = https://github.com/Khan/live-editor
 [submodule "spielplatz/bootstrap/live-editor"]
 	path = spielplatz/bootstrap/live-editor
-	url = https://github.com/lavisrap/live-editor
+	url = https://github.com/Khan/live-editor
