@@ -62,6 +62,7 @@ window.LiveEditor.prototype.maybeShowErrors = function maybeShowErrors() {
 	}).bind(this), 60000);
 };
 
+
 ///////////////////////////////////////////////////////////
 // Late integration functions
 //
@@ -71,9 +72,17 @@ $( window ).on("live-editor-late-integration", function( e ) {
 	// Replace blank image file
 	//
 	var src = $(".mediapicker .current-media img").attr("src").replace(/cute\/Blank.png/g, "Spielplatz/KeinBild.png");
-	$(".mediapicker .current-media img").attr( "src", src )
-});
+	$(".mediapicker .current-media img").attr( "src", src );
 
+	///////////////////////////////////////////////////////////
+	// Replace tipbar strings
+	//
+	$( ".tipbar .oh-no" ).text( "Oh! Nein!" );
+	$( ".tipbar .show-me a" ).text( "Zeig mir wo ..." );
+	$( ".tipbar .tipnav .prev" ).html( "<span>&#8592;</span>" );
+	$( ".tipbar .tipnav .next" ).html( "<span>&#8594;</span>" );
+
+});
 	
 })();
 

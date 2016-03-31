@@ -3,3 +3,7 @@
 	background: url(../../Admin/images/throbber.gif) no-repeat 7px center;
 }
 
+.tipbar .tipnav .prev,
+.tipbar .tipnav .next {
+	font-size: 1.5em;
+}

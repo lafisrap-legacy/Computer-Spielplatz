@@ -1,7 +1,10 @@
+.gitignore
 spielplatz/conf/app.conf
 spielplatz/spielplatz
 spielplatz/log
 spielplatz/static/userdata
 spielplatz/todo
+spielplatz/bootstrap/live-editor-new
+spielplatz/bootstrap/live-editor-old
 !spielplatz/static/userdata/Admin
 

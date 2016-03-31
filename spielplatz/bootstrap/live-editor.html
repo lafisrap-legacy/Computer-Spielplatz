@@ -27,6 +27,7 @@
 <script src="build/js/live-editor.ui.js"></script>
 <script src="build/js/live-editor.editor_ace.js"></script>
 <script src="static/js/live-editor.integration.js"></script>
+<script src="../static/js/live-editor.i18n.js"></script>
 
 
 <!-- RIDDLE: Modal dialogs won't work if live-editor file are called after bootstrap.js -->
@@ -564,8 +565,7 @@ window.liveEditor = new LiveEditor({
     externalsDir: "../build/external/",
     imagesDir: "static/userdata/{{ .UserNameForImages }}/images/",
     soundsDir: "../static/userdata/{{ .UserNameForImages }}/sounds/",
-    //imagesDir: "../build/images/",
-    jshintFile: "../build/external/jshint/jshint.js"
+    jshintFile: "../build/external/jshint/jshint.js",
 });
 window.liveEditor.editor.on("change", function () {
     CPG_modified = true;

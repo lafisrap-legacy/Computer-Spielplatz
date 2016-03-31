@@ -39,18 +39,19 @@ var Cropper = Base.extend( {
 		this._rect.strokeColor = "#aaa";
 		this._rect.opacity = 0.5;
 
-		var viewerBackground = new Path.Rectangle( this._areaRect.topRight, new Size( 600 , this._areaRect.height ) );
+		var viewerBackground = new Path.Rectangle(	this._areaRect.topRight,
+													new Size( 600, this._areaRect.height ) );
 		viewerBackground.fillColor = "white";
 
 		this._rect.onMouseMove = function( event ) { self.onMouseMove( event ); };
 		this._rect.onMouseLeave = function( event ) { self.onMouseLeave( event ); };
 		this._rect.onMouseDrag = function( event ) { self.onMouseDrag( event ); };
 		$( "#page-paper" ).on( "mouseup", function( event ) {
-			var offset = $("#paperCanvasWrapper").offset();
+			var offset = $( "#paperCanvasWrapper" ).offset();
 
 			event.point = new Point( event.pageX - offset.left, event.pageY - offset.top );
 			self.onMouseUp( event );
-		});	
+		} );
 	},
 
 	/////////////////////////////////////////////////////////////////////
@@ -119,12 +120,12 @@ var Cropper = Base.extend( {
 	/////////////////////////////////////////////////////////////////////
 	// Method getInnerRect returns inner rectangle
 	//
-	getInnerRect: function(border) {
+	getInnerRect: function( border ) {
 		var rect = this._tintedArea.children[ 1 ].bounds.clone();
 
-		if( border ) {
+		if ( border ) {
 			rect.topLeft -= this._border;
-			rect.bottomRight += this._border;			
+			rect.bottomRight += this._border;
 		}
 
 		return rect;
@@ -149,9 +150,7 @@ var Cropper = Base.extend( {
 	// Method onMouseMove changes the cursor shape according to mouse position
 	//
 	onMouseMove: function( event ) {
-		//if ( baseViewer ) baseViewer.onMouseMove( event );
 
-		console.log("Cropper onMouseMove");
 		if ( this.isDragging ) return;
 
 		var rect = this._rect.bounds,
@@ -192,7 +191,7 @@ var Cropper = Base.extend( {
 
 		if ( baseCommands.cursorMode === "bounds" || moveItem ) return;
 
-		if( !this.isDragging ) this._oldRect = this.getInnerRect();
+		if ( !this.isDragging ) this._oldRect = this.getInnerRect();
 
 		this.set( this.getNewInnerRect( event ) );
 
@@ -238,7 +237,7 @@ var Cropper = Base.extend( {
 		newRect.left = mx === 1 ? point.x : rect.point.x,
 		newRect.top = my === 1 ? point.y : rect.point.y,
 		newRect.right = mx === 2 ? point.x : rect.point.x + rect.size.width,
-		newRect.bottom = my === 2 ? point.y : rect.point.y + rect.size.height			
+		newRect.bottom = my === 2 ? point.y : rect.point.y + rect.size.height;
 
 		return newRect;
 	}
@@ -284,11 +283,11 @@ var Viewer = Base.extend( {
 		this._context = document.getElementById( "paperCanvas" );
 		this._ctx = this._context.getContext( "2d" );
 		this._zoomctx = document.getElementById( "viewCanvas" ).getContext( "2d" );
-	    this._zoomctx.imageSmoothingEnabled = false;
-	    this._zoomctx.mozImageSmoothingEnabled = false;
-	    this._zoomctx.msImageSmoothingEnabled = false;
+		this._zoomctx.imageSmoothingEnabled = false;
+		this._zoomctx.mozImageSmoothingEnabled = false;
+		this._zoomctx.msImageSmoothingEnabled = false;
 
-	    // Create a border
+		// Create a border
 		this._border = new Path.Rectangle(	this._viewRect.point - this._borderWidth / 2,
 											this._viewRect.size + this._borderWidth );
 		this._border.strokeWidth = this._borderWidth;
@@ -431,7 +430,7 @@ var Viewer = Base.extend( {
 		var size = this._viewRect.size;
 
 		// If mouse is in cropper rect ...
-		if ( this._cropper.getInnerRect(true).contains( event.point ) ) {
+		if ( this._cropper.getInnerRect( true ).contains( event.point ) ) {
 			if ( !this._zoomActive ) $( ".colorpicker-scroll" ).fadeOut();
 			this._zoomActive = true;
 
@@ -733,10 +732,10 @@ var Slider = Base.extend( {
 		var group = this.group = new Group( [
 			new PointText( {
 				point: new Point( point.x + margin, point.y ),
-			    content: options.name,
-			    fillColor: "black",
-			    fontFamily: "Exo",
-			    fontSize: 16
+				content: options.name,
+				fillColor: "black",
+				fontFamily: "Exo",
+				fontSize: 16
 			} ),
 			new Path.Rectangle( {
 				point: new Point( point.x + margin, point.y + 15 ),
@@ -808,20 +807,20 @@ var Slider = Base.extend( {
 		group.setSliderFillColor = function( enable ) {
 			if ( enable ) {
 				slider.fillColor = {
-			        gradient: {
-			            stops: [ "yellow", "red", "blue" ]
-			        },
-			        origin: [ 0, point.y + 5 ],
-			        destination: [ 0, point.y + sHeight ]
-			    };
+					gradient: {
+						stops: [ "yellow", "red", "blue" ]
+					},
+					origin: [ 0, point.y + 5 ],
+					destination: [ 0, point.y + sHeight ]
+				};
 			} else {
 				slider.fillColor = {
-			        gradient: {
-			            stops: [ "grey", "blue", "gray" ]
-			        },
-			        origin: [ 0, point.y + 5 ],
-			        destination: [ 0, point.y + sHeight ]
-			    };
+					gradient: {
+						stops: [ "grey", "blue", "gray" ]
+					},
+					origin: [ 0, point.y + 5 ],
+					destination: [ 0, point.y + sHeight ]
+				};
 			}
 		};
 		group.setSliderFillColor( false );
@@ -921,9 +920,9 @@ var Commands = Base.extend( {
 
 			// Create brush circle
 			var path = new Path.Circle( {
-			    center: [ maxRadius, maxRadius ],
-			    radius: radius,
-			    strokeColor: new Color( 0, 0, 0, 0 )
+				center: [ maxRadius, maxRadius ],
+				radius: radius,
+				strokeColor: new Color( 0, 0, 0, 0 )
 			} );
 
 			// Set gradient for brush
@@ -932,7 +931,7 @@ var Commands = Base.extend( {
 					stops: [ [ "black", 0.70 ], [ new Color( 0, 0, 0, 0 ), 1 ] ],
 					radial: true
 				},
-			    origin: path.position,
+				origin: path.position,
 				destination: path.bounds.rightCenter
 			};
 
@@ -977,7 +976,7 @@ var Commands = Base.extend( {
 							action: "Import"
 						} );
 
-			        r1.remove();
+					r1.remove();
 
 					var items = project.activeLayer.children;
 					if ( items.length === 1 ) baseCropper.set( r2.bounds );
@@ -990,12 +989,14 @@ var Commands = Base.extend( {
 		//
 		$( ".command-export" ).on( "click tap", function( event ) {
 			if ( window.CPGLocale.User === "" ) {
-				showModalYesNo( window.CPGLocale.Modals.login1, window.CPGLocale.Modals.login2, function( yes ) {
-					if( yes ) {
-						window.location.href="/login/graphics-animation";
+				showModalYesNo( window.CPGLocale.Modals.login1,
+								window.CPGLocale.Modals.login2,
+								function( yes ) {
+					if ( yes ) {
+						window.location.href = "/login/graphics-animation";
 					}
-				});
-			} else {			
+				} );
+			} else {
 				exportModal( function( res, image ) {
 					if ( res === "export" ) {
 
@@ -1003,7 +1004,6 @@ var Commands = Base.extend( {
 				} );
 			}
 		} );
-
 
 		///////////////////////////////////////////////////////////////////
 		// Menü-Command: Mode-Commands
@@ -1021,10 +1021,10 @@ var Commands = Base.extend( {
 
 			// Circle that follows the mouse movement
 			self.rubberCircle = new Path.Circle( {
-			    center: [ event.pageX - offset.left, event.pageY - offset.top ],
-			    radius: radius,
-			    strokeColor: new Color( 0, 0, 0, 255 ),
-			    dashArray: [ 1 ]
+				center: [ event.pageX - offset.left, event.pageY - offset.top ],
+				radius: radius,
+				strokeColor: new Color( 0, 0, 0, 255 ),
+				dashArray: [ 1 ]
 			} );
 
 			// Take the raster from the DOM and take it as brush
@@ -1343,7 +1343,7 @@ var Commands = Base.extend( {
 			r2 = baseCommands.rubberDirtyRect || r1;
 		if ( r1.left   < r2.left )   r2.left   = r1.left;
 		if ( r1.right  > r2.right )  r2.right  = r1.right;
-		if ( r1.top    < r2.top )    r2.top    = r1.top;
+		if ( r1.top	< r2.top )	r2.top	= r1.top;
 		if ( r1.bottom > r2.bottom ) r2.bottom = r1.bottom;
 		baseCommands.rubberDirtyRect =
 			r2.intersect( new Rectangle( 0, 0, item.width, item.height ) );
@@ -1356,67 +1356,73 @@ var Commands = Base.extend( {
 var importModal = function( cb ) {
 	var modal = $( "#commands-image-import-modal", modal );
 
-    var afl = window.AllImages,
-        imageGroups = getModelFileImages( afl, true );
+	var afl = window.AllImages,
+		imageGroups = getModelFileImages( afl, true );
 
-    // Correct font size of filenames
-    $( ".modal-body", modal ).html( imageGroups );
+	// Fill image files into modal
+	$( ".modal-body", modal ).html( imageGroups );
 
-    $( ".file", modal ).on( "click", function( e ) {
-        var lcb = cb;
-        cb = null;
-        modal.modal( "hide" );
+	// Click on a modal image file
+	$( ".file", modal ).on( "click", function( e ) {
+		var lcb = cb;
+		cb = null;
+		modal.modal( "hide" );
 
 		baseCommands.activateCommand( "pointer" );
 
-        if ( lcb ) lcb( "open", "modal-image-" + $( this ).attr( "filename" ) );
-    } );
+		// Open image file
+		if ( lcb ) lcb( "open", "modal-image-" + $( this ).attr( "filename" ) );
+	} );
 
-    $( ".modal-cancel", modal ).off( "click" ).one( "click", function( e ) {
-        modal.modal( "hide" );
-    } );
+	// After dialog is shown
+	modal.on( "shown.bs.collapse", function( e ) {
 
-    modal.one( 'hidden.bs.modal', function( e ) {
-        if ( cb ) cb( "cancel" );
-    } );
+		// Vertically center images after they are shown
+		$( ".file img", modal ).each( function( index ) {
+			var img = $( this ),
+				w = img.width(),
+				h = img.height(),
+				maxW = parseInt( img.attr( "max-width" ) ),
+				maxH = parseInt( img.attr( "max-height" ) );
 
-    modal.one( 'shown.bs.modal', function( e ) {
-	    // Vertically center images after they are shown
-	    $( ".file img", modal ).each( function( index ) {
-		    var img = $( this ),
-		    	w = img.width(),
-		    	h = img.height(),
-		    	maxW = parseInt( img.attr( "max-width" ) ),
-		    	maxH = parseInt( img.attr( "max-height" ) );
+			img.animate( {
+				marginLeft: ( ( maxW - w ) / 2 ) + "px",
+				marginTop:  ( ( maxH - h ) / 2 ) + "px",
+				zoom: 1,
+				opacity: 1
+			}, 300 );
+		} );
+	} );
 
-		    img.animate( {
-		    	marginLeft: ( ( maxW - w )/2 ) + "px",
-		    	marginTop:  ( ( maxH - h )/2 ) + "px",
-		    	zoom: 1,
-		    	opacity: 1,
-		    }, 300 );
-	    } );
-    } );
+	// Cancel dialog
+	$( ".modal-cancel", modal ).off( "click" ).one( "click", function( e ) {
+		modal.modal( "hide" );
+	} );
 
-	$("#image-import-local").on('change', function() {
-		var input = $(this),
-			numFiles = input.get(0).files ? input.get(0).files.length : 1,
-			label = input.val().replace(/\\/g, '/').replace(/.*\//, ''),
+	// After dialog is hidden ...
+	modal.one( "hidden.bs.modal", function( e ) {
+		if ( cb ) cb( "cancel" );
+	} );
+
+	$( "#image-import-local" ).on( "change", function() {
+		var input = $( this ),
+			numFiles = input.get( 0 ).files ? input.get( 0 ).files.length : 1,
+			label = input.val().replace( /\\/g, "/" ).replace( /.*\//, "" ),
 			reader = new FileReader(),
 			lcb = cb;
-        
-        cb = null;
-        modal.modal( "hide" );
+
+		cb = null;
+		modal.modal( "hide" );
 
 		baseCommands.activateCommand( "pointer" );
-    
-	    reader.onload = function ( event ) {
-	        if ( lcb ) lcb( "open", event.target.result );
-	    };
-    
-	    reader.readAsDataURL( document.getElementById("image-import-local").files[0] );    
-	});
-	
+
+		reader.onload = function( event ) {
+			if ( lcb ) lcb( "open", event.target.result );
+		};
+
+		reader.readAsDataURL( document.getElementById( "image-import-local" ).files[ 0 ] );
+	} );
+
 	modal.modal( "show" );
 };
 
@@ -1426,77 +1432,66 @@ var importModal = function( cb ) {
 var exportModal = function( cb ) {
 	var modal = $( "#commands-image-export-modal" );
 
-    var afl = window.AllImages,
-        imageGroups = getModelFileImages( afl, false );
+	var afl = window.AllImages,
+		imageGroups = getModelFileImages( afl, false );
 
-    $( ".modal-body", modal ).html( imageGroups );
+	// Fill image files into modal
+	$( ".modal-body", modal ).html( imageGroups );
 
 	$( ".filename-folder", modal ).text( sessionStorage.exportFolder );
 
-	//$( ".title", modal ).on( "click tap", function( e ) {
-	//	sessionStorage.exportFolder = $( this ).text();
-	//	$( ".filename-folder", modal ).text( sessionStorage.exportFolder );
-	//} );
+	// Click on title: take new folder name
+	$( ".title", modal ).on( "click tap", function( e ) {
+		sessionStorage.exportFolder = $( this ).text();
+		$( ".filename-folder", modal ).text( sessionStorage.exportFolder );
+	} );
 
-    $( ".file", modal ).on( "click tap", function( e ) {
-    	$( ".filename-input", modal ).val( $( this ).attr("filename") );
-    } );
+	// Click on file: take new file name
+	$( ".file", modal ).on( "click tap", function( e ) {
+		$( ".filename-input", modal ).val( $( this ).attr( "filename" ) );
+	} );
 
-    $( ".file", modal ).on( "dblclick taphold", function( e ) {
-        var lcb = cb;
-        cb = null;
-        modal.modal( "hide" );
-
-		baseCommands.activateCommand( "pointer" );
-
-        if ( lcb ) lcb( "export", "modal-image-" + $( this ).attr( "filename" ) );
-    } );
-
-    $( ".modal-cancel", modal ).off( "click" ).one( "click", function( e ) {
-        modal.modal( "hide" );
-    } );
-
-    modal.one( 'hidden.bs.modal', function( e ) {
-        if ( cb ) cb( "cancel" );
-    } );
-
-    modal.on( 'shown.bs.collapse', function( e ) {
-	    // Vertically center images after they are shown
-	    $( ".file img", $( this ) ).each( function( index ) {
-		    var img = $( this ),
-		    	w = img.width(),
-		    	h = img.height(),
-		    	maxW = parseInt( img.attr( "max-width" ) ),
-		    	maxH = parseInt( img.attr( "max-height" ) );
-
-		    img.animate( {
-		    	marginLeft: ( ( maxW - w )/2 ) + "px",
-		    	marginTop:  ( ( maxH - h )/2 ) + "px",
-		    	zoom: 1,
-		    	opacity: 1,
-		    }, 300 );
-	    } );
-    } );
-
-	$( "#image-import-local" ).on('change', function() {
-		var input = $(this),
-			numFiles = input.get(0).files ? input.get(0).files.length : 1,
-			label = input.val().replace(/\\/g, '/').replace(/.*\//, ''),
-			reader = new FileReader(),
-			lcb = cb;
-        
-        cb = null;
-        modal.modal( "hide" );
+	// Double click on file: export filename
+	$( ".file", modal ).on( "dblclick taphold", function( e ) {
+		var lcb = cb;
+		cb = null;
+		modal.modal( "hide" );
 
 		baseCommands.activateCommand( "pointer" );
-    
-	    reader.onload = function ( event ) {
-	        if ( lcb ) lcb( "open", event.target.result );
-	    };
-    
-	    reader.readAsDataURL( document.getElementById("image-import-local").files[0] );    
-	});
-	
+
+		if ( lcb ) lcb( "export", "modal-image-" + $( this ).attr( "filename" ) );
+	} );
+
+	// Cancel: close modal
+	$( ".modal-cancel", modal ).off( "click" ).one( "click", function( e ) {
+		modal.modal( "hide" );
+	} );
+
+	// Return cancel message on closing modal
+	modal.one( "hidden.bs.modal", function( e ) {
+		if ( cb ) cb( "cancel" );
+	} );
+
+	// Move images to right position, when collapsible paragraph is shown
+	modal.on( "shown.bs.collapse", function( e ) {
+
+		// Vertically center images after they are shown
+		$( ".file img", $( this ) ).each( function( index ) {
+			var img = $( this ),
+				w = img.width(),
+				h = img.height(),
+				maxW = parseInt( img.attr( "max-width" ) ),
+				maxH = parseInt( img.attr( "max-height" ) );
+
+			img.animate( {
+				marginLeft: ( ( maxW - w ) / 2 ) + "px",
+				marginTop:  ( ( maxH - h ) / 2 ) + "px",
+				zoom: 1,
+				opacity: 1
+			}, 300 );
+		} );
+	} );
+
 	modal.modal( "show" );
 };
 
@@ -1504,132 +1499,183 @@ var exportModal = function( cb ) {
 // getModelFileImages fill in the images into modal dialog
 //
 var getModelFileImages = function( afl, readonly ) {
-	
+
+	// Create dom element for images
 	var imageGroups = $( "<div class='panel-group' id='image-export-accordion'>" );
 
-    for ( var i = 0 ; i < afl.length ; i++ ) {
+	// Loop through all image folders
+	for ( var i = 0 ; i < afl.length ; i++ ) {
 
-    	if( !readonly && afl[i].readonly ) continue;
+		// If folder is readonly don't show it in export modals
+		if ( !readonly && afl[ i ].readonly ) continue;
 
-    	var groupName = afl[ i ].groupName;
+		var groupName = afl[ i ].groupName;
 
-    	imageGroups.append( "<div class='panel panel-default'>" + 
-    							"<div class='panel-heading'>" + 
-    								"<div class='panel-title'>" + 
-    									"<a class='bigfont lightcolor' data-toggle='collapse' data-parent='#image-export-accordion' href='#image-group-"+i+"'>"+groupName+"</a>" +
-    								"</div>" + 
-    							"</div>" + 
-	    						"<div id='image-group-"+i+"' class='panel-collapse collapse fade" + ( sessionStorage[ readonly? "importFolder":"exportFolder" ] === afl[i].groupName? " in" : "") + "'></div>" +
-    						"</div>"
-	    				);
-    	var imageGroup = $( "#image-group-"+i, imageGroups );
+		// Add a panel header to the accordeon
+		imageGroups.append(
+			"<div class='panel panel-default'>" +
+				"<div class='panel-heading'>" +
+					"<div class='panel-title'>" +
+						"<a data-toggle='collapse' data-parent='#image-export-accordion' " +
+							"class='lightcolor' href='#image-group-" + i + "'>" + groupName +
+						"</a>" +
+					"</div>" +
+				"</div>" +
+				"<div id='image-group-" + i + "' class='panel-collapse collapse fade" +
+					( sessionStorage[ readonly ? "importFolder" : "exportFolder" ] ===
+						afl[ i ].groupName ? " in" : "" ) + "'>" +
+				"</div>" +
+			"</div>"
+		);
 
-    	for ( var j = 0 ; j < afl[ i ].images.length ; j++ ) {
-	        imageGroup.append(
-	            "<div class='file file" + i + " pull-left' filename='" + afl[ i ].images[ j ] + "'>" +
-	            "   <div class='top'>" +
-	            "   </div>" +
-	            "   <div class='middle'>" +
-	            "       <img id='modal-image-" + afl[ i ].images[ j ] + "' src='static/userdata/" + window.UserNameForImages + "/images/" + groupName + "/" + ( afl[ i ].images[ j ] + ".png'" ) + " max-width='100' max-height='100'>" +
-	            "   </div>" +
-	            "   <div class='bottom'>" +
-	            "       <span class='filename text-center'>" + afl[ i ].images[ j ] + "</span>" +
-	            "   </div>" +
-	            "</div>"
-	        );
-    	}
-    }
+		var imageGroup = $( "#image-group-" + i, imageGroups );
 
-    return imageGroups;
+		// Add single images to panel
+		for ( var j = 0 ; j < afl[ i ].images.length ; j++ ) {
+			imageGroup.append(
+				"<div class='file pull-left' filename='" + afl[ i ].images[ j ] + "'>" +
+					"<div class='top'></div>" +
+					"<div class='middle'>" +
+						"<img id='modal-image-" + afl[ i ].images[ j ] + "'" +
+							"src='static/userdata/" + window.UserNameForImages + "/images/" +
+							groupName + "/" + ( afl[ i ].images[ j ] + ".png'" ) +
+							" max-width='100' max-height='100' />" +
+					"</div>" +
+					"<div class='bottom'>" +
+						"<span class='filename text-center'>" + afl[ i ].images[ j ] + "</span>" +
+					"</div>" +
+				"</div>"
+			);
+		}
+	}
+
+	return imageGroups;
 };
 
+////////////////////////////////////////////////////////////////////////
+// showModalYesNo shows a yes no modal with variable text
+//
 var showModalYesNo = function( title, body, cb ) {
-    var modal = $("#commands-yes-no-modal");
+	var modal = $( "#commands-yes-no-modal" );
 
-    $(".modal-title", modal).text(title);
-    $(".modal-body p", modal).text(body);
-    $(".modal-yes", modal).off("click").one("click", function(e) {
-        var lcb = cb;
-        cb = null;
-        modal.modal('hide');
-        if( lcb ) lcb(true);
-    });
-    $(".modal-no", modal).off("click").one("click", function(e) {
-        // cb is called on hide event
-        modal.modal('hide');
-    });
+	$( ".modal-title", modal ).text( title );
+	$( ".modal-body p", modal ).text( body );
+	$( ".modal-yes", modal ).off( "click" ).one( "click", function( e ) {
+		var lcb = cb;
+		cb = null;
+		modal.modal( "hide" );
+		if ( lcb ) lcb( true );
+	} );
+	$( ".modal-no", modal ).off( "click" ).one( "click", function( e ) {
+		modal.modal( "hide" );
+	} );
 
-    modal.modal('show');
-    modal.one('hidden.bs.modal', function(e) {
-        if( cb ) cb(false);
-    });
+	modal.modal( "show" );
+	modal.one( "hidden.bs.modal", function( e ) {
+		if ( cb ) cb( false );
+	} );
 };
-
 
 ////////////////////////////////////////////////////////
-// Global functions
+// UndoManager implements undo functionality
+//
 var UndoManager = Base.extend( {
 	_class: "UndoManager",
 
-	_actions: [],
-	_reverseActions: [],
-	_actionPointer: 0,
+	_actions: [],				// Array with consecutive actions (closure functions)
+	_reverseActions: [],		// Array with corresponing reverse actions
+	_actionPointer: 0,			// Points to next action to be played
 
-	_transactionObject: null,
-	_transactionRect: null,
-	_transactionData: null,
+	_transactionObject: null,	// Object of a transaction
+	_transactionRect: null,		// Affected rectangle of raster
+	_transactionData: null,		// Memorized data of raster
 
 	_serializeFields: {
-
 	},
 
+	////////////////////////////////////////////////////
+	// initialize is not used
 	initialize: function() {
 	},
 
+	////////////////////////////////////////////////////
+	// execute adds an action to the list
 	execute: function( options ) {
+
+		////////////////////////////////////////////////////
+		// Handle different actions
 		switch ( options.action ) {
+
+			////////////////////////////////////////////////////
+			// Path command: strokeWidth, strokeColor
 			case "strokeWidth":
 			case "strokeColor":
+
+				// Init commands
 				var lastData = options.item[ options.action ];
+
 				if ( typeof lastData === "object" ) {
 					lastData = lastData.clone();
 				}
+
+				// Record reverse action
 				this._reverseActions[ this._actionPointer ] = function() {
 					options.item[ options.action ] = lastData;
-				}
+				};
+
+				// Record action
 				this._actions[ this._actionPointer ] = function() {
 					options.item[ options.action ] = options.param1;
-				}
+				};
 				break;
 
+			////////////////////////////////////////////////////
+			// Path command: circle
 			case "Circle":
-				if ( options.item !== "Path" ) return
+
+				// Init commands
+				if ( options.item !== "Path" ) return;
 
 				var pathObject;
+
+				// Record reverse action
 				this._reverseActions[ this._actionPointer ] = function() {
 					pathObject.remove();
-				}
+				};
+
+				// Record action
 				this._actions[ this._actionPointer ] = function() {
 					if ( !pathObject ) {
-						pathObject = new Path[ options.action ]( options.param1, options.param2, options.param3, options.param4 );
+						pathObject = new Path[ options.action ](	options.param1,
+																	options.param2,
+																	options.param3,
+																	options.param4 );
 						pathObject.strokeColor = new Color( 0, 0, 0, 1 );
 						return pathObject;
 					} else {
 						project.activeLayer.addChild( pathObject );
 					}
-				}
+				};
 				break;
 
+			////////////////////////////////////////////////////
+			// Import image
 			case "Import":
+
+				// Init commands
 				var importRaster = null,
 					importIndex = null;
+
+				// Record reverse action
 				this._reverseActions[ this._actionPointer ] = function() {
-				    importIndex = importRaster.index;
+					importIndex = importRaster.index;
 					importRaster.remove();
-				}
+				};
+
+				// Record action
 				this._actions[ this._actionPointer ] = function() {
 
-				    if ( importIndex === null ) importRaster = options.item.clone();
+					if ( importIndex === null ) importRaster = options.item.clone();
 					else project.activeLayer.insertChild( importIndex, importRaster );
 
 					project.deselectAll();
@@ -1637,41 +1683,59 @@ var UndoManager = Base.extend( {
 					importRaster.selected = true;
 
 					return importRaster;
-				}
+				};
 				break;
 
+			////////////////////////////////////////////////////
+			// Move item
 			case "Move":
+
+				// Record reverse action
 				this._reverseActions[ this._actionPointer ] = function() {
 					options.item.position = options.oldPosition;
-				}
+				};
+
+				// Record action
 				this._actions[ this._actionPointer ] = function() {
 					options.item.position = options.newPosition;
-				}
+				};
 				break;
 
+			////////////////////////////////////////////////////
+			// Crop item
 			case "Crop":
 				var cropSelected = null;
+
+				// Record reverse action
 				this._reverseActions[ this._actionPointer ] = function() {
 					options.oldRaster.insertAbove( options.item );
 					options.oldRaster.selected = cropSelected;
 					options.item.remove();
-				}
+				};
+
+				// Record action
 				this._actions[ this._actionPointer ] = function() {
 					options.item.insertAbove( options.oldRaster );
 					if ( cropSelected !== null ) options.item.selected = cropSelected;
 					else cropSelected = options.oldRaster.selected;
 
 					options.oldRaster.remove();
-				}
+				};
 				break;
 
+			////////////////////////////////////////////////////
+			// Select item
 			case "Select":
 				var selectSelected = null;
+
+				// Record reverse action
 				this._reverseActions[ this._actionPointer ] = function() {
 					project.deselectAll();
 
 					Base.each( selectSelected, function( item ) { item.selected = true; } );
-				}
+				};
+
+				// Record action
 				this._actions[ this._actionPointer ] = function() {
 					selectSelected = [];
 					Base.each( project.selectedItems, function( item ) {
@@ -1680,46 +1744,61 @@ var UndoManager = Base.extend( {
 					project.deselectAll();
 
 					if ( options.item ) options.item.selected = true;
-				}
+				};
 				break;
 
+			////////////////////////////////////////////////////
+			// Pick up color with pipette
 			case "Pipette":
 				var pipetteColor = null;
+
+				// Record reverse action
 				this._reverseActions[ this._actionPointer ] = function() {
 					baseCommands.setColor( pipetteColor );
-				}
+				};
 
+				// Record action
 				this._actions[ this._actionPointer ] = function() {
 					pipetteColor = baseCommands.getColor();
 					baseCommands.setColor( options.color );
-				}
+				};
 				break;
 
+			////////////////////////////////////////////////////
+			// Delete item
 			case "Delete":
 				var deleteInsertPos = null,
 					deleteSelected = null;
+
+				// Record reverse action
 				this._reverseActions[ this._actionPointer ] = function() {
 					project.activeLayer.insertChild( deleteInsertPos, options.item );
 					options.item.selected = deleteSelected;
-				}
+				};
 
+				// Record action
 				this._actions[ this._actionPointer ] = function() {
 					if ( deleteInsertPos === null ) {
 						deleteInsertPos = options.item.index;
 						deleteSelected = options.item.selected;
 					}
 					options.item.remove();
-				}
+				};
 				break;
 
+			////////////////////////////////////////////////////
+			// Clone item
 			case "Clone":
 				var cloneItem = null,
 					cloneInsertPos = null;
+
+				// Record reverse action
 				this._reverseActions[ this._actionPointer ] = function() {
 					cloneItem.remove();
 					options.item.selected = true;
-				}
+				};
 
+				// Record action
 				this._actions[ this._actionPointer ] = function() {
 					if ( cloneInsertPos === null ) {
 						cloneItem = options.item.clone();
@@ -1732,119 +1811,155 @@ var UndoManager = Base.extend( {
 					options.item.selected = false;
 
 					return cloneItem;
-				}
+				};
 				break;
 
-
+			////////////////////////////////////////////////////
+			// Rotate item
 			case "Rotate":
 				var negRotation = null;
+
+				// Record reverse action
 				this._reverseActions[ this._actionPointer ] = function() {
 					options.item.rotate( negRotation );
-				}
+				};
 
+				// Record action
 				this._actions[ this._actionPointer ] = function() {
 					if ( negRotation === null ) negRotation = -options.rotation;
 					else options.item.rotate( options.rotation );
-				}
+				};
 				break;
 
+			////////////////////////////////////////////////////
+			// Resize item
 			case "Resize":
 				var resizeBounds = null;
+
+				// Record reverse action
 				this._reverseActions[ this._actionPointer ] = function() {
 					options.item.bounds = options.bounds;
-				}
+				};
 
+				// Record action
 				this._actions[ this._actionPointer ] = function() {
 					if ( resizeBounds === null ) resizeBounds = options.item.bounds;
 					else options.item.bounds = resizeBounds;
-				}
+				};
 				break;
 
+			////////////////////////////////////////////////////
+			// Bring item to front
 			case "BringToFront":
 				var toFrontIndex = null;
+
+				// Record reverse action
 				this._reverseActions[ this._actionPointer ] = function() {
 					options.item.remove();
 					project.activeLayer.insertChild( toFrontIndex, options.item );
-				}
+				};
 
 				this._actions[ this._actionPointer ] = function() {
 					if ( toFrontIndex === null ) toFrontIndex = options.item.index;
 					options.item.bringToFront();
-				}
+				};
 				break;
 
+			////////////////////////////////////////////////////
+			// Send item to back
 			case "SendToBack":
 				var toBackIndex = null;
+
+				// Record reverse action
 				this._reverseActions[ this._actionPointer ] = function() {
 					options.item.remove();
 					project.activeLayer.insertChild( toBackIndex, options.item );
-				}
+				};
 
+				// Record action
 				this._actions[ this._actionPointer ] = function() {
 					if ( toBackIndex === null ) toBackIndex = options.item.index;
 					options.item.sendToBack();
-				}
+				};
 				break;
 
+			////////////////////////////////////////////////////
+			// Change a color quality
 			case "Colorize":
 				var colorizeItem = null;
+
+				// Record reverse action
 				this._reverseActions[ this._actionPointer ] = function() {
 					options.item.filter( options.oldValues );
 					options.item.colorizeValues = options.oldValues;
 					return options.item;
-				}
+				};
 
+				// Record action
 				this._actions[ this._actionPointer ] = function() {
 					options.item.filter( options.newValues );
 					options.item.colorizeValues = options.newValues;
 					return options.item;
-				}
+				};
 				break;
 
+			////////////////////////////////////////////////////
+			// Commit color quality changes
 			case "ColorizeCommit":
 				var colorizeItem = null,
 					colorizeIndex = null;
+
+				// Record reverse action
 				this._reverseActions[ this._actionPointer ] = function() {
 					options.item.filter( options.oldValues );
 					options.item.colorizeValues = options.oldValues;
 					return options.item;
-				}
+				};
 
+				// Record action
 				this._actions[ this._actionPointer ] = function() {
-					options.oldValues.rollback = options.item.filter( {commit: true} );
+					options.oldValues.rollback = options.item.filter( { commit: true } );
 					options.item.colorizeValues = {};
 					return options.item;
-				}
+				};
 				break;
 
+			////////////////////////////////////////////////////
+			// Resize cropper
 			case "ResizeCropper":
+
+				// Record reverse action
 				this._reverseActions[ this._actionPointer ] = function() {
-
 					options.item.set( options.oldRect );
-
 					return options.item;
-				}
+				};
 
+				// Record action
 				this._actions[ this._actionPointer ] = function() {
-
 					options.item.set( options.newRect );
-
 					return options.item;
-				}
+				};
 			break;
 		}
 
+		// Note if action should be joined with the next (will be undone together)
 		this._reverseActions[ this._actionPointer ].join = options.join;
 		this._actions[ this._actionPointer ].join = options.join;
 
-		var res = this._actions[ this._actionPointer++]();
+		// Call the action
+		var res = this._actions[ this._actionPointer++ ]();
+
+		// Shorten the actions and reverse actions array if necessary
 		this._actions.length = this._actionPointer;
 		this._reverseActions.length = this._actionPointer;
 
 		return res;
 	},
 
+	////////////////////////////////////////////////////
+	// startTransaction opens a transaction, closed with commit
 	startTransaction: function( obj ) {
+
 		// Currently only with Raster objects
 		if ( obj.getClassName() !== "Raster" ) return;
 
@@ -1853,7 +1968,10 @@ var UndoManager = Base.extend( {
 		this._transactionData.remove();
 	},
 
+	////////////////////////////////////////////////////
+	// Commit closes a transaction
 	commit: function( rect, join ) {
+
 		// Currently only with Raster objects
 		if ( !this._transactionData ) return;
 
@@ -1864,60 +1982,34 @@ var UndoManager = Base.extend( {
 			lastData = lastObj.getImageData( rect ),
 			thisData = thisObj.getImageData( rect );
 
+		// Record reverse action
 		this._reverseActions[ this._actionPointer ] = function() {
 			thisObj.setImageData( lastData, rect.topLeft );
-		}
-		this._actions[ this._actionPointer++] = function() {
-			thisObj.setImageData( thisData, rect.topLeft );
-		}
-		// Join this action with the previous ( undo/redo them together )
-		this._reverseActions[ this._actionPointer ].join = join;
-		this._actions[ this._actionPointer ].join = join;
+		};
 
-		this._actions.length = this._actionPointer;
-		this._reverseActions.length = this._actionPointer;
-	},
-
-	startTransaction: function( obj ) {
-		// Currently only with Raster objects
-		if ( obj.getClassName() !== "Raster" ) return;
-
-		this._transactionObject = obj;
-		this._transactionData = obj.getSubRaster( new Point( 0, 0 ), obj.size );
-		this._transactionData.remove();
-	},
-
-	commit: function( rect, join ) {
-		// Currently only with Raster objects
-		if ( !this._transactionData ) return;
-
-		rect = rect || this._transactionObject.bounds;
-
-		var lastObj = this._transactionData,
-			thisObj = this._transactionObject,
-			lastData = lastObj.getImageData( rect ),
-			thisData = thisObj.getImageData( rect );
-
-		this._reverseActions[ this._actionPointer ] = function() {
-			thisObj.setImageData( lastData, rect.topLeft );
-		}
+		// Record action
 		this._actions[ this._actionPointer ] = function() {
 			thisObj.setImageData( thisData, rect.topLeft );
-		}
+		};
 
-		// join this action with the previous ( undo/redo them together )
+		// Note if action should be joined with the next (will be undone together)
 		this._reverseActions[ this._actionPointer ].join = join;
 		this._actions[ this._actionPointer ].join = join;
 
 		this._actionPointer++;
 
+		// Shorten the actions and reverse actions array if necessary
 		this._actions.length = this._actionPointer;
 		this._reverseActions.length = this._actionPointer;
 	},
 
+	////////////////////////////////////////////////////
+	// Undo action
 	undo: function() {
 		if ( this._actionPointer > 0 ) {
 			this._actionPointer--;
+
+			// Play reverse action
 			var item = this._reverseActions[ this._actionPointer ]();
 			$( "#page-paper" ).trigger( "undoUpdate", item );
 
@@ -1925,14 +2017,21 @@ var UndoManager = Base.extend( {
 		}
 	},
 
+	////////////////////////////////////////////////////
+	// Redo action
 	redo: function() {
 		if ( this._actionPointer < this._actions.length ) {
-			var item = this._actions[ this._actionPointer++]();
+
+			// Play action
+			var item = this._actions[ this._actionPointer++ ]();
 			$( "#page-paper" ).trigger( "redoUpdate", item );
 
-			if ( this._actionPointer < this._actions.length && this._actions[ this._actionPointer ].join ) this.redo();
+			if ( this._actionPointer < this._actions.length &&
+					this._actions[ this._actionPointer ].join ) {
+				this.redo();
+			}
 		}
-	},
+	}
 } );
 
 /////////////////////////////////////////////////////////////
@@ -2126,11 +2225,11 @@ function onMouseDrag( event ) {
 
 	if ( grabPoint ) {
 		function getSpPoint( A, B, C ){
-		    var x1 = A.x, y1 = A.y, x2 = B.x, y2 = B.y, x3 = C.x, y3 = C.y;
-		    var px = x2-x1, py = y2-y1, dAB = px * px + py * py;
-		    var u = ( ( x3 - x1 ) * px + ( y3 - y1 ) * py ) / dAB;
-		    var x = x1 + u * px, y = y1 + u * py;
-		    return {x:x, y:y}; //this is D
+			var x1 = A.x, y1 = A.y, x2 = B.x, y2 = B.y, x3 = C.x, y3 = C.y;
+			var px = x2-x1, py = y2-y1, dAB = px * px + py * py;
+			var u = ( ( x3 - x1 ) * px + ( y3 - y1 ) * py ) / dAB;
+			var x = x1 + u * px, y = y1 + u * py;
+			return {x:x, y:y}; //this is D
 		}
 
 		var b = grabPoint.item.bounds;
