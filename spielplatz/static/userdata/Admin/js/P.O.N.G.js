@@ -217,13 +217,17 @@ Warten.keyPressed = function() {
 var Spielfeld = SpielSzene.addLayer(0,{},{
         Tooor: getSound("Spielplatz/Schlagzeug") // #14 Sound der bei Tor
     });
+    
+Spielfeld.init = function() {
+    Spielfeld.Torhöhe = 100;
+};
 
 Spielfeld.draw = function(isPaused) {
     noStroke();
     fill(245, 108, 108);    // #15 linkes Tor Farbe und Rechteck
-    rect(5,200,10,200);
+    rect(5,200,10,Spielfeld.Torhöhe);
     fill(132, 163, 201);    // #16 rechtes Tor Farbe und Rechteck
-    rect(395,200,10,200);
+    rect(395,200,10,Spielfeld.Torhöhe);
 
     textSize(240);           
     fill(245, 108, 108, 25);    // #17 Punktanzeige links
@@ -231,7 +235,8 @@ Spielfeld.draw = function(isPaused) {
     fill(132, 163, 201, 25);    // #18 Punktanzeige rechts
     text(SpielSzene.PunkteFred, 300, 200);
 
-    if( !isPaused && Figuren.by > 100 && Figuren.by < 300 ) {
+    if( !isPaused && Figuren.by > 200-Spielfeld.Torhöhe/2 && 
+        Figuren.by < 200+Spielfeld.Torhöhe/2 ) {
         if( Figuren.bx < Figuren.BallGr/2 + 5 ) {
             Tooor.show("Fred");
             SpielSzene.PunkteFred++;
@@ -351,7 +356,7 @@ var Figuren = SpielSzene.addLayer(1,{
                 getImage("Spielplatz/Rob_cool"),
                 getImage("Spielplatz/Rob_cool"),
                 getImage("Spielplatz/Rob_cool")],
-        Ball: getImage("Spielplatz/BlauerBall"),        // #26 Ball
+        Ball: getImage("Spielplatz/Jupiter"),        // #26 Ball
     },{
         Tock: getSound("Spielplatz/Glas"),      // #27 Sound für Ball
     });
@@ -368,7 +373,7 @@ Figuren.init = function() {
     Figuren.dY2 = 0;
     Figuren.dYMax = 20;
     Figuren.KreisGr = 80;   // #30 Größe der Spieler-Kreise 
-    Figuren.BallGr = 30;    // #31 Ball-Größe
+    Figuren.BallGr = 22;    // #31 Ball-Größe
     Figuren.BumperGr = 120; // #32 Durchmesser der Bumper
     Figuren.BumperOffset = 30;  // #33 Position der Bumper
     Figuren.CollisionTime = 0;
@@ -441,34 +446,30 @@ Figuren.keyPressed = function() {
     switch(key.code) {
         case 65: 
         case 97: 
+            Figuren.dY1 -= 6;
             if( Figuren.dY1 > Figuren.dYMax ) {
                 Figuren.dY1 = -Figuren.dY1;
-            } else {
-                Figuren.dY1 -= 6;
             }
             break;
         case 89: 
         case 121: 
+            Figuren.dY1 += 6;
             if( Figuren.dY1 < -Figuren.dYMax ) {
                 Figuren.dY1 = -Figuren.dY1;
-            } else {
-                Figuren.dY1 += 6;
             }
             break;
         case 80: 
         case 112: 
+            Figuren.dY2 -= 6;
             if( Figuren.dY2 > Figuren.dYMax ) {
                 Figuren.dY2 = -Figuren.dY2;
-            } else {
-                Figuren.dY2 -= 6;
             }
             break;
         case 76: 
         case 108: 
+            Figuren.dY2 += 6;
             if( Figuren.dY2 < -Figuren.dYMax ) {
                 Figuren.dY2 = -Figuren.dY2;
-            } else {
-                Figuren.dY2 += 6;
             }
             break;
     }
@@ -484,7 +485,7 @@ Figuren.collide = function(x, y, dy, größe) {
 
     var d = dist( Figuren.bx, Figuren.by, x, y+dy );
     
-    if( d < minDist ) {
+    if( d <= minDist ) {
         
         var bx = Figuren.bx,
             by = Figuren.by,
@@ -501,8 +502,8 @@ Figuren.collide = function(x, y, dy, größe) {
         Figuren.dBx = cos(neuerWinkel) * geschw;
         Figuren.dBy = sin(neuerWinkel) * geschw;
         
-        Figuren.bx = bx + Figuren.dBx * overlapFactor;
-        Figuren.by = by + Figuren.dBy * overlapFactor;
+        Figuren.bx = bx + Figuren.dBx * overlapFactor * 1.2;
+        Figuren.by = by + Figuren.dBy * overlapFactor * 1.2;
 
         playSound(Figuren.sounds.Tock);
     }
