@@ -2,10 +2,21 @@
 Image Editor (Grafik & Animation)
 #################################
 
-- Bilder von Festplatte / Internet laden
-- Hintergrund für rechte Seite mit paperjs
-- undo für Cropper
+- Neuer Ordner Dialog
 - Tastatur-Kommandos
+
+Live-Editor (Programmieren)
+###########################
+
+- Umstellung auf 640/720 x 400
+- Verschiedene Plugins vorbereiten (neuer Live-Editor (HTML, SQL), Paper.js, go, ruby)
+
+
+Sound Editor
+############
+sic Hall
+cocos sound library
+Hall, Compression, eq-editor equalizer
 
 Programm veröffentlichen
 ########################
@@ -28,6 +39,13 @@ Mit Admin-Funktionen:
 - Gruppen verwalten
 - Benutzer verwalten
 - Programm präsentieren
+
+Login/Signup
+############
+
+- Bei Login auch Signup ermöglichen
+- Remember me-Funktion
+
 
 Testen
 ######

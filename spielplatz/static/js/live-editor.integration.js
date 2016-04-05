@@ -42,24 +42,13 @@ if( !TooltipEngine.classes.imagePicker.prototype.defaultImage )
 TooltipEngine.classes.imagePicker.prototype.defaultImage = "Spielplatz/Leer";
 
 ///////////////////////////////////////////////////////////
-// Bugfix: Oh noes timing
+// Deactivate maybeShowErrors
 //
 if( !window.LiveEditor.prototype.maybeShowErrors ) 
 	console.error( errMsg + "maybeShowErrors method is not available." );
 window.LiveEditor.prototype.maybeShowErrors = function maybeShowErrors() {
 
-	if (!this.hasErrors() || !this.editor || !this.editor.getCursor()) {
-		return;
-	}
-
-	this.setThinkingState();
-	// Make doubly sure that we clear the timeout
-	window.clearTimeout(this.errorTimeout);
-	this.errorTimeout = setTimeout((function () {
-		if (this.hasErrors()) {
-			this.setErrorState();
-		}
-	}).bind(this), 60000);
+	return;
 };
 
 

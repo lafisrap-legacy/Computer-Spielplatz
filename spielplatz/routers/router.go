@@ -68,7 +68,6 @@ func loadLanguages() {
 			beego.Error("Error parsing config file", err.Error())
 		}
 
-		beego.Trace(t)
 		tLanguages[lang] = t
 	}
 
