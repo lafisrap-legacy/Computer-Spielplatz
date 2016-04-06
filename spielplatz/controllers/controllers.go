@@ -452,7 +452,6 @@ func (c *CPGController) getImageInfo(userName string) string {
 					break
 				}
 			}
-			beego.Trace("XXXXXXXXXXXXXXXXXXXXXX", admin, folder, examples)
 			if !admin && folder == examples {
 				readonly = true
 			}

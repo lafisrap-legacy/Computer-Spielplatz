@@ -162,7 +162,7 @@ var translations = {
 	"MODE: Either CENTER, CORNERS, or CORNER. The default is CORNER.":
 		"MODE: Der Modus, entweder CORNER (linke, obere Ecke), CORNERS (zwei Punkte), CENTER (Mittelpunkt)",
 	"Evaluates the Bezier at point t for points a, b, c, d. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the location of a bezier curve at t.":
-		"Bestimmt den Bezier-Wert an Punkt t für die Punkte a, b, c, d. Der Parameter t bewegt sich zwischen 0 und 1, a und d sind der Anfangs- und der Endpunkt auf der Kurve und b und c sind Kontrollpunkte. Mit der Funktion kann man einmal die x-Koordinaten bestimmen und einmal die y-Koordinaten."
+		"Bestimmt den Bezier-Wert an Punkt t für die Punkte a, b, c, d. Der Parameter t bewegt sich zwischen 0 und 1, a und d sind der Anfangs- und der Endpunkt auf der Kurve und b und c sind Kontrollpunkte. Mit der Funktion kann man einmal die x-Koordinate bestimmen und einmal die y-Koordinate."
 	"a: coordinate of first point on the curve":
 		"a: Koordinate des ersten Punkts auf der Kurve",
 	"b: coordinate of first control point":
@@ -186,70 +186,133 @@ var translations = {
 	"t: value between 0 and 1":
 		"t: Wert zwischen 0 und 1",
 	"Used in conjunction with beginShape() and endShape() to draw shapes with bezier curves for sides. Each call to bezierVertex() defines the position of two control points and one anchor point of a Bezier curve, adding a new segment to a line or shape. The first time bezierVertex() is used within a beginShape() call, it must be prefaced with a call to vertex() to set the first anchor point. When using this function, do *not* specify a mode in beginShape().":
-		"Wird zusammen mit beginShape() und endShape() verwendet, um Figuren mit bezier-Kurven zu zeichnen. Jeder Aufrufe von bezierVertex() fügt zwei Kontrollpunkte und einen Ankerpunkt zu der Bezier-Kurve hinzu. "
-	"cx1: The x-coordinate of 1st control point":null,
-	"cy1: The y-coordinate of 1st control point":null,
-	"cx2: The x-coordinate of 2nd control point":null,
-	"cy2: The y-coordinate of 2nd control point":null,
-	"x: The x-coordinate of anchor point":null,
-	"y: The y-coordinate of anchor point":null,
-	"Draws a curved line on the screen. The first and second parameters specify the first anchor point and the last two parameters specify the second anchor. The middle parameters specify the points for defining the shape of the curve. Longer curves can be created by putting a series of curve() functions together. An additional function called curveTightness() provides control for the visual quality of the curve. The curve() function is an implementation of Catmull-Rom splines.":null,
-	"x1: the x coordinate of first anchor point":null,
-	"y1: the y coordinate of first anchor point":null,
-	"x2: the x coordinate of first point":null,
-	"y2: the y coordinate of first point":null,
-	"x3: the x coordinate of second point":null,
-	"y3: the y coordinate of second point":null,
-	"x4: the x coordinate of second anchor point":null,
-	"y4: the y coordinate of second anchor point":null,
-	"Evalutes the curve at point t for points a, b, c, d. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the location of a curve at t.":null,
-	"a: the coordinate of the first point":null,
-	"b: the coordinate of the first control point":null,
-	"c: the coordinate of the second point":null,
-	"d: the coordinate of the second point":null,
-	"t: the a value between 0 and 1":null,
-	"Calculates the tangent at a point the curve. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the tangent of a curve at t.":null,
-	"a: the coordinate of the first point":null,
-	"b: the coordinate of the first control point":null,
-	"c: the coordinate of the second point":null,
-	"d: the coordinate of the second point":null,
-	"t: the a value between 0 and 1":null,
-	"Modifies the quality of forms created with curve() and curveVertex(). The tightness parameter determines how the curve fits to the vertex points.":null,
-	"tightness: amount of deformation from the original vertices":null,
-	"Used in conjunction with beginShape() and endShape() to draw shapes with bezier curves for sides. The first and last points in a series of curveVertex() lines will be used to guide the beginning and end of a the curve.":null,
-	"x: the x-coordinate of the vertex":null,
-	"y: the y-coordinate of the vertex":null,
-	"Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().  Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().":null,
-	"MODE: (Optional) Shape mode. Either POINTS, LINES, TRIANGLES, TRIANGLE_FAN, TRIANGLE_STRIP, QUADS, and QUAD_STRIP":null,
-	"Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().  Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().":null,
-	"MODE: (Optional) Specify CLOSE to close the shape.":null,
-	"Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().  Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().":null,
-	"x: the x-coordinate of the vertex":null,
-	"y: the y-coordinate of the vertex":null,
+		"Wird zusammen mit beginShape() und endShape() verwendet, um Figuren mit bezier-Kurven zu zeichnen. Jeder Aufrufe von bezierVertex() fügt zwei Kontrollpunkte und einen Ankerpunkt zu der Bezier-Kurve hinzu."
+	"cx1: The x-coordinate of 1st control point":
+		"cx1: Die x-Koordinate des ersten Kontrollpunkts",
+	"cy1: The y-coordinate of 1st control point":
+		"cy1: Die y-Koordinate des ersten Kontrollpunkts",
+	"cx2: The x-coordinate of 2nd control point":
+		"cx2: Die x-Koordinate des zweiten Kontrollpunkts",
+	"cy2: The y-coordinate of 2nd control point":
+		"cy2: Die y-Koordinate des zweiten Kontrollpunkts",
+	"x: The x-coordinate of anchor point":
+		"x: Die x-Koordinate des Ankerpunkts",
+	"y: The y-coordinate of anchor point":
+		"y: Die y-Koordinate des Ankerpunkts",
+	"Draws a curved line on the screen. The first and second parameters specify the first anchor point and the last two parameters specify the second anchor. The middle parameters specify the points for defining the shape of the curve. Longer curves can be created by putting a series of curve() functions together. An additional function called curveTightness() provides control for the visual quality of the curve. The curve() function is an implementation of Catmull-Rom splines.":
+		"Zeichnet eine Kurve auf die Leinwand. Die ersten beiden Parameter bestimmen den ersten Ankerpunkt und die letzten beiden den zweiten. Die mittleren Parameter bestimmen die die Form der Kurve. Längere Kurven können erzeugt werden, indem man mehrere curve() functionen aneinanderreiht. Mit curveTightness() kann man das Aussehen der Kurve verändern. Die curve()-funktion implementiert die Catmull-Rom Splines.",
+	"x1: the x coordinate of first anchor point":
+		"x1: Die x-Koordinate des ersten Ankerpunkts",
+	"y1: the y coordinate of first anchor point":
+		"y1: Die y-Koordinate des ersten Ankerpunkts",
+	"x2: the x coordinate of first point":
+		"x2: Die x-Koordinate des ersten Punkts",
+	"y2: the y coordinate of first point":
+		"y2: Die y-Koordinate des ersten Punkts",
+	"x3: the x coordinate of second point":
+		"x3: Die x-Koordinate des zweiten Punkts",
+	"y3: the y coordinate of second point":
+		"y3: Die y-Koordinate des zweiten Punkts",
+	"x4: the x coordinate of second anchor point":
+		"x4: Die x-Koordinate des zweiten Ankerpunkts",
+	"y4: the y coordinate of second anchor point":
+		"y4: Die y-Koordinate des zweiten Ankerpunkts",
+	"Evalutes the curve at point t for points a, b, c, d. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the location of a curve at t."
+		"Bestimmt die Koordinate an Punkt t für die Punkte a, b, c, d. Der Parameter t bewegt sich zwischen 0 und 1, a und d sind die Punkte auf der Kurve und b und c sind Kontrollpunkte. Mit der Funktion kann man einmal die x-Koordinate bestimmen und einmal die y-Koordinate."
+	"a: the coordinate of the first point":
+		"a: Die Koordinate des ersten Punkts",
+	"b: the coordinate of the first control point":
+		"b: Die Koordinate des ersten Kontrollpunkts",
+	"c: the coordinate of the second point":
+		"c: Die Koordinate des zweiten Kontrollpunkts",
+	"d: the coordinate of the second point":
+		"d: Die Koordinate des zweiten Punkts",
+	"t: the a value between 0 and 1":
+		"t: Wert zwischen 0 und 1",
+	"Calculates the tangent at a point the curve. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the tangent of a curve at t.":
+		"Berechnet die Tangente eines Punkts auf einer Kurve. Der Parameter t bewegt sich zwischen 0 und 1, a und d sind der Anfangs- und der Endpunkt auf der Kurve und b und c sind Kontrollpunkte. Mit der Funktion kann man einmal den Tangentwert der x-Koordinaten bestimmen und einmal den der y-Koordinaten. Mit atan2() kann man dann aus x und y einen Winkel berechnen.",
+	"a: the coordinate of the first point":
+		"a: Koordinate des ersten Punkts auf der Kurve",
+	"b: the coordinate of the first control point":
+		"b: Koordinate des ersten Kontrollpunkts",
+	"c: the coordinate of the second point":
+		"c: Koordinate des zweiten Kontrollpunkts",
+	"d: the coordinate of the second point":
+		"d: Koordinate des zweiten Punkts auf der Kurve",
+	"t: the a value between 0 and 1":
+		"t: Wert zwischen 0 und 1",
+	"Modifies the quality of forms created with curve() and curveVertex(). The tightness parameter determines how the curve fits to the vertex points.":
+		"Verändert die Qualität den Formen, die mit curve() und curveVertex() gezeichnet werden. Der tightness-Parameter bestimmt wie die Kurve an die Vertext-Punkte (x/y-Koordinaten-Paar) angepasst wird.",
+	"tightness: amount of deformation from the original vertices":
+		"tightness: Grad der Deformation der Ausgangspunkte",
+	"Used in conjunction with beginShape() and endShape() to draw shapes with bezier curves for sides. The first and last points in a series of curveVertex() lines will be used to guide the beginning and end of a the curve.":
+		"Wird zusammen mit beginShape() und endShape() verwendet, um Formen mit Kurven zu zeichnen. Der erste und letzte Punkt einer Serie von curveVertex() Linien wird als Anfang und Ende der Kurve verwendet.",
+	"x: the x-coordinate of the vertex":
+		"x: Die x-Koordinate des Koordinaten-Paars",
+	"y: the y-coordinate of the vertex":
+		"y: Die y-Koordinate des Koordinaten-Paars",
+	"Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().  Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().":
+		"beginShape() und endShape() werden verwendet, um komplexere Formen zu erzeugen. Um solch eine Form zu beginnen, rufe beginShape() auf, dann verwende die vertex()-Funktion so oft du willst und dann rufe endShape() auf. Standardmäßig wird ein irreguläres Polygon erzeugt, aber du kannst das durch Wählen eines Modus (mode) ändern. Transformationen wie translate(), rotate() und scale() funktionieren nicht innerhalb von beginShape() / endShape(). Es ist auch nicht möglich, andere Formen zu verwenden wie ellipse() oder rect().",
+	"MODE: (Optional) Shape mode. Either POINTS, LINES, TRIANGLES, TRIANGLE_FAN, TRIANGLE_STRIP, QUADS, and QUAD_STRIP":
+		"MODE: (optional) Form-Modus. Entweder POINTS, LINES, TRIANGLES, TRIANGLE_FAN, TRIANGLE_STRIP, QUADS, and QUAD_STRIP",
+	"Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().  Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().":
+		"beginShape() und endShape() werden verwendet, um komplexere Formen zu erzeugen. Um solch eine Form zu beginnen, rufe beginShape() auf, dann verwende die vertex()-Funktion so oft du willst und dann rufe endShape() auf. Standardmäßig wird ein irreguläres Polygon erzeugt, aber du kannst das durch Wählen eines Modus (mode) ändern. Transformationen wie translate(), rotate() und scale() funktionieren nicht innerhalb von beginShape() / endShape(). Es ist auch nicht möglich, andere Formen zu verwenden wie ellipse() oder rect().",
+	"MODE: (Optional) Specify CLOSE to close the shape.":
+		"MODE: (optional) Wähle CLOSE um eine Form abzuschließen.",
+	"Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().  Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().":
+		"beginShape() und endShape() werden verwendet, um komplexere Formen zu erzeugen. Um solch eine Form zu beginnen, rufe beginShape() auf, dann verwende die vertex()-Funktion so oft du willst und dann rufe endShape() auf. Standardmäßig wird ein irreguläres Polygon erzeugt, aber du kannst das durch Wählen eines Modus (mode) ändern. Transformationen wie translate(), rotate() und scale() funktionieren nicht innerhalb von beginShape() / endShape(). Es ist auch nicht möglich, andere Formen zu verwenden wie ellipse() oder rect().",
+	"x: the x-coordinate of the vertex":
+		"x: Die x-Koordinate des Koordinaten-Paars",
+	"y: the y-coordinate of the vertex":
+		"y: Die y-Koordinate des Koordinaten-Paars",
 	"Sets the background color of the canvas. Note that calling this will color over anything drawn before the command.":null,
-	"r: amount of red, ranges from 0 to 255":null,
-	"g: amount of green, ranges from 0 to 255":null,
-	"b: amount of blue, ranges from 0 to 255":null,
-	"a: (Optional) transparency, ranges from 0 to 255":null,
-	"Sets the fill color for all shapes drawn after the function call.":null,
-	"r: amount of red, ranges from 0 to 255":null,
-	"g: amount of green, ranges from 0 to 255":null,
-	"b: amount of blue, ranges from 0 to 255":null,
-	"a: (Optional) transparency, ranges from 0 to 255":null,
-	"Sets the outline color for all shapes drawn after the function call.":null,
-	"r: amount of red, ranges from 0 to 255":null,
-	"g: amount of green, ranges from 0 to 255":null,
-	"b: amount of blue, ranges from 0 to 255":null,
-	"a: (Optional) transparency, ranges from 0 to 255":null,
-	"This function lets you store all three color components in a single variable. You can then pass that one variable to functions like background(), stroke(), and fill().":null,
-	"r: amount of red, ranges from 0 to 255":null,
-	"g: amount of green, ranges from 0 to 255":null,
-	"b: amount of blue, ranges from 0 to 255":null,
-	"a: (Optional) transparency, ranges from 0 to 255":null,
-	"Makes all shapes drawn after this function call transparent.":null,
-	"Disables outlines for all shapes drawn after the function call.":null,
-	"Sets the thickness of all lines and outlines drawn after the function call.":null,
-	"thickness: a number specifying the thickness":null,
+		"Setzt die Hintergrund-Farbe der Leinwand (canvas). Beachte, dass diese Funktion alles übermalen wird, was vorher auf der Leinwand war.",
+	"r: amount of red, ranges from 0 to 255":
+		"r: Rot-Wert, zwischen 0 und 255",
+	"g: amount of green, ranges from 0 to 255":
+		"g: Grün-Wert, zwischen 0 und 255",
+	"b: amount of blue, ranges from 0 to 255":
+		"b: Blau-Wert, zwischen 0 und 255",
+	"a: (Optional) transparency, ranges from 0 to 255":
+		"a: (optional) Deckkraft, von 0 (transparent) bis 255 (undurchsichtig)",
+	"Sets the fill color for all shapes drawn after the function call.":
+		"Bestimmt die Füllfarbe für alle danach gezeichneten Formen.",
+	"r: amount of red, ranges from 0 to 255":
+		"r: Rot-Wert, zwischen 0 und 255",
+	"g: amount of green, ranges from 0 to 255":
+		"g: Grün-Wert, zwischen 0 und 255",
+	"b: amount of blue, ranges from 0 to 255":
+		"b: Blau-Wert, zwischen 0 und 255",
+	"a: (Optional) transparency, ranges from 0 to 255":
+		"a: (optional) Deckkraft, von 0 (transparent) bis 255 (undurchsichtig)",
+	"Sets the outline color for all shapes drawn after the function call.":
+		"Bestimmt die Randfarbe für alle danach gezeichneten Formen.",
+	"r: amount of red, ranges from 0 to 255":
+		"r: Rot-Wert, zwischen 0 und 255",
+	"g: amount of green, ranges from 0 to 255":
+		"g: Grün-Wert, zwischen 0 und 255",
+	"b: amount of blue, ranges from 0 to 255":
+		"b: Blau-Wert, zwischen 0 und 255",
+	"a: (Optional) transparency, ranges from 0 to 255":
+		"a: (optional) Deckkraft, von 0 (transparent) bis 255 (undurchsichtig)",
+	"This function lets you store all three color components in a single variable. You can then pass that one variable to functions like background(), stroke(), and fill().":
+		"Mit dieser Funktion kannst du drei Farbkomponenten (r, g, b) in einer einzelnen Variablen speichern. Du kannst die Variable dann an Funktionen wie background(), stroke() oder fill() übergeben.",
+	"r: amount of red, ranges from 0 to 255":
+		"r: Rot-Wert, zwischen 0 und 255",
+	"g: amount of green, ranges from 0 to 255":
+		"g: Grün-Wert, zwischen 0 und 255",
+	"b: amount of blue, ranges from 0 to 255":
+		"b: Blau-Wert, zwischen 0 und 255",
+	"a: (Optional) transparency, ranges from 0 to 255":
+		"a: (optional) Deckkraft, von 0 (transparent) bis 255 (undurchsichtig)",
+	"Makes all shapes drawn after this function call transparent.":
+		"macht alle Formen, die danach gezeichnet werden, transparent.",
+	"Disables outlines for all shapes drawn after the function call.":
+		"macht alle Umrandungen von Formen, die danach gezeichnet werden, transparent.",
+	"Sets the thickness of all lines and outlines drawn after the function call.":
+		"setzt die Dicke aller Linien und Umrandungen, die nach dem Funktionsaufruf gezeichnet werden."
+	"thickness: a number specifying the thickness":
+		"thickness: Dicke in einzelnen Pixeln (Bildpunkten)",
 	"Sets the style of the joints which connect line segments drawn with vertex(). These joints are either mitered, beveled, or rounded and specified with the corresponding parameters MITER, BEVEL, and ROUND.":null,
 	"MODE: Either MITER, BEVEL, or ROUND. The default is MITER.":null,
 	"Sets the style for rendering line endings. These ends are either squared, extended, or rounded and specified with the corresponding parameters SQUARE, PROJECT, and ROUND.":null,
