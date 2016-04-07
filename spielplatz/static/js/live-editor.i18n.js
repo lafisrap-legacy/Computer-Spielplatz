@@ -34,7 +34,8 @@ var translations = {
 
 	///////////////////////////////////////
 	// Translations for mouse over hints
-	"keyword":null,
+	"keyword":
+"",
 	"function":"Funktion",
 	"Draws a rectangle, using the first two coordinates as the top left corner and the last two as the width/height. For alternate ways to position, see rectMode.":
 		"Zeichnet ein Rechteck, wobei die ersten beiden Koordinaten die linke obere Ecke bezeichnen und die beiden anderen die Breite und die Höhe. Um die Position zu ändern, siehe rectMode().",
@@ -162,7 +163,7 @@ var translations = {
 	"MODE: Either CENTER, CORNERS, or CORNER. The default is CORNER.":
 		"MODE: Der Modus, entweder CORNER (linke, obere Ecke), CORNERS (zwei Punkte), CENTER (Mittelpunkt)",
 	"Evaluates the Bezier at point t for points a, b, c, d. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the location of a bezier curve at t.":
-		"Bestimmt den Bezier-Wert an Punkt t für die Punkte a, b, c, d. Der Parameter t bewegt sich zwischen 0 und 1, a und d sind der Anfangs- und der Endpunkt auf der Kurve und b und c sind Kontrollpunkte. Mit der Funktion kann man einmal die x-Koordinate bestimmen und einmal die y-Koordinate."
+		"Bestimmt den Bezier-Wert an Punkt t für die Punkte a, b, c, d. Der Parameter t bewegt sich zwischen 0 und 1, a und d sind der Anfangs- und der Endpunkt auf der Kurve und b und c sind Kontrollpunkte. Mit der Funktion kann man einmal die x-Koordinate bestimmen und einmal die y-Koordinate.",
 	"a: coordinate of first point on the curve":
 		"a: Koordinate des ersten Punkts auf der Kurve",
 	"b: coordinate of first control point":
@@ -186,7 +187,7 @@ var translations = {
 	"t: value between 0 and 1":
 		"t: Wert zwischen 0 und 1",
 	"Used in conjunction with beginShape() and endShape() to draw shapes with bezier curves for sides. Each call to bezierVertex() defines the position of two control points and one anchor point of a Bezier curve, adding a new segment to a line or shape. The first time bezierVertex() is used within a beginShape() call, it must be prefaced with a call to vertex() to set the first anchor point. When using this function, do *not* specify a mode in beginShape().":
-		"Wird zusammen mit beginShape() und endShape() verwendet, um Figuren mit bezier-Kurven zu zeichnen. Jeder Aufrufe von bezierVertex() fügt zwei Kontrollpunkte und einen Ankerpunkt zu der Bezier-Kurve hinzu."
+		"Wird zusammen mit beginShape() und endShape() verwendet, um Figuren mit bezier-Kurven zu zeichnen. Jeder Aufrufe von bezierVertex() fügt zwei Kontrollpunkte und einen Ankerpunkt zu der Bezier-Kurve hinzu.",
 	"cx1: The x-coordinate of 1st control point":
 		"cx1: Die x-Koordinate des ersten Kontrollpunkts",
 	"cy1: The y-coordinate of 1st control point":
@@ -217,8 +218,8 @@ var translations = {
 		"x4: Die x-Koordinate des zweiten Ankerpunkts",
 	"y4: the y coordinate of second anchor point":
 		"y4: Die y-Koordinate des zweiten Ankerpunkts",
-	"Evalutes the curve at point t for points a, b, c, d. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the location of a curve at t."
-		"Bestimmt die Koordinate an Punkt t für die Punkte a, b, c, d. Der Parameter t bewegt sich zwischen 0 und 1, a und d sind die Punkte auf der Kurve und b und c sind Kontrollpunkte. Mit der Funktion kann man einmal die x-Koordinate bestimmen und einmal die y-Koordinate."
+	"Evalutes the curve at point t for points a, b, c, d. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the location of a curve at t.":
+		"Bestimmt die Koordinate an Punkt t für die Punkte a, b, c, d. Der Parameter t bewegt sich zwischen 0 und 1, a und d sind die Punkte auf der Kurve und b und c sind Kontrollpunkte. Mit der Funktion kann man einmal die x-Koordinate bestimmen und einmal die y-Koordinate.",
 	"a: the coordinate of the first point":
 		"a: Die Koordinate des ersten Punkts",
 	"b: the coordinate of the first control point":
@@ -265,7 +266,7 @@ var translations = {
 		"x: Die x-Koordinate des Koordinaten-Paars",
 	"y: the y-coordinate of the vertex":
 		"y: Die y-Koordinate des Koordinaten-Paars",
-	"Sets the background color of the canvas. Note that calling this will color over anything drawn before the command.":null,
+	"Sets the background color of the canvas. Note that calling this will color over anything drawn before the command.":
 		"Setzt die Hintergrund-Farbe der Leinwand (canvas). Beachte, dass diese Funktion alles übermalen wird, was vorher auf der Leinwand war.",
 	"r: amount of red, ranges from 0 to 255":
 		"r: Rot-Wert, zwischen 0 und 255",
@@ -310,173 +311,337 @@ var translations = {
 	"Disables outlines for all shapes drawn after the function call.":
 		"macht alle Umrandungen von Formen, die danach gezeichnet werden, transparent.",
 	"Sets the thickness of all lines and outlines drawn after the function call.":
-		"setzt die Dicke aller Linien und Umrandungen, die nach dem Funktionsaufruf gezeichnet werden."
+		"setzt die Dicke aller Linien und Umrandungen, die nach dem Funktionsaufruf gezeichnet werden.",
 	"thickness: a number specifying the thickness":
 		"thickness: Dicke in einzelnen Pixeln (Bildpunkten)",
-	"Sets the style of the joints which connect line segments drawn with vertex(). These joints are either mitered, beveled, or rounded and specified with the corresponding parameters MITER, BEVEL, and ROUND.":null,
-	"MODE: Either MITER, BEVEL, or ROUND. The default is MITER.":null,
-	"Sets the style for rendering line endings. These ends are either squared, extended, or rounded and specified with the corresponding parameters SQUARE, PROJECT, and ROUND.":null,
-	"MODE: Either SQUARE, PROJECT, or ROUND. The default is ROUND":null,
-	"Blends two color values together based on the blending mode given as the MODE parameter.":null,
-	"c1: The first color to blend":null,
-	"c2: The second color to blend":null,
-	"MODE: Either BLEND, ADD, SUBTRACT, DARKEST, LIGHTEST, DIFFERENCE, EXCLUSION, MULTIPLY, SCREEN, OVERLAY, HARD_LIGHT, SOFT_LIGHT, DODGE, or BURN.":null,
-	"Calculates a color or colors between two color at a specific increment. The amount parameter is the amount to interpolate between the two values where 0.0 equal to the first point, 0.1 is very near the first point, 0.5 is half-way in between, etc.":null,
-	"c1: Interpolate from this color":null,
-	"c2: Interpolate to this color":null,
-	"Changes the way that color values are interpreted when set by fill()/stroke()/background().":null,
-	"MODE: Either RGB or HSB. The default is RGB.":null,
-	"Extracts the red value from a color, scaled to match current colorMode().":null,
-	"color: Any color data type":null,
-	"Extracts the green value from a color, scaled to match current colorMode().":null,
-	"color: Any color data type":null,
-	"Extracts the blue value from a color, scaled to match current colorMode().":null,
-	"color: Any color data type":null,
-	"Extracts the alpha value from a color.":null,
-	"color: Any color data type":null,
-	"Extracts the hue value from a color.":null,
-	"color: Any color data type":null,
-	"Extracts the saturation value from a color.":null,
-	"color: Any color data type":null,
-	"Extracts the brightness value from a color.":null,
-	"color: Any color data type":null,
-	"Draws a string of text at the specified location":null,
-	"message: the string of text to display":null,
-	"x: the x-coordinate of the bottom left corner":null,
-	"y: the y-coordinate of the bottom left corner":null,
-	"width: (Optional) the width of the box for text to auto wrap inside":null,
-	"height: (Optional) the height of the box for text to auto wrap inside":null,
-	"Using textFont() with createFont(), it's possible to change the font of text drawn.":null,
-	"font: A font returned by the createFont function":null,
-	"size: (Optional) The size of the font, in pixels":null,
-	"Using textFont() with createFont(), it's possible to change the font of text drawn.":null,
-	"name: A font name, either \"sans-serif\", \"serif\", \"monospace\", \"fantasy\", or \"cursive\"":null,
-	"size: (Optional) The size of the font, in pixels":null,
-	"Changes the size of text being drawn.":null,
-	"size: The size of the text, in pixels":null,
-	"Calculates and returns the width of any string.":null,
-	"str: The string to calculate the width of":null,
-	"Returns the ascent of the current font at its current size. This information is useful for determining the height of the font above the baseline. For example, adding the textAscent() and textDescent() values will give you the total height of the line.":null,
-	"Returns descent of the current font at its current size. This information is useful for determining the height of the font below the baseline. For example, adding the textAscent() and textDescent() values will give you the total height of the line.":null,
-	"Sets the spacing between lines of text in units of pixels. This setting will be used in all subsequent calls to the text() function.":null,
-	"dist: The size in pixels for spacing between lines":null,
-	"Sets the current alignment for drawing text. The first parameter is used to set the display characteristics of the letters in relation to the values for the x and y parameters of the text() function.  The second parameter is used to vertically align the text. BASELINE is the default setting, if textAlign is not used. The TOP and CENTER parameters are straightforward. The BOTTOM parameter offsets the line based on the current textDescent(). For multiple lines, the final line will be aligned to the bottom, with the previous lines appearing above it.":null,
-	"ALIGN: Horizontal alignment, either LEFT, CENTER, or RIGHT":null,
-	"YALIGN: Vertical alignment, either TOP, BOTTOM, CENTER, or BASELINE":null,
-	"Sets the rotation angle for any shapes drawn after the command. If called multiple times, the angle will be added to the previous angle (accumulative effect). To stop rotation, use pushMatrix()/popMatrix().":null,
-	"angle: The number of degrees to rotate by. To specify in radians, use the angleMode() function.":null,
-	"Increases the size of shapes drawn after the command, by expanding and contracting vertices. For example, scale(2) makes it increase in size by 200%. If called multiple times, the sizes will multiply (accumulative effect). It can be called with one parameter to resize the same in both dimensions, or with two parameters to size differently in each dimension.  To stop resizing shapes, use pushMatrix()/popMatrix().":null,
-	"amount: The amount to scale object in \"x\" and \"y\" axis":null,
-	"amountY: (Optional) The amount to scale object in \"y\" axis":null,
-	"Displaces the drawn shapes by a given amount in the x/y directions. If called multiple times, the offsets will be added to each other (accumulative effect). To stop translating shapes, use pushMatrix()/popMatrix().":null,
-	"x: The amount to translate left/right.":null,
-	"y: The amount to translate up/down.":null,
-	"Remembers the current coordinate system (in the \"matrix stack\").":null,
-	"Restores the previous coordinate system (from the \"matrix stack\") - whatever was most recently pushed.":null,
-	"Replaces the current transformation matrix with the identity matrix. This effectively clears all transformation functions set before it.":null,
-	"Prints the current transformation matrix to the console.":null,
-	"Specifies the number of frames to be displayed every second. If the processor is not fast enough to maintain the specified rate, it will not be achieved. For fluid animation, at least 24 frames per second is recommended.":null,
-	"fps: A whole number, number of frames per second":null,
-	"Causes the program to continuously execute the code within draw(). If noLoop() is called, the code in draw() stops executing.":null,
-	"Stops the program from continuously executing the code within draw(). If loop() is called, the code in draw() begin to run continuously again.":null,
-	"Returns a random number between low and high.":null,
-	"low: the lowest possible number returned":null,
-	"high: the highest possible number returned":null,
-	"Calculates the distance between two points, (x1, y1) and (x2, y2).":null,
-	"x1: the x-coordinate of the first point":null,
-	"y1: the y-coordinate of the first point":null,
-	"x2: the x-coordinate of the second point":null,
-	"y2: the y-coordinate of the second point":null,
-	"Constrains a value to not exceed a maximum and minimum value.":null,
-	"value: The value to constrain":null,
-	"min: The minimum limit":null,
-	"max: The maximum limit":null,
-	"Returns the smallest value of all values passed in.":null,
-	"num1: The first value to compare, any number.":null,
-	"num2: The second value to compare, any number.":null,
-	"Returns the greatest value of all values passed in.":null,
-	"num1: The first value to compare, any number.":null,
-	"num2: The second value to compare, any number.":null,
-	"Returns the absolute value of a number":null,
-	"num: The number to take the absolute value of":null,
-	"Returns the the natural logarithm (base-e) of a number.":null,
-	"num: The number to take the log of":null,
-	"Returns a number raised to an exponential power.":null,
-	"num: The base of the exponential expression":null,
-	"exponent: The power to which the num is raised":null,
-	"Squares a number (multiplies a number by itself). The result is always a positive number, as multiplying two negative numbers always yields a positive result. For example, -1 * -1 = 1":null,
-	"num: Any numeric value":null,
-	"Calculates the square root of a number. The square root of a number is always positive, even though there may be a valid negative root. The square root s of number a is such that s*s = a. It is the opposite of squaring.":null,
-	"num: Any numeric value":null,
-	"Calculates the closest whole number that is closest to the value of the parameter.":null,
-	"num: Any numeric value":null,
-	"Calculates the closest whole number that is greater than or equal to the value of the parameter.":null,
-	"num: Any numeric value":null,
-	"Calculates the closest whole number that is less than or equal to the value of the parameter.":null,
-	"num: Any numeric value":null,
-	"Calculates the magnitude (or length) of a vector. A vector is a direction in space commonly used in computer graphics and linear algebra. Because it has no \"start\" position, the magnitude of a vector can be thought of as the distance from coordinate (0,0) to its (x,y) value. Therefore, mag() is a shortcut for writing dist(0, 0, x, y).":null,
-	"x: the x component":null,
-	"y: the y component":null,
-	"Returns Euler's number e (2.71828...) raised to the power of the value parameter.":null,
-	"num: Any numeric value":null,
-	"Re-maps a number from one range to another. Numbers outside the range are not clamped to 0 and 1, because out-of-range values are often intentional and useful.":null,
-	"num: The incoming value to be converted":null,
-	"low1: Lower bound of the value's current range":null,
-	"high1: Upper bound of the value's current range":null,
-	"low2: Lower bound of the value's target range":null,
-	"high2: Upper bound of the value's target range":null,
-	"Normalizes a number from another range into a value between 0 and 1. This is the same as using the map function with the last two parameters set to 0 and 1, i.e: map(value, low, high, 0, 1); Numbers outside the range are not clamped to 0 and 1, because out-of-range values are often intentional and useful.":null,
-	"num: The incoming value to be converted":null,
-	"low1: Lower bound of the value's current range":null,
-	"high1: Upper bound of the value's current range":null,
-	"Calculates a number between two numbers at a specific increment.":null,
-	"num1: The first number":null,
-	"num2: The second number":null,
-	"amount: A value between 0.0 and 1.0":null,
-	"Returns the Perlin noise value at specified coordinates. The resulting value will always be between 0.0 and 1.0":null,
-	"x: the x-coordinate in noise space":null,
-	"y: the y-coordinate in noise space (optional)":null,
-	"Adjusts the character and level of detail produced by the Perlin noise function.":null,
-	"octaves: The number of octaves to be used by the noise() function":null,
-	"falloff: The falloff factor for each octave":null,
-	"Return the sine of an angle.":null,
-	"deg: The angle, in degrees":null,
-	"Return the cosine of an angle.":null,
-	"deg: The angle, in degrees":null,
-	"Return the tangent of an angle":null,
-	"deg: The angle, in degrees":null,
-	"Returns the arc cosine (inverse cosine) of a value. Depending on the angle mode, it returns values from 0-180 or 0-PI.":null,
-	"val: The value whose arc cosine is to be returned.":null,
-	"Returns the arc sine (inverse sine) of a value. Depending on the angle mode, it returns values from -90 to 90 or -PI/2 to PI/2.":null,
-	"val: The value whose arc sine is to be returned.":null,
-	"Returns the arc tangent (inverse tangent) of a value. Depending on the angle mode, it returns values from -90 to 90 or -PI/2 to PI/2.":null,
-	"val: The value whose arc tangent is to be returned":null,
-	"Converts a degree measurement to its corresponding value in radians.":null,
-	"angle: The angle in degrees":null,
-	"Converts a radians measurement to its corresponding value in degrees.":null,
-	"angle: The angle in radians":null,
-	"Returns the current day of the month, between 1 and 31, according to the clock on the user's computer.":null,
-	"Returns the current month of the year, between 1-12, according to the clock on the user's computer.":null,
-	"Returns the current year according to the clock on the user's computer.":null,
-	"Returns the current hour as a value from 0 - 23, based on the user's computer clock.":null,
-	"Returns the current minute as a value from 0 - 59, based on the user's computer clock.":null,
-	"Returns the current second as a value from 0 - 59, based on the user's computer clock.":null,
-	"Returns the number of milliseconds (thousandths of a second) since starting the program. Useful for cyclic animations.":null,
-	"Log out any number of values to the browser console.":null,
-	"arg: The first value to log":null,
-	"...: (Optional)* any amount of extra arguments":null,
-	"Prints a line of data to the console that pops up over the canvas. Click the X to close the console.":null,
-	"data: The data to print":null,
-	"Prints data to the console that pops up over the canvas, without creating a new line (like println does).":null,
-	"data: The data to print":null,
-	"object constructor":null,
-	"object":null,
-	"variable":null,
-	"callback":null,
-	"Enter an image URL.":null,
-	"Sorry! That server is not permitted.":null,
-	"That is not a valid image URL.":null,
-	"Invalid sound file.":null,
+	"Sets the style of the joints which connect line segments drawn with vertex(). These joints are either mitered, beveled, or rounded and specified with the corresponding parameters MITER, BEVEL, and ROUND.":
+		"Bestimmt die Art wie Linien miteinander verbunden werden. Die Verbindungen sind entweder MITER (spitz), BEVEL (abgeschrägt), ROUND (rund).",
+	"MODE: Either MITER, BEVEL, or ROUND. The default is MITER.":
+		"MODE: Entweder MITER, BEVEL oder ROUND. Standard ist MITER.",
+	"Sets the style for rendering line endings. These ends are either squared, extended, or rounded and specified with the corresponding parameters SQUARE, PROJECT, and ROUND.":
+		"Bestimmt wie Linienenden aussehen. Linienenden sind entweder SQUARE (quadratisch), ROUND (rund) oder PROJECT (erweitert).",
+	"MODE: Either SQUARE, PROJECT, or ROUND. The default is ROUND":
+		"MODE: Entweder SQUARE, PROJECT oder ROUND. Standard ist ROUND.",
+	"Blends two color values together based on the blending mode given as the MODE parameter.":
+		"Vermischt zwei Farben miteinander, im angegebenen Vermischungs-Modus (blend mode).",
+	"c1: The first color to blend":
+		"c1: Die erste Mischfarbe",
+	"c2: The second color to blend":
+		"c2: Die zweite Mischfarbe",
+	"MODE: Either BLEND, ADD, SUBTRACT, DARKEST, LIGHTEST, DIFFERENCE, EXCLUSION, MULTIPLY, SCREEN, OVERLAY, HARD_LIGHT, SOFT_LIGHT, DODGE, or BURN.":
+		"MODE: Entweder BLEND, ADD, SUBTRACT, DARKEST, LIGHTEST, DIFFERENCE, EXCLUSION, MULTIPLY, SCREEN, OVERLAY, HARD_LIGHT, SOFT_LIGHT, DODGE, oder BURN.",
+	"Calculates a color or colors between two color at a specific increment. The amount parameter is the amount to interpolate between the two values where 0.0 equal to the first point, 0.1 is very near the first point, 0.5 is half-way in between, etc.":
+		"Berechnet eine Farbe an einer bestimmten Stelle zwischen zwei Farben. Der amount-Parameter bestimmt dabei, wo diese Stelle sein soll: 0.1 ist sehr nah an der ersten Farbe, 0.9 sehr nah an der zweiten.",
+	"c1: Interpolate from this color":
+		"c1: Von dieser Farbe aus interpolieren.",
+	"c2: Interpolate to this color":
+		"c2: Zu dieser Farbe hin interpolieren.",
+	"Changes the way that color values are interpreted when set by fill()/stroke()/background().":
+		"Ändert die Art, in der Farbwerte interpretiert werden.",
+	"MODE: Either RGB or HSB. The default is RGB.":
+		"MODE: Entweder RGB oder HSB. Standard ist RGB.",
+	"Extracts the red value from a color, scaled to match current colorMode().":
+		"Gibt den Rotwert einer Farbe zurück.",
+	"color: Any color data type":
+		"color: Ein Farbwert (kann mit color() erzeugt werden)",
+	"Extracts the green value from a color, scaled to match current colorMode().":
+		"Gibt den Grünwert einer Farbe zurück.",
+	"color: Any color data type":
+		"color: Ein Farbwert (kann mit color() erzeugt werden)",
+	"Extracts the blue value from a color, scaled to match current colorMode().":
+		"Gibt den Blauwert einer Farbe zurück.",
+	"color: Any color data type":
+		"color: Ein Farbwert (kann mit color() erzeugt werden)",
+	"Extracts the alpha value from a color.":
+		"Gibt den alpha-Wert einer Farbe zurück (Deckkraft).",
+	"color: Any color data type":
+		"color: Ein Farbwert (kann mit color() erzeugt werden)",
+	"Extracts the hue value from a color.":
+		"Gibt den Farbton einer Farbe zurück.",
+	"color: Any color data type":
+		"color: Ein Farbwert (kann mit color() erzeugt werden)",
+	"Extracts the saturation value from a color.":
+		"Gibt die Sättigung einer Farbe zurück.",
+	"color: Any color data type":
+		"color: Ein Farbwert (kann mit color() erzeugt werden)",
+	"Extracts the brightness value from a color.":
+		"Gibt die Helligkeit einer Farbe zurück.",
+	"color: Any color data type":
+		"color: Ein Farbwert (kann mit color() erzeugt werden)",
+	"Draws a string of text at the specified location":
+		"Gibt einen Text an einer bestimmten Position auf der Leinwand aus.",
+	"message: the string of text to display":
+		"message: Der Text, der ausgegeben werden soll",
+	"x: the x-coordinate of the bottom left corner":
+		"x: Die x-Koordinate der linnken, unteren Ecke.",
+	"y: the y-coordinate of the bottom left corner":
+		"y: Die y-Koordinate der linnken, unteren Ecke.",
+	"width: (Optional) the width of the box for text to auto wrap inside":
+		"width (optional): Die Breite des Textes",
+	"height: (Optional) the height of the box for text to auto wrap inside":
+		"height (optional): Die Höhe des Textes",
+	"Using textFont() with createFont(), it's possible to change the font of text drawn.":
+		"Wählt einen Zeichensatz (Font), der mit createFont() geladen werden kann.",
+	"font: A font returned by the createFont function":
+		"font: Ein Zeichensatz, der mit createFont() geladen werden kann",
+	"size: (Optional) The size of the font, in pixels":
+		"size: (optional) Die Größe des Zeichensatzes in Pixel (Bildpunkten)",
+	"Using textFont() with createFont(), it's possible to change the font of text drawn.":
+		"Lädt einen Zeichensatz, der mit textFont() angezeigt werden kann.",
+	"name: A font name, either \"sans-serif\", \"serif\", \"monospace\", \"fantasy\", or \"cursive\"":
+		"name: Name eines Zeichensatzes, entweder \"sans-serif\", \"serif\", \"monospace\", \"fantasy\", oder \"cursive\"",
+	"size: (Optional) The size of the font, in pixels":
+		"size: (optional) Die Größe des Zeichensatzes in Pixel (Bildpunkten)",
+	"Changes the size of text being drawn.":
+		"Verändert die Größe der nach den Aufruf dieses Befehls ausgegebenen Texte.",
+	"size: The size of the text, in pixels":
+		"size: Die Größe des Textes in Pixel (Bildpunkten)",
+	"Calculates and returns the width of any string.":
+		"Gibt die Breite einer Zeichenkette (string) zurück.",
+	"str: The string to calculate the width of":
+		"Die Zeichenkette (string), deren Breite berechnet werden soll.",
+	"Returns the ascent of the current font at its current size. This information is useful for determining the height of the font above the baseline. For example, adding the textAscent() and textDescent() values will give you the total height of the line.":
+		"Gibt die Höhe des aktuellen Fonts von der Basislinie aus zurück. Zusammen mit der Tiefe, die textDescent() zurückgibt, ergibt das die Gesamthöhe des Fonts.",
+	"Returns descent of the current font at its current size. This information is useful for determining the height of the font below the baseline. For example, adding the textAscent() and textDescent() values will give you the total height of the line.":
+		"Gibt die Tiefe des aktuellen Fonts unterhalb der Basislinie zurück. Zusammen mit der Höhe, die textAscent() zurückgibt, ergibt das die Gesamthöhe des Fonts.",
+	"Sets the spacing between lines of text in units of pixels. This setting will be used in all subsequent calls to the text() function.":
+		"Setzt den Zeilenabstand von Text in Pixeln.",
+	"dist: The size in pixels for spacing between lines":
+		"dist: Zeilenabstand in Pixeln",
+	"Sets the current alignment for drawing text. The first parameter is used to set the display characteristics of the letters in relation to the values for the x and y parameters of the text() function.  The second parameter is used to vertically align the text. BASELINE is the default setting, if textAlign is not used. The TOP and CENTER parameters are straightforward. The BOTTOM parameter offsets the line based on the current textDescent(). For multiple lines, the final line will be aligned to the bottom, with the previous lines appearing above it.":
+		"Bestimmt die Ausrichtung von Text. Der erste Parameter in horizontaler Richtung, der zweite in vertikaler. BASELINE ist dabei der Standardwert. TOP rückt den Text nach oben, CENTER in die Mitte und BOTTOM nach unten.",
+	"ALIGN: Horizontal alignment, either LEFT, CENTER, or RIGHT":
+		"Horizontale Ausrichtung, entweder LEFT (links), CENTER (mittig) oder RIGHT (rechts)",
+	"YALIGN: Vertical alignment, either TOP, BOTTOM, CENTER, or BASELINE":
+		"Vertikale Ausrichtung, entweder TOP (oben), BOTTOM (unten), CENTER (mittig) oder BASELINE (Grundlinie)",
+	"Sets the rotation angle for any shapes drawn after the command. If called multiple times, the angle will be added to the previous angle (accumulative effect). To stop rotation, use pushMatrix()/popMatrix().":
+		"Bestimmt den Rotationswinkel für alle folgenden Zeichen-Kommandos",
+	"angle: The number of degrees to rotate by. To specify in radians, use the angleMode() function.":
+		"angle: Drehung in Grad (0 bis 360). Mit angleMode() kann man den Modus auf Bogenmaß (radians) setzen.",
+	"Increases the size of shapes drawn after the command, by expanding and contracting vertices. For example, scale(2) makes it increase in size by 200%. If called multiple times, the sizes will multiply (accumulative effect). It can be called with one parameter to resize the same in both dimensions, or with two parameters to size differently in each dimension.  To stop resizing shapes, use pushMatrix()/popMatrix().":
+		"Verändert die Größe für alle folgenden Zeichenkommandos.",
+	"amount: The amount to scale object in \"x\" and \"y\" axis":
+		"amount: Der Faktor, um den die Größe in x- und y-Richtung verändert werden soll.",
+	"amountY: (Optional) The amount to scale object in \"y\" axis":
+		"amountY: Der Faktor, um den die Größe nur in y-Richtung verändert werden soll. Der erste Parameter ist in diesem Fall die x-Richtung.",
+	"Displaces the drawn shapes by a given amount in the x/y directions. If called multiple times, the offsets will be added to each other (accumulative effect). To stop translating shapes, use pushMatrix()/popMatrix().":
+		"Verschiebt die Position aller folgender Zeichen-Kommandos in x- und y-Richtung",
+	"x: The amount to translate left/right.":
+		"x: Der Wert, um den in x-Richtung verschoben werden soll.",
+	"y: The amount to translate up/down.":
+		"y: Der Wert, um den in y-Richtung verschoben werden soll.",
+	"Remembers the current coordinate system (in the \"matrix stack\").":
+		"Speichert das aktuelle Koordinatensystem zwischen. (Im \"Matrix Stack\")",
+	"Restores the previous coordinate system (from the \"matrix stack\") - whatever was most recently pushed.":
+		"Stellt das vorangegangene Koordinatensystem wieder her.",
+	"Replaces the current transformation matrix with the identity matrix. This effectively clears all transformation functions set before it.":
+		"Setzt das Koordinatensystem wieder auf den Ursprungszustand.",
+	"Prints the current transformation matrix to the console.":
+		"Gibt das aktuelle Koordinatensystem aus.",
+	"Specifies the number of frames to be displayed every second. If the processor is not fast enough to maintain the specified rate, it will not be achieved. For fluid animation, at least 24 frames per second is recommended.":
+		"Bestimmt wie oft die draw()-Funktion pro Sekunde aufgerufen wird. Wenn der Prozessor nicht schnell genug ist, für die gewünschte Wiederholfrequenz ist, wird sie nicht erreicht werden. Für eine flüssige Animation sind mindestens 24 Wiederholungen pro Sekunde (frame/seconds) nötig." ,
+	"fps: A whole number, number of frames per second":
+		"fps: Eine ganze Zahl. Anzahl der Wiederholungen pro Sekunde.",
+	"Causes the program to continuously execute the code within draw(). If noLoop() is called, the code in draw() stops executing.":
+		"Bewirkt, dass die draw()-Funktion immer wieder aufgerufen wird.",
+	"Stops the program from continuously executing the code within draw(). If loop() is called, the code in draw() begin to run continuously again.":
+		"Bewirkt, dass die draw()-Funktion nicht immer wieder aufgerufen wird.",
+	"Returns a random number between low and high.":
+		"Eine Zufallszahl zwischen den beiden angegebenen Werten.",
+	"low: the lowest possible number returned":
+		"Die niedrigsmögliche Zahl",
+	"high: the highest possible number returned":
+		"Die höchstmögliche Zahl",
+	"Calculates the distance between two points, (x1, y1) and (x2, y2).":
+		"Berechnet die Entfernung zwischen zwei Punkten.",
+	"x1: the x-coordinate of the first point":
+		"x1: Die x-Koordinate des ersten Punkts",
+	"y1: the y-coordinate of the first point":
+		"y1: Die y-Koordinate des ersten Punkts",
+	"x2: the x-coordinate of the second point":
+		"x2: Die x-Koordinate des zweiten Punkts",
+	"y2: the y-coordinate of the second point":
+		"y2: Die y-Koordinate des zweiten Punkts",
+	"Constrains a value to not exceed a maximum and minimum value.":
+		"Grenzt den angegebenen Wert zwischem einem Minimum und einem Maximum ein. (min() und max() kombiniert)",
+	"value: The value to constrain":
+		"value: Der Wert, der eingegrenzt werden soll.",
+	"min: The minimum limit":
+		"min: Das Minimum",
+	"max: The maximum limit":
+		"max: Das Maximum",
+	"Returns the smallest value of all values passed in.":
+		"Gibt den niedrigsten Wert von allen übergebenen Werten zurück.",
+	"num1: The first value to compare, any number.":
+		"num1: Der erste Wert, irgendeine Zahl",
+	"num2: The second value to compare, any number.":
+		"num2: Der zweite Wert, irgendeine Zahl",
+	"Returns the greatest value of all values passed in.":
+		"Gibt den höchsten Wert von allen übergebenen Werten zurück.",
+	"num1: The first value to compare, any number.":
+		"num1: Der erste Wert, irgendeine Zahl",
+	"num2: The second value to compare, any number.":
+		"num2: Der zweite Wert, irgendeine Zahl",
+	"Returns the absolute value of a number":
+		"Gibt den absoluten Wert einer Zahl zurück.",
+	"num: The number to take the absolute value of":
+		"num: Wert. Eine Zahl.",
+	"Returns the the natural logarithm (base-e) of a number.":
+		"Gibt den natürlichen Logarithmus (base-e) einer Zahl zurück.",
+	"num: The number to take the log of":
+		"num: Wert. Eine Zahl.",
+	"Returns a number raised to an exponential power.":
+		"Gibt die Potenz einer Zahl zurück.",
+	"num: The base of the exponential expression":
+		"num: Der Basiswert der Potenz",
+	"exponent: The power to which the num is raised":
+		"exponent: Der Exponent der Potenz",
+	"Squares a number (multiplies a number by itself). The result is always a positive number, as multiplying two negative numbers always yields a positive result. For example, -1 * -1 = 1":
+		"Gibt das Quadrat einer Zahl zurück.",
+	"num: Any numeric value":
+		"num: Wert. Eine Zahl.",
+	"Calculates the square root of a number. The square root of a number is always positive, even though there may be a valid negative root. The square root s of number a is such that s*s = a. It is the opposite of squaring.":
+		"Gibt die Quadratwurzel einer Zahl zurück.",
+	"num: Any numeric value":
+		"num: Wert. Eine Zahl.",
+	"Calculates the closest whole number that is closest to the value of the parameter.":
+		"Rundet eine Zahl auf oder ab",
+	"num: Any numeric value":
+		"num: Wert. Eine Zahl.",
+	"Calculates the closest whole number that is greater than or equal to the value of the parameter.":
+		"Rundet eine Zahl auf",
+	"num: Any numeric value":
+		"num: Wert. Eine Zahl.",
+	"Calculates the closest whole number that is less than or equal to the value of the parameter.":
+		"Rundet eine Zahl ab",
+	"num: Any numeric value":
+		"num: Wert. Eine Zahl.",
+	"Calculates the magnitude (or length) of a vector. A vector is a direction in space commonly used in computer graphics and linear algebra. Because it has no \"start\" position, the magnitude of a vector can be thought of as the distance from coordinate (0,0) to its (x,y) value. Therefore, mag() is a shortcut for writing dist(0, 0, x, y).":
+		"Bestimmt die Größe (magnitude) einer Position. (das Gleiche wie dist(0, 0, x, y )",
+	"x: the x component":
+		"x: Die x-Koordinate",
+	"y: the y component":
+		"y: Die y-Koordinate",
+	"Returns Euler's number e (2.71828...) raised to the power of the value parameter.":
+		"Gibt die Eulersche Zahl (e) potenziert mit einem Wert zurück.",
+	"num: Any numeric value":
+		"num: Wert. Eine Zahl.",
+	"Re-maps a number from one range to another. Numbers outside the range are not clamped to 0 and 1, because out-of-range values are often intentional and useful.":
+		"Transponiert (re-map) eine Zahl von einem Bereich in einen anderen. Zahlen können außerhalb des angegebenen Bereichs liegen.",
+	"num: The incoming value to be converted":
+		"num: Wert, der transponiert werden soll",
+	"low1: Lower bound of the value's current range":
+		"Untere Grenze des ersten Bereichs",
+	"high1: Upper bound of the value's current range":
+		"Obere Grenze des ersten Bereichs",
+	"low2: Lower bound of the value's target range":
+		"Untere Grenze des Ziel-Bereichs",
+	"high2: Upper bound of the value's target range":
+		"Obere Grenze des Zielbereichs",
+	"Normalizes a number from another range into a value between 0 and 1. This is the same as using the map function with the last two parameters set to 0 and 1, i.e: map(value, low, high, 0, 1); Numbers outside the range are not clamped to 0 and 1, because out-of-range values are often intentional and useful.":
+		"Normalisiert eine Zahl innerhalb eines Bereichs",
+	"num: The incoming value to be converted":
+		"num: Der Wert, der normalisiert werden soll",
+	"low1: Lower bound of the value's current range":
+		"low1: Die untere Grenze des Bereichs (0)",
+	"high1: Upper bound of the value's current range":
+		"high1: Die obere Grenze des Bereichs (1)",
+	"Calculates a number between two numbers at a specific increment.":
+		"Gibt einen bestimmten Wert zwischen zwei Zahlen zurück.",
+	"num1: The first number":
+		"num1: Die erste Zahl",
+	"num2: The second number":
+		"num2: Die zweite Zahl",
+	"amount: A value between 0.0 and 1.0":
+		"amount: Ein Wert zwischen 0 und 1",
+	"Returns the Perlin noise value at specified coordinates. The resulting value will always be between 0.0 and 1.0":
+		"Gibt den Perlin noise Wert an den angegebenen Koordinaten zurück.",
+	"x: the x-coordinate in noise space":
+		"x: Die x-Koordinate im noise-Raum",
+	"y: the y-coordinate in noise space (optional)":
+		"y: Die y-Koordinate im noise-Raum",
+	"Adjusts the character and level of detail produced by the Perlin noise function.":
+		"Stellt den Charakter und Detaillevel der Werte ein, die durch die Perlin noise-Funktion zurückgegeben werden.",
+	"octaves: The number of octaves to be used by the noise() function":
+		"octaves: Die Anzahl an Oktaven, die verwendet werden sollen",
+	"falloff: The falloff factor for each octave":
+		"falloff: Der falloff-Faktor für jede Oktave",
+	"Return the sine of an angle.":
+		"Gibt den Sinus-Wert eines Winkels zurück.",
+	"deg: The angle, in degrees":
+		"deg: Der Winkel (0 bis 360)",
+	"Return the cosine of an angle.":
+		"Gibt den Cosinus-Wert eines Winkels zurück.",
+	"deg: The angle, in degrees":
+		"deg: Der Winkel (0 bis 360)",
+	"Return the tangent of an angle":
+		"Gibt die Tangente eines Winkels zurück.",
+	"deg: The angle, in degrees":
+		"deg: Der Winkel (0 bis 360)",
+	"Returns the arc cosine (inverse cosine) of a value. Depending on the angle mode, it returns values from 0-180 or 0-PI.":
+		"Gibt den Arkus-Cosinus-Wert eines Winkels zurück.",
+	"val: The value whose arc cosine is to be returned.":
+		"deg: Der Winkel (0 bis 360)",
+	"Returns the arc sine (inverse sine) of a value. Depending on the angle mode, it returns values from -90 to 90 or -PI/2 to PI/2.":
+		"Gibt den Arkus-Sinus-Wert eines Winkels zurück.",
+	"val: The value whose arc sine is to be returned.":
+		"deg: Der Winkel (0 bis 360)",
+	"Returns the arc tangent (inverse tangent) of a value. Depending on the angle mode, it returns values from -90 to 90 or -PI/2 to PI/2.":
+		"Gibt den Arkus-Tangens-Wert eines Winkels zurück.",
+	"val: The value whose arc tangent is to be returned":
+		"deg: Der Winkel (0 bis 360)",
+	"Converts a degree measurement to its corresponding value in radians.":
+		"Wandelt eine Grad-Angabe in ein Bogenmaß (radians) um",
+	"angle: The angle in degrees":
+		"angle: Der Winkel in Grad.",
+	"Converts a radians measurement to its corresponding value in degrees.":
+		"Wandelt eine Bogenmaß-Angabe (radians) in einen Winkel um",
+	"angle: The angle in radians":
+		"angle: Der Winkel in Grad.",
+	"Returns the current day of the month, between 1 and 31, according to the clock on the user's computer.":
+		"Gibt den Tag des aktuellen Datums zurück",
+	"Returns the current month of the year, between 1-12, according to the clock on the user's computer.":
+		"Gibt den Monat des aktuellen Datums zurück",
+	"Returns the current year according to the clock on the user's computer.":
+		"Gibt das Jahr des aktuellen Datums zurück",
+	"Returns the current hour as a value from 0 - 23, based on the user's computer clock.":
+		"Gibt die aktuelle Stunde zurück",
+	"Returns the current minute as a value from 0 - 59, based on the user's computer clock.":
+		"Gibt die aktuelle Minute zurück",
+	"Returns the current second as a value from 0 - 59, based on the user's computer clock.":
+		"Gibt die aktuelle Sekunde zurück",
+	"Returns the number of milliseconds (thousandths of a second) since starting the program. Useful for cyclic animations.":
+		"Gibt die aktuelle Millesekunde zurück",
+	"Log out any number of values to the browser console.":
+		"Gebe Texte und Werte auf der Console des Browsers aus.",
+	"arg: The first value to log":
+		"arg: Der erste Wert",
+	"...: (Optional)* any amount of extra arguments":
+		"...: (optional)* So viele weitere Parameter wie gewünscht.",
+	"Prints a line of data to the console that pops up over the canvas. Click the X to close the console.":
+		"Gibt eine Zeile mit Daten auf der Konsole aus, die am unteren Rand der Leinwand (canvas) erscheint.",
+	"data: The data to print":
+		"data: Die Daten, die man ausgeben will",
+	"Prints data to the console that pops up over the canvas, without creating a new line (like println does).":
+		"Gibt Daten auf der Konsole aus, die am unteren Rand der Leinwand (canvas) erscheint.",
+	"data: The data to print":
+		"data: Die Daten, die man ausgeben will",
+	"object constructor":
+		"Objekt-Konstruktor (object constructor)",
+	"object":
+		"Objekt",
+	"variable":
+		"Variable",
+	"callback":
+		"Callback",
+	"Enter an image URL.":
+		"Gib eine Bild-URL ein",
+	"Sorry! That server is not permitted.":
+		"Entschuldige, aber das darf der Server nicht machen!",
+	"That is not a valid image URL.":
+		"Das ist keine gültige Bild-URL",
+	"Invalid sound file.":
+		"Das ist keine gültige Sound-Datei.",
 }
 
 if( typeof i18n === "undefined" ) {
@@ -500,8 +665,8 @@ var i18n = {
 
     _ : function (str, options) {
 		if( !translations[ str ] ) {
-			console.log( "Translation of '" + str + "' is not available."); 
-			return str;
+	console.log( "Translation of '" + str + "' is not available."); 
+	return str;
 		}
 
         return this.interpolateStringToArray( translations[ str ], options).join("");
