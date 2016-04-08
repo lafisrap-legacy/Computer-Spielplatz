@@ -9,6 +9,5 @@ func init() {
 }
 
 func main() {
-	beego.SessionOn = true
 	beego.Run()
 }

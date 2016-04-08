@@ -57,7 +57,6 @@ func init() {
 	dbpass := beego.AppConfig.String("mysqlpass")
 	database := beego.AppConfig.String("mysqldb")
 
-	orm.RegisterDriver("mysql", orm.DR_MySQL)
 	orm.RegisterDataBase("default", "mysql", dbuser+":"+dbpass+"@/"+database+"?charset=utf8")
 	orm.SetMaxIdleConns("default", 30)
 	orm.SetMaxOpenConns("default", 30)

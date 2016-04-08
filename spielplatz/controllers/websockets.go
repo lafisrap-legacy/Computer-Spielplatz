@@ -44,7 +44,7 @@ func (s socket) Close() error {
 type Message struct {
 	Id      int
 	Xsrf    string
-	Session session.SessionStore
+	Session session.Store
 
 	Command    string
 	returnChan chan Data
@@ -197,7 +197,7 @@ func serveMessages(messageChan chan Message) {
 	}
 }
 
-func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string, timeStamps []int64, Images []string, overwrite bool) Data {
+func writeJSFiles(s session.Store, fileNames []string, codeFiles []string, timeStamps []int64, Images []string, overwrite bool) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -312,7 +312,7 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 	}
 }
 
-func readJSFiles(s session.SessionStore, fileNames []string) Data {
+func readJSFiles(s session.Store, fileNames []string) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -358,7 +358,7 @@ func readJSFiles(s session.SessionStore, fileNames []string) Data {
 	}
 }
 
-func readJSDir(s session.SessionStore) Data {
+func readJSDir(s session.Store) Data {
 
 	data := Data{}
 	files := make(map[string]JSFile)
@@ -388,7 +388,7 @@ func readJSDir(s session.SessionStore) Data {
 	return data
 }
 
-func deleteJSFiles(s session.SessionStore, fileNames []string) Data {
+func deleteJSFiles(s session.Store, fileNames []string) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
