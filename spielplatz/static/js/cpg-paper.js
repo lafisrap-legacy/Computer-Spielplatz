@@ -2036,17 +2036,24 @@ var UndoManager = Base.extend( {
 
 /////////////////////////////////////////////////////////////
 // Selecting, moving and modifying items with the mouse
+//
 var segment, item, bounds,
 	grabPoint = null,
 	moveItem, movePosition;
 
+/////////////////////////////////////////////////////////////
+// onMouseMove mainly handles cursor shape while hovering over items
 function onMouseMove( event ) {
+
+	// Send mouse move also to base viewer, e.g. for magnifying glass
 	if ( baseViewer ) baseViewer.onMouseMove( event );
 
+	// Show rubber circle, if rubber is selected
 	if ( baseCommands.rubberCircle ) {
 		baseCommands.rubberCircle.position = event.point;
 	}
 
+	// Look if we are on the drawing layer
 	var hitResult = project.activeLayer.hitTest( event.point, {
 		bounds: true,
 		selected: true,
@@ -2062,25 +2069,34 @@ function onMouseMove( event ) {
 		return;
 	}
 
+	// Are we hovering over some grab points from selected items
 	if ( hitResult.type === "bounds" ) {
-		var c = baseCommands.resizeMode === COMMAND_ROTATE? "cur_rotate.png" : "cur_resize.png";
+		var c = baseCommands.resizeMode === COMMAND_ROTATE ?
+			"cur_rotate.png" : "cur_resize.png";
 
-		document.body.style.cursor = "url( 'static/img/"+c+"' ) 11 11, auto";
+		// Change cursor shape
+		document.body.style.cursor = "url( 'static/img/" + c + "' ) 11 11, auto";
 		baseCommands.cursorMode = "bounds";
 		baseCropper.setCursor( null );
 	} else {
-		if( baseCropper.getCursor() !== "resize" ) document.body.style.cursor = baseCommands.cursorShape;
+		if ( baseCropper.getCursor() !== "resize" )
+			document.body.style.cursor = baseCommands.cursorShape;
 	}
 };
 
+/////////////////////////////////////////////////////////////
+// onMouseDown handles click events of drawing layer
 function onMouseDown( event ) {
 
-	segment = item = moveItem = null;
+	// Nothing happend so far ...
+	segment = item = moveItem = startRotation = null;
 
-	if( baseCropper.getCursor() === "resize" ) return; 
+	// If croppers rectangle is active then do nothing
+	if ( baseCropper.getCursor() === "resize" ) return;
 
 	//////////////////////////////////////////////////////////////////////////////
 	// Checking for selected items
+	//
 	// If rubber is active and raster item is selected, take this
 	if ( baseCommands.commandMode === "rubber" &&
 		project.selectedItems.length === 1 &&
@@ -2090,19 +2106,25 @@ function onMouseDown( event ) {
 			type: "pixel",
 			item: project.selectedItems[ 0 ],
 			location: event.point
-		}
+		};
+
+	// If pipette is active, get a color and go
 	} else if ( baseCommands.commandMode === "pipette" ) {
 		var ctx = baseViewer.getCtx(),
 			data = ctx.getImageData( event.point.x, event.point.y, 1, 1 ).data,
-			color = new Color( data[ 0 ]/255, data[ 1 ]/255, data[ 2 ]/255, data[ 3 ]/255 );
+			color = new Color( data[ 0 ] / 255, data[ 1 ] / 255, data[ 2 ] / 255, data[ 3 ] / 255 );
 
+		// Set the new color with the Undoer
 		Do.execute( {
 			action: "Pipette",
 			color: color
 		} );
 		return;
+
+	// Any other case ...
 	} else {
-		// check if selected item was hit
+
+		// Checking if a selected item was hit
 		var hitResult = project.activeLayer.hitTest( event.point, {
 			selected: true,
 			bounds: true,
@@ -2111,7 +2133,7 @@ function onMouseDown( event ) {
 		} );
 	}
 
-	// Checking for unselected items
+	// If nothing was hit by now, check for unselected items
 	if ( !hitResult ) {
 		hitResult = project.activeLayer.hitTest( event.point, {
 			selected: false,
@@ -2121,12 +2143,16 @@ function onMouseDown( event ) {
 		} );
 	}
 
+	// If still nothing was hit and mouse is within cropper area, then deselect all items
 	if ( !hitResult ) {
 		if ( baseCropper.getRect().contains( event.point ) ) {
 			setTimeout( function() {
-				Base.each( project.selectedItems, function( item ) {$( "#page-paper" ).trigger( "itemDeselected", { item: item, join: false } ); } );
+				Base.each( project.selectedItems, function( item ) {
+					$( "#page-paper" ).trigger( "itemDeselected", { item: item, join: false } );
+				} );
 			}, 0 );
 
+			// Let the undoer make the deselecting (for that it knows how to rebuild it)
 			Do.execute( {
 				item: null,
 				action: "Select"
@@ -2135,75 +2161,112 @@ function onMouseDown( event ) {
 		return;
 	}
 
+	// We hit something, so let's start some investigation
 	item = hitResult.item;
 	item.hasBeenSelected = item.selected;
+
+	// If item was not selected, then select it now
 	if ( !item.hasBeenSelected ) {
+
+		// Use the undoer to select it
 		Do.execute( {
 			item: item,
 			action: "Select"
 		} );
+
+		// Tell the world, what we just did
 		$( "#page-paper" ).trigger( "itemSelected", { item: item } );
 	}
 
+	///////////////////////////////////////////////////////
+	// Look through the various paper hit types
 	switch ( hitResult.type ) {
 
+	// Did we hit on of the eight corners of a selection?
 	case "bounds":
 		var position = hitResult.item.position,
 			point = hitResult.point;
 
-		startRotation = Math.atan2( event.point.y - position.y, event.point.x - position.x ) * 180 / Math.PI;
+		// Either scale or rotate, we record the rotation anyways
+		startRotation = Math.atan2( event.point.y - position.y,
+									event.point.x - position.x ) * 180 / Math.PI;
+
+		// Record all details of the grabbing
 		grabPoint = {
-			bounds: 	   hitResult.item.bounds,
-			point: 		   point,
-			oppPoint: 	   point + ( position - point )*2,
-			startRotation: startRotation,
-			rotation: 	   startRotation,
-			item: 	  	   hitResult.item,
-			name: 		   Base.camelize( hitResult.name ),
-		}
+			bounds:			hitResult.item.bounds,
+			point:			point,
+			oppPoint:		point + ( position - point ) * 2,
+			startRotation:	startRotation,
+			rotation:		startRotation,
+			item:			hitResult.item,
+			name:			Base.camelize( hitResult.name )
+		};
 		break;
 
+	// Did we hit on a segment of a path object (the points that connect the curves)
 	case "segment":
 		segment = hitResult.segment;
 		break;
 
+	// Or did we hit a curve for inserting a new segment?
 	case "stroke":
 		var location = hitResult.location;
 		segment = item.insert( location.index + 1, event.point );
 		item.smooth();
 		break;
 
+	// Or a pixel of a raster object?
 	case "pixel":
+
+		// Pixels of raster objects can currently only be deleted
 		if ( baseCommands.commandMode === "rubber" ) {
 
+			// First normalize that thing, or it would become complex ...
 			item = baseCommands.cropRaster( item );
 			item.selected = true;
 
 			var ctx = item.getContext();
 
+			// Start a transaction that records all changes until the mouse butten is released again
 			Do.startTransaction( item );
 			baseCommands.rubberMask = ctx.createImageData( item.size.width, item.size.height );
 			baseCommands.rubberDirtyRect = null;
 			baseCommands.drawRubberData( item, event.point );
 			break;
 		}
-		// fall through if not COMMAND_RUBBER mode ...
+
+		// Fall through if not COMMAND_RUBBER mode ... (also raster objects can be moved etc.)
 	case "fill":
+
+		//////////////////////////////////////////////////////////
+		// Different actions dependend on which command is selected from the command line
 		switch ( baseCommands.commandMode ) {
+
+		// Just move the item?
 		case "pointer":
 		case "colorizer-1":
 		case "colorizer-2":
 			moveItem = "Not moved";
 			movePosition = item.position;
 			break;
+
+		// Draw something?
 		case "pen":
+
+			// Not yet :-(
 			break;
+
+		// Delete it?
 		case "delete":
+
+			// Let undoer delete the object, so it can live again, if the user wants
 			Do.execute( {
 				item: item,
 				action: "Delete",
-				join: item.hasBeenSelected? false : true
+				join: item.hasBeenSelected ? false : true
 			} );
+
+			// Switch off the delete mode, if there is nothing left to delete
 			if ( project.activeLayer.isEmpty() ) {
 				$( ".command-pointer" ).trigger( "click" );
 			}
@@ -2211,70 +2274,96 @@ function onMouseDown( event ) {
 		}
 	}
 
+	// Let the baseViewer do its part
 	if ( baseViewer ) baseViewer.onMouseMove( event );
 };
 
+///////////////////////////////////////////////////
+// Dragging items
 function onMouseDrag( event ) {
 	var x = event.point.x,
 		y = event.point.y;
 
+	// Wipe some pixels if rubber is active...
 	if ( baseCommands.rubberCircle ) {
 		baseCommands.rubberCircle.position = event.point;
 		baseCommands.drawRubberData( item, event.point );
 	}
 
 	if ( grabPoint ) {
-		function getSpPoint( A, B, C ){
+
+		// For correct resizing we must "das Lot fällen" (don't know how this is in English)
+		function getSpPoint( A, B, C ) {
 			var x1 = A.x, y1 = A.y, x2 = B.x, y2 = B.y, x3 = C.x, y3 = C.y;
-			var px = x2-x1, py = y2-y1, dAB = px * px + py * py;
+			var px = x2 - x1, py = y2 - y1, dAB = px * px + py * py;
 			var u = ( ( x3 - x1 ) * px + ( y3 - y1 ) * py ) / dAB;
 			var x = x1 + u * px, y = y1 + u * py;
-			return {x:x, y:y}; //this is D
+			return { x: x, y: y };
 		}
 
 		var b = grabPoint.item.bounds;
+
+		// Resize or rotate mode?
 		switch ( baseCommands.resizeMode ) {
+
+		// Resize
 		case COMMAND_RESIZE:
+
 			var gp = grabPoint,
 				point = new Point( getSpPoint( gp.point, gp.oppPoint, event.point ) ),
 				zoom = gp.oppPoint.getDistance( point ) / gp.oppPoint.getDistance( gp.point ),
-				hor = gp.name.search( /topCenter|bottomCenter/ ) !== -1 && !gp.item.rotation? 1 : zoom,
-				ver = gp.name.search( /leftCenter|rightCenter/ ) !== -1 && !gp.item.rotation? 1 : zoom;
+				hor = gp.name.search( /topCenter|bottomCenter/ ) !== -1 && !gp.item.rotation ? 1 : zoom,
+				ver = gp.name.search( /leftCenter|rightCenter/ ) !== -1 && !gp.item.rotation ? 1 : zoom;
 
-			console.log( hor+" : "+ver );
 			gp.item.scale( hor, ver, gp.oppPoint );
 			gp.point = point;
 			break;
+
+		// Rotate
 		case COMMAND_ROTATE:
-			var rotation = Math.atan2( y - b.center.y, x - b.center.x ) * 180 / Math.PI - grabPoint.rotation;
+
+			var rotation = Math.atan2( y - b.center.y, x - b.center.x ) * 180 / Math.PI -
+								grabPoint.rotation;
 
 			grabPoint.item.rotate( rotation );
 			grabPoint.rotation += rotation;
 			break;
 		}
+
+	// Move the segment
 	} else if ( segment ) {
 		segment.point += event.delta;
 		item.smooth();
+
+	// Move the item (translate)
 	} else if ( moveItem ) {
 		item.position += event.delta;
 		moveItem = "Moved";
 	}
 
+	// For the baseViewer this should only be a mouse move
 	if ( baseViewer ) baseViewer.onMouseMove( event );
 };
 
-
+///////////////////////////////////////////////////////
+// onMouseUp handels the user releasing the mouse button
 function onMouseUp( event ) {
+
+	// No dragging anymore
 	baseCropper.isDragging = false;
 
+	// Execute resize and rotate commands
 	if ( grabPoint ) {
 
+		// Resize
 		if ( baseCommands.resizeMode === COMMAND_RESIZE ) {
 			Do.execute( {
 				item: grabPoint.item,
 				action: "Resize",
-				bounds: grabPoint.bounds,
+				bounds: grabPoint.bounds
 			} );
+
+		// Rotate
 		} else if ( baseCommands.resizeMode === COMMAND_ROTATE ) {
 			Do.execute( {
 				item: grabPoint.item,
@@ -2286,38 +2375,49 @@ function onMouseUp( event ) {
 		grabPoint = null;
 	}
 
+	// Mouse click and no move ... select the next item below
 	if ( moveItem === "Not moved" && item.hasBeenSelected ) {
+
 		project.deselectAll();
 		$( "#page-paper" ).trigger( "itemDeselected", { item: item, join: false } );
 
+		// Look for item below
 		var next = item;
-		while( next = next.previousSibling ) {
+		while ( next = next.previousSibling ) {
 			if ( next.hitTest( event.point ) ) {
 				next.selected = true;
-				setTimeout( function() { $( "#page-paper" ).trigger( "itemSelected", { item: next, join: true } ); }, 5 );
+				setTimeout( function() {
+					$( "#page-paper" ).trigger( "itemSelected", { item: next, join: true } );
+				}, 5 );
 				return;
 			}
 		}
+
+		// If no item was found, we look for the top most
 		if ( hitResult = project.hitTest( event.point ) && hitResult && hitResult.item !== item ) {
 			hitResult.item.selected = true;
-			setTimeout( function() { $( "#page-paper" ).trigger( "itemSelected", { item: hitResult.item, join: true } ); }, 5 );
+			setTimeout( function() {
+				$( "#page-paper" ).trigger( "itemSelected", { item: hitResult.item, join: true } );
+			}, 5 );
 			return;
 		}
+
+	// Item was moved, so move it ...
 	} else if ( moveItem === "Moved" ) {
+
+		// ... With the undoer
 		Do.execute( {
 			item: item,
 			action: "Move",
 			newPosition: item.position,
-			oldPosition: movePosition
+			oldPosition: movePosition.round()
 		} );
 	}
 
+	// Commit all the changes, that the rubber made
 	if ( baseCommands.rubberCircle ) {
 		Do.commit( baseCommands.rubberDirtyRect, true );
 	}
-};
-
-function onFrame() {
 };
 
 window.paperOnbeforeunload = function() {
@@ -2326,111 +2426,90 @@ window.paperOnbeforeunload = function() {
 
 ////////////////////////////////////////////////////////
 // Program startup
-var Do = new UndoManager();
 
+///////////////////////////////////////////////////
+// If a session is active, we reload everything
 if ( sessionStorage.paperProject ) {
+
+	// New start anyways
 	project.clear();
 	project.importJSON( sessionStorage.paperProject );
 
-	var baseLayer = project.layers[ project.layers.length-1 ],
+	// Of the the baseLayer we only need the current bounds
+	var baseLayer = project.layers[ project.layers.length - 1 ],
 		cropperBounds = baseLayer.children[ 0 ].children[ 1 ].bounds;
-
-	baseLayer.removeChildren();
-	baseLayer.activate();
-
 	cropperBounds.point -= CropperTopLeft;
-	var baseCropper = new Cropper( cropperBounds );
-	var baseViewer = new Viewer( baseCropper );
-	var baseCommands = new Commands( baseCropper );
-	var baseColorizer1 = new Colorizer( [{
-		filter: "brightness",
-		yPos: 30,
-		startValue: 0.5,
-		camanValue: function( value ) { return ( value-0.5 )*200; },
-	},{
-		filter: "saturation",
-		yPos: 100,
-		startValue: 0.5,
-		camanValue: function( value ) { return ( value-0.5 )*200; },
-	},{
-		filter: "hue",
-		yPos: 170,
-		startValue: 0.0,
-		camanValue: function( value ) { return value * 100; },
-	}] );
-	var baseColorizer2 = new Colorizer( [{
-		filter: "sharpen",
-		yPos: 30,
-		startValue: 0.0,
-		camanValue: function( value ) { return value * 100; },
-	},{
-		filter: "stackBlur",
-		yPos: 100,
-		startValue: 0.0,
-		camanValue: function( value ) { return value * 100; },
-	},{
-		filter: "sepia",
-		yPos: 170,
-		startValue: 0.0,
-		camanValue: function( value ) { return value * 100; },
-	}] );
+	baseLayer.removeChildren();
 
-	baseColorizer1.hide();
-	baseColorizer2.hide();
+	// Same drawing layer as before
+	var drawingLayer = project.layers[ project.layers.length - 2 ];
 
-	project.layers[ project.layers.length-2 ].activate();
+//////////////////////////////////////////////////////
+// New session (new browser tab or window)
 } else {
-	sessionStorage.importFolder = window.AllImages[0].groupName;
+
+	// Set the default folders for importing and exporting images
+	sessionStorage.importFolder = window.AllImages[ 0 ].groupName;
 	sessionStorage.exportFolder = "/";
 
+	// Take the first layer as base layer
 	var baseLayer = project.activeLayer;
-	var baseCropper = new Cropper();
-	var baseViewer = new Viewer( baseCropper );
-	var baseCommands = new Commands( baseCropper );
 
-	var baseColorizer1 = new Colorizer( [{
-		filter: "brightness",
-		yPos: 30,
-		startValue: 0.5,
-		camanValue: function( value ) { return ( value-0.5 )*200; },
-	},{
-		filter: "saturation",
-		yPos: 100,
-		startValue: 0.5,
-		camanValue: function( value ) { return ( value-0.5 )*200; },
-	},{
-		filter: "hue",
-		yPos: 170,
-		startValue: 0.0,
-		camanValue: function( value ) { return value * 100; },
-	},{
-		filter: "contrast",
-		yPos: 240,
-		startValue: 0.5,
-		camanValue: function( value ) { return ( value-0.5 )*200; },
-	}] );
-
-	var baseColorizer2 = new Colorizer( [{
-		filter: "sharpen",
-		yPos: 30,
-		startValue: 0.0,
-		camanValue: function( value ) { return value * 100; },
-	},{
-		filter: "stackBlur",
-		yPos: 100,
-		startValue: 0.0,
-		camanValue: function( value ) { return value * 100; },
-	},{
-		filter: "sepia",
-		yPos: 170,
-		startValue: 0.0,
-		camanValue: function( value ) { return value * 100; },
-	}] );
-	baseColorizer1.hide();
-	baseColorizer2.hide();
-
-	var activeLayer = new Layer();
+	// Make a new drawing layer
+	var drawingLayer = new Layer();
 }
 
+/////////////////////////////////////////////////77
+// Preparing the base layer (viewer, cropper, commands)
+baseLayer.activate();
+
+var baseCropper = new Cropper( cropperBounds );
+var baseViewer = new Viewer( baseCropper );
+var baseCommands = new Commands( baseCropper );
+
+// Initialize the first colorizer (for brightness, saturation and hue)
+var baseColorizer1 = new Colorizer( [ {
+	filter: "brightness",
+	yPos: 30,
+	startValue: 0.5,
+	camanValue: function( value ) { return ( value - 0.5 ) * 200; }
+}, {
+	filter: "saturation",
+	yPos: 100,
+	startValue: 0.5,
+	camanValue: function( value ) { return ( value - 0.5 ) * 200; }
+}, {
+	filter: "hue",
+	yPos: 170,
+	startValue: 0.0,
+	camanValue: function( value ) { return value * 100; }
+} ] );
+baseColorizer1.hide();
+
+// Initialize the second colorizer (for sharpen, stackBlur and sepia)
+var baseColorizer2 = new Colorizer( [ {
+	filter: "sharpen",
+	yPos: 30,
+	startValue: 0.0,
+	camanValue: function( value ) { return value * 100; }
+}, {
+	filter: "stackBlur",
+	yPos: 100,
+	startValue: 0.0,
+	camanValue: function( value ) { return value * 100; }
+}, {
+	filter: "sepia",
+	yPos: 170,
+	startValue: 0.0,
+	camanValue: function( value ) { return value * 100; }
+} ] );
+baseColorizer2.hide();
+
+// Start the Undo manager
+var Do = new UndoManager();
+
+// The baseLayer should be above everything
 baseLayer.bringToFront();
 
+// Let's draw ...
+drawingLayer.activate();

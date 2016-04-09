@@ -28,6 +28,8 @@
     window.OutputSounds = JSON.parse({{ .OutputSounds }});
     new LiveEditorOutput({
         el: $("#live-editor-output")[0],
+        width: 480,
+        height: 800,
         useDebugger: useDebugger,
         soundsDir: "../static/userdata/{{ .UserNameForImages }}/sounds/",
     });
