@@ -44,12 +44,12 @@ TooltipEngine.classes.imagePicker.prototype.defaultImage = "Spielplatz/Leer";
 ///////////////////////////////////////////////////////////
 // Deactivate maybeShowErrors
 //
-if( !window.LiveEditor.prototype.maybeShowErrors ) 
-	console.error( errMsg + "maybeShowErrors method is not available." );
-window.LiveEditor.prototype.maybeShowErrors = function maybeShowErrors() {
-
-	return;
-};
+//if( !window.LiveEditor.prototype.maybeShowErrors ) 
+//	console.error( errMsg + "maybeShowErrors method is not available." );
+//window.LiveEditor.prototype.maybeShowErrors = function maybeShowErrors() {
+//
+//	return;
+//};
 
 
 ///////////////////////////////////////////////////////////
