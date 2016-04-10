@@ -1424,6 +1424,7 @@ var importModal = function( cb ) {
 	} );
 
 	modal.modal( "show" );
+	$( "#image-group-1", modal ).collapse( "show" );
 };
 
 ////////////////////////////////////////////////////////////////////////
