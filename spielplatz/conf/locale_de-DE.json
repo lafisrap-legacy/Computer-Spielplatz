@@ -68,7 +68,18 @@
     "login_login"                       : "Anmelden",
     "login_signup"                      : "Neues Konto",
     "login_logout"                      : "Abmelden",
-	                                    
+	                      
+	"signup_invitation"					: "Lege ein Konto an",
+	"signup_input_name"					: "Name",
+	"signup_input_password"				: "Passwort",
+	"signup_input_password2"			: "Passwort-Wiederholung",
+	"signup_signup_go"					: "Konto anlegen",
+
+	"login_invitation"					: "Logge dich ein ...",
+	"login_input_name"					: "Name",
+	"login_input_password"				: "Passwort",
+	"login_login_go"					: "Einloggen",
+
 	"websockets_file_exists"	        : "Es gibt schon eine Datei mit dem gleichen Namen. Überschreiben?"
 }
 

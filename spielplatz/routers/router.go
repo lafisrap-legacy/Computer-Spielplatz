@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
-	"github.com/lavisrap/Computer-Spielplatz/spielplatz/controllers"
-	"github.com/lavisrap/Computer-Spielplatz/spielplatz/models"
+	"github.com/lavisrap/Computer-Spielplatz-Gitbase/spielplatz/controllers"
+	"github.com/lavisrap/Computer-Spielplatz-Gitbase/spielplatz/models"
 	"os"
 	"strings"
 )
@@ -18,6 +18,7 @@ type langType struct {
 var langTypes []*langType // Languages are supported.
 
 func init() {
+	beego.Trace("!Hello World!")
 	beego.Router("/", &controllers.RootController{})
 	beego.Router("/login/?:dest", &controllers.LoginController{})
 	beego.Router("/logout", &controllers.LogoutController{})
@@ -65,7 +66,7 @@ func loadLanguages() {
 
 		jsonParser := json.NewDecoder(configFile)
 		if err = jsonParser.Decode(&t); err != nil {
-			beego.Error("Error parsing config file", err.Error())
+			beego.Error("Error parsing config file: ", err.Error())
 		}
 
 		tLanguages[lang] = t

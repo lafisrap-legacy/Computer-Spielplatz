@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/session"
-	"github.com/lavisrap/Computer-Spielplatz/spielplatz/models"
+	"github.com/lavisrap/Computer-Spielplatz-Gitbase/spielplatz/models"
 	"html/template"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -24,7 +26,7 @@ type Session struct {
 }
 
 type SessionXsrfStruct struct {
-	Session   session.SessionStore
+	Session   session.Store
 	Timestamp time.Time
 }
 
@@ -147,8 +149,8 @@ func (c *RootController) Get() {
 	//c.Data["Sid"] = s.SessionID()
 	c.Data["UserName"] = s.Get("UserName")
 	c.Data["LoginTime"] = s.Get("LoginTime")
-	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
-	c.TplNames = "index.html"
+	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
+	c.TplName = "index.html"
 	setTitleData(c.Data)
 }
 
@@ -203,9 +205,17 @@ func (c *LoginController) Get() {
 	s, _ := globalSessions.SessionStart(w, r)
 	defer s.SessionRelease(w)
 
-	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
+	T := models.T
+
+	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 	c.Data["Destination"] = "/" + c.Ctx.Input.Param(":dest")
-	c.TplNames = "login.html"
+	beego.Trace("c.Data LoginInvitation = ", T["login_invitation"])
+	c.Data["LoginInvitation"] = T["login_invitation"]
+	c.Data["LoginInputName"] = T["login_input_name"]
+	c.Data["LoginPassword"] = T["login_input_password"]
+	c.Data["LoginLoginGo"] = T["login_login_go"]
+
+	c.TplName = "login.html"
 }
 
 ///////////////////////////////////
@@ -225,7 +235,7 @@ func (c *LoginController) Post() {
 		dest = "/"
 	}
 	if err = c.ParseForm(&uf); err == nil {
-		if u, err = models.Login(&uf); err == nil {
+		if u, err = models.AuthenticateUser(&uf); err == nil {
 			s.Set("UserName", u.Name)
 			s.Set("Email", u.Email)
 			s.Set("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
@@ -236,9 +246,9 @@ func (c *LoginController) Post() {
 	}
 
 	c.Data["Error"] = err.Error()
-	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
+	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 	c.Data["Destination"] = dest
-	c.TplNames = "login.html"
+	c.TplName = "login.html"
 }
 
 //////////////////////////////////////////////////////////
@@ -261,9 +271,16 @@ func (c *LogoutController) Get() {
 //
 // Get
 func (c *SignupController) Get() {
-	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
+	T := models.T
+
+	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 	c.Data["Destination"] = "/" + c.Ctx.Input.Param(":dest")
-	c.TplNames = "signup.html"
+	c.Data["SignupInvitation"] = T["signup_invitation"]
+	c.Data["SignupInputName"] = T["signup_input_name"]
+	c.Data["SignupInputPassword"] = T["signup_input_password"]
+	c.Data["SignupInputPassword2"] = T["signup_input_password2"]
+	c.Data["SignupSignupGo"] = T["signup_signup_go"]
+	c.TplName = "signup.html"
 }
 
 ///////////////////////////////////
@@ -278,18 +295,17 @@ func (c *SignupController) Post() {
 	T := models.T
 	uf := models.UserForm{}
 	dest := c.Ctx.Input.Query("_dest")
-	beego.Trace("Destination:", dest)
 	if dest == "" {
 		dest = "/"
 	}
 	if err = c.ParseForm(&uf); err == nil {
 		if uf.Pwd == uf.Pwd2 {
-			if u, err = models.Signup(&uf); err == nil {
+			if u, err = models.CreateUserInDatabase(&uf); err == nil {
 				s.Set("UserName", u.Name)
 				s.Set("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
 				s.Set("Email", u.Email)
 
-				c.setupAccount(u.Name)
+				c.createUserDirectory(u)
 				c.Ctx.Redirect(302, dest)
 				return
 			} else {
@@ -303,27 +319,45 @@ func (c *SignupController) Post() {
 	}
 
 	c.Data["Error"] = err.Error()
-	c.TplNames = "signup.html"
+	c.TplName = "signup.html"
 	c.Data["Destination"] = dest
-	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
+	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 }
 
-func (c *SignupController) setupAccount(userName string) {
+///////////////////////////////////////////////
+// Create user directories, for code files and resources
+func (c *SignupController) createUserDirectory(user models.User) {
 
-	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::jsfiles")
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		beego.Error("Cannot create directory", dir)
-	}
-	dir = beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::imagefiles") + beego.AppConfig.String("userdata::examples")
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		beego.Error("Cannot create directory", dir)
-	}
-	dir = beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::soundfiles") + beego.AppConfig.String("userdata::examples")
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		beego.Error("Cannot create directory", dir)
+	// Create project directories
+	var dir string
+	dirs := strings.Split(beego.AppConfig.String("userdata::codefiles"), ",")
+	dirs = append(dirs, beego.AppConfig.String("userdata::soundfiles"))
+	dirs = append(dirs, beego.AppConfig.String("userdata::imagefiles"))
+	dirs = append(dirs, beego.AppConfig.String("userdata::jsonfiles"))
+	dirs = append(dirs, beego.AppConfig.String("userdata::projects"))
+	dirs = append(dirs, "bare_"+beego.AppConfig.String("userdata::projects"))
+	dirs = append(dirs, beego.AppConfig.String("userdata::spielplatzdir"))
+	for i := 0; i < len(dirs); i++ {
+		dir = beego.AppConfig.String("userdata::location") + user.Name + "/" + dirs[i]
+		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+			beego.Error("Cannot create directory", dir)
+		}
 	}
 
-	mountAdminData(userName)
+	// Create .spielplatz files
+	dir = beego.AppConfig.String("userdata::location") + user.Name + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/"
+	identityFile := dir + "identity"
+	file, err := os.Create(identityFile)
+	if err != nil {
+		beego.Error(err)
+	}
+	file.Close()
+	cnf, err := config.NewConfig("ini", identityFile)
+	if err != nil {
+		beego.Error("Cannot create identity file in " + dir + " (" + err.Error() + ")")
+	}
+	cnf.Set("auth::Pwhash", user.Pwhash)
+	cnf.SaveConfigFile(identityFile)
 }
 
 func mountAdminData(userName string) error {
@@ -378,7 +412,7 @@ func (c *LiveEditorController) Get() {
 
 	file := c.Ctx.Input.Param(":file")
 	if file != "" {
-		c.TplNames = "external/" + c.Ctx.Input.Param(":file")
+		c.TplName = "external/" + c.Ctx.Input.Param(":file")
 	} else {
 		c.Data["UserName"] = userName
 		c.Data["LoginTime"] = s.Get("LoginTime")
@@ -415,18 +449,18 @@ func (c *LiveEditorController) Get() {
 		c.Data["LoginLogout"] = T["login_logout"]
 
 		c.Data["WebsocketsAddress"] = "ws://" + beego.AppConfig.String("httpaddr") + ":" + beego.AppConfig.String("websockets::port") + beego.AppConfig.String("websockets::dir")
-		c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
+		c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 
 		setTitleData(c.Data)
 
-		c.TplNames = "live-editor.html"
+		c.TplName = "live-editor.html"
 	}
 }
 
 //////////////////////////////////////////////////////////
 // getImageInfo retrieves a list of all images for one particular user
 func (c *CPGController) getImageInfo(userName string) string {
-	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::imagefiles")
+	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::imagefiles") + "/"
 	admin := userName == beego.AppConfig.String("userdata::admin")
 	examples := beego.AppConfig.String("userdata::examples")
 
@@ -479,15 +513,12 @@ func (c *CPGController) getImageInfo(userName string) string {
 //////////////////////////////////////////////////////////
 // getSoundInfo retrieves a list of all sounds for one particular user
 func (c *CPGController) getSoundInfo(userName string) string {
-	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::soundfiles")
+	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::soundfiles") + "/"
 	soundInfo := make([]soundGroup, 0, 21)
 
-	beego.Warning(dir)
 	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		matches := soundRegexp.FindSubmatch([]byte(path))
-		beego.Warning("!!!", path)
 		if matches != nil {
-			beego.Warning("!!!!", matches)
 			folder := string(matches[1])
 			file := string(matches[2])
 			found := false
@@ -523,13 +554,13 @@ func (c *CPGController) getSoundInfo(userName string) string {
 	}
 }
 
-func (c *LiveEditorController) StartSession() session.SessionStore {
+func (c *LiveEditorController) StartSession() session.Store {
 
 	if c.CruSession == nil {
 		c.CruSession = c.Ctx.Input.CruSession
 	}
 
-	SessionXsrfTable[c.XsrfToken()] = SessionXsrfStruct{
+	SessionXsrfTable[c.XSRFToken()] = SessionXsrfStruct{
 		Session:   c.CruSession,
 		Timestamp: time.Now(),
 	}
@@ -544,8 +575,8 @@ func (c *LiveEditorController) StartSession() session.SessionStore {
 //
 // Get
 func (c *LiveEditorBuildController) Get() {
-	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
-	c.TplNames = "live-editor/build/js/" + c.Ctx.Input.Param(":file")
+	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
+	c.TplName = "live-editor/build/js/" + c.Ctx.Input.Param(":file")
 }
 
 //////////////////////////////////////////////////////////
@@ -593,10 +624,10 @@ func (c *GraphicsController) Get() {
 	c.Data["GraphicsColorizerSharpen"] = T["graphics_colorizer_sharpen"]
 	c.Data["GraphicsColorizerStackBlur"] = T["graphics_colorizer_stackBlur"]
 	c.Data["GraphicsColorizerSepia"] = T["graphics_colorizer_sepia"]
-	c.Data["xsrfdata"] = template.HTML(c.XsrfFormHtml())
+	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 
 	setTitleData(c.Data)
-	c.TplNames = "graphics-animation.html"
+	c.TplName = "graphics-animation.html"
 }
 
 /////////////////////////////////////////////////////////////
@@ -605,19 +636,19 @@ func (c *GraphicsController) Get() {
 // Error 404
 func (c *ErrorController) Error404() {
 	c.Data["content"] = "page not found"
-	c.TplNames = "404.html"
+	c.TplName = "404.html"
 }
 
 ////////////////////////////////////
 // Error 501
 func (c *ErrorController) Error501() {
 	c.Data["content"] = "internal server error"
-	c.TplNames = "501.html"
+	c.TplName = "501.html"
 }
 
 ////////////////////////////////////
 // Database Error
 func (c *ErrorController) ErrorDB() {
 	c.Data["content"] = "database is now down"
-	c.TplNames = "dberror.html"
+	c.TplName = "dberror.html"
 }

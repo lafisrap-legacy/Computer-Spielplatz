@@ -15,14 +15,14 @@
         <form class="form-signup {{ if .Error }}has-error{{ end }}" action="signup" method="post">
             {{ .xsrfdata }}
             <input type="hidden" name="_dest" value="{{ .Destination }}">
-            <h2 class="form-signin-heading">Lege ein Konto an</h2>
-            <label for="inputName" class="sr-only">Name</label>
-            <input id="inputName" class="form-control" placeholder="Name" required="" autofocus="" type="name" name="name" value="{{ .Name }}">
-            <label for="inputPassword" class="sr-only">Passwort</label>
-            <input id="inputPassword" class="form-control" placeholder="Password" required="" type="password" name="password" value="{{ .Pwd }}">
-            <label for="inputPassword2" class="sr-only">Passwort-Wiederholung</label>
-            <input id="inputPassword2" class="form-control" placeholder="Password2" required="" type="password" name="password2" value="{{ .Pwd }}">
-            <button class="btn btn-lg btn-primary btn-block" type="submit">Konto anlegen</button>
+            <h2 class="form-signin-heading">{{ .SignupInvitation }}</h2>
+            <label for="inputName" class="sr-only">{{ .SignupInputName }}</label>
+            <input id="inputName" class="form-control" placeholder="{{ .SignupInputName }}" required="" autofocus="" type="name" name="name" value="{{ .Name }}">
+            <label for="inputPassword" class="sr-only">{{ .SignupInputPassword }}</label>
+            <input id="inputPassword" class="form-control" placeholder="{{ .SignupInputPassword }}" required="" type="password" name="password" value="{{ .Pwd }}">
+            <label for="inputPassword2" class="sr-only">{{ .SignupInputPassword2 }}</label>
+            <input id="inputPassword2" class="form-control" placeholder="{{ .SignupInputPassword2 }}" required="" type="password" name="password2" value="{{ .Pwd }}">
+            <button class="btn btn-lg btn-primary btn-block" type="submit">{{ .SignupSignupGo }}</button>
             {{ if .Error }}
             <span>{{ .Error }}</span>
             {{ end }}

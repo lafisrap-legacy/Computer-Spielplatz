@@ -7,9 +7,8 @@ import (
 	_ "errors"
 	"fmt"
 	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/session"
-	"github.com/lavisrap/Computer-Spielplatz/spielplatz/models"
+	"github.com/lavisrap/Computer-Spielplatz-Gitbase/spielplatz/models"
 	"image"
 	"image/png"
 	"io"
@@ -44,7 +43,7 @@ func (s socket) Close() error {
 type Message struct {
 	Id      int
 	Xsrf    string
-	Session session.SessionStore
+	Session session.Store
 
 	Command    string
 	returnChan chan Data
@@ -108,7 +107,7 @@ func StartWebsockets(doneChan chan bool) {
 		fmt.Println("Socket connection gone ...")
 	}))
 
-	fmt.Println("Spielplatz connector started on ", address+":"+port, ". Listening ...")
+	fmt.Println("--- Spielplatz connector started on ", address+":"+port, ". Listening ...")
 
 	err := http.ListenAndServe(address+":"+port, nil)
 	if err != nil {
@@ -197,7 +196,7 @@ func serveMessages(messageChan chan Message) {
 	}
 }
 
-func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string, timeStamps []int64, Images []string, overwrite bool) Data {
+func writeJSFiles(s session.Store, fileNames []string, codeFiles []string, timeStamps []int64, Images []string, overwrite bool) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -279,29 +278,6 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 		}
 		defer imgFile.Close()
 		png.Encode(imgFile, pngImage)
-		beego.Trace("PNG file written to harddrive.")
-
-		////////////////////////////////////////
-		// Write to database if not already there
-		u := models.User{Name: name}
-		f := models.File{}
-		o := orm.NewOrm()
-
-		err = o.Read(&u, "Name")
-		if err == nil {
-			err = o.QueryTable(f).Filter("filename", fileNames[i]).Filter("user_id", u.Id).One(&f)
-			if err == orm.ErrMultiRows {
-				beego.Error("Returned Multi Rows Not One")
-			}
-			if err == orm.ErrNoRows {
-				beego.Trace("File", fileNames[i], "not found in database. Inserting new.")
-				f := models.File{Filename: fileNames[i], User: &u}
-				_, err = o.Insert(&f)
-				if err != nil {
-					beego.Error("Couldn't insert file.")
-				}
-			}
-		}
 	}
 
 	return Data{
@@ -312,7 +288,7 @@ func writeJSFiles(s session.SessionStore, fileNames []string, codeFiles []string
 	}
 }
 
-func readJSFiles(s session.SessionStore, fileNames []string) Data {
+func readJSFiles(s session.Store, fileNames []string) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -358,7 +334,7 @@ func readJSFiles(s session.SessionStore, fileNames []string) Data {
 	}
 }
 
-func readJSDir(s session.SessionStore) Data {
+func readJSDir(s session.Store) Data {
 
 	data := Data{}
 	files := make(map[string]JSFile)
@@ -388,7 +364,7 @@ func readJSDir(s session.SessionStore) Data {
 	return data
 }
 
-func deleteJSFiles(s session.SessionStore, fileNames []string) Data {
+func deleteJSFiles(s session.Store, fileNames []string) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -413,20 +389,6 @@ func deleteJSFiles(s session.SessionStore, fileNames []string) Data {
 			beego.Error("Cannot remove file")
 			return Data{
 				"Error": "I cannot remove " + fileName[0:len(fileName)-3] + ".png.",
-			}
-		}
-
-		////////////////////////////////////////
-		// Clear from database if not already there
-		u := models.User{Name: name}
-		f := models.File{}
-		o := orm.NewOrm()
-
-		err := o.Read(&u, "Name")
-		if err == nil {
-			num, _ := o.QueryTable(f).Filter("filename", fileNames[i]).Filter("user_id", u.Id).Delete()
-			if num != 1 {
-				beego.Error("I deleted", num, "occurences of", fileNames[i], "instead of 1.")
 			}
 		}
 	}

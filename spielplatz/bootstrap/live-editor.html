@@ -565,6 +565,7 @@ window.liveEditor = new LiveEditor({
     imagesDir: "static/userdata/{{ .UserNameForImages }}/images/",
     soundsDir: "../static/userdata/{{ .UserNameForImages }}/sounds/",
     jshintFile: "../build/external/jshint/jshint.js",
+    newErrorExperience: true 
 });
 window.liveEditor.editor.on("change", function () {
     CPG_modified = true;
