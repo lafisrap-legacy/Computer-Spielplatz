@@ -7,9 +7,9 @@ import (
 	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/session"
 	"github.com/lavisrap/Computer-Spielplatz-Gitbase/spielplatz/models"
+	"github.com/libgit2/git2go"
 	"html/template"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -239,7 +239,6 @@ func (c *LoginController) Post() {
 			s.Set("UserName", u.Name)
 			s.Set("Email", u.Email)
 			s.Set("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
-			mountAdminData(u.Name)
 			c.Ctx.Redirect(302, dest)
 			return
 		}
@@ -358,37 +357,34 @@ func (c *SignupController) createUserDirectory(user models.User) {
 	}
 	cnf.Set("auth::Pwhash", user.Pwhash)
 	cnf.SaveConfigFile(identityFile)
+
+	// Clone Admin Spielplatz project
+	err = cloneProject(beego.AppConfig.String("userdata::admin"), user.Name, beego.AppConfig.String("userdata::commonproject"))
+	if err != nil {
+		beego.Error(err)
+	}
 }
 
-func mountAdminData(userName string) error {
+func cloneProject(fromUser string, toUser string, project string) error {
+	url := beego.AppConfig.String("userdata::location") +
+		fromUser +
+		"/bare_" + beego.AppConfig.String("userdata::projects") + "/" +
+		project
 
-	adminName := beego.AppConfig.String("userdata::admin")
+	dir := beego.AppConfig.String("userdata::location") +
+		toUser + "/" +
+		beego.AppConfig.String("userdata::projects") + "/" +
+		project
 
-	if userName == adminName {
-		return nil
+	options := git.CloneOptions{
+		Bare: false,
 	}
+	_, err := git.Clone(url, dir, &options)
 
-	resources := []string{"image", "sound"}
-	for _, res := range resources {
-		dir1 := beego.AppConfig.String("userdata::location") + adminName + "/" + beego.AppConfig.String("userdata::"+res+"files") + beego.AppConfig.String("userdata::examples")
-		dir2 := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::"+res+"files") + beego.AppConfig.String("userdata::examples")
-
-		_, err := os.Stat(dir2)
-		if !os.IsNotExist(err) {
-			cmd := exec.Command("sudo", "mount", "--bind", dir1, dir2)
-			err := cmd.Run()
-			if err != nil {
-				beego.Error("Cannot mount --bind ", dir2, err.Error())
-			}
-			cmd = exec.Command("sudo", "mount", "-o", "remount,ro", dir2)
-			err = cmd.Run()
-			if err != nil {
-				beego.Error("Cannot remount ", dir2, err.Error())
-			}
-		}
+	if err == nil {
+		models.MountResourceFiles(toUser, project)
 	}
-
-	return nil
+	return err
 }
 
 //////////////////////////////////////////////////////////

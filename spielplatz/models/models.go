@@ -9,6 +9,8 @@ import (
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
 	"io/ioutil"
+	"os"
+	"os/exec"
 )
 
 //////////////////////////////////////////////////
@@ -164,12 +166,47 @@ func createAllUserDatabaseEntries() {
 					project.Stars = 0
 
 					CreateProjectDatabaseEntry(project)
+					MountResourceFiles(userName, projectName)
 				} else {
 					beego.Error("Couldn't open project file of user " + userName + " in project " + projectName + ". (" + err.Error() + ")")
 				}
 			}
 		}
 	}
+}
+
+/////////////////////////////////////////////////////////////
+// MountResourceFiles
+func MountResourceFiles(user string, project string) error {
+
+	resources := []string{"image", "sound"}
+	for _, res := range resources {
+		fromDir := beego.AppConfig.String("userdata::location") +
+			user + "/" +
+			beego.AppConfig.String("userdata::projects") + "/" +
+			project + "/" +
+			beego.AppConfig.String("userdata::"+res+"files")
+		toDir := beego.AppConfig.String("userdata::location") +
+			user + "/" + beego.AppConfig.String("userdata::"+res+"files") + "/" +
+			project
+
+		_, err := os.Stat(toDir)
+		if os.IsNotExist(err) {
+
+			beego.Trace("MOUNTING resource", res, "of project", project, "from user", user)
+			if err := os.MkdirAll(toDir, os.ModePerm); err != nil {
+				beego.Error("Cannot create directory", toDir)
+			}
+
+			cmd := exec.Command("sudo", "mount", "--bind", fromDir, toDir)
+			err := cmd.Run()
+			if err != nil {
+				beego.Error("Cannot mount --bind ", toDir, err.Error())
+			}
+		}
+	}
+
+	return nil
 }
 
 //////////////////////////////////////////////////

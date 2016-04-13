@@ -296,7 +296,7 @@ func readJSFiles(s session.Store, fileNames []string) Data {
 	}
 
 	name := s.Get("UserName").(string)
-	dir := beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::jsfiles")
+	dir := beego.AppConfig.String("userdata::location") + name + "/pjs/"
 	codeFiles := make(map[string]JSFile)
 
 	for i := 0; i < len(fileNames); i++ {
@@ -309,7 +309,7 @@ func readJSFiles(s session.Store, fileNames []string) Data {
 		fileName := dir + fileNames[i]
 
 		if file, err = os.Open(fileName); err != nil {
-			beego.Error("Cannot open file")
+			beego.Error("Cannot open file", fileName)
 			return Data{}
 		}
 		defer file.Close()
@@ -345,7 +345,7 @@ func readJSDir(s session.Store) Data {
 	}
 
 	name := s.Get("UserName").(string)
-	dir := beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::jsfiles")
+	dir := beego.AppConfig.String("userdata::location") + name + "/pjs"
 
 	filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 
