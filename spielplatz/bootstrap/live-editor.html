@@ -119,7 +119,6 @@
                 </ul>
         </span>
         <button id="control-bar-delete" class="btn btn-primary btn-sm">{{ .ControlBarDelete }}</button>
-        <button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ControlBarRestart }}</button>
         <span class="dropdown" style="float: right">
             <button class="btn btn-primary dropdown-toggle btn-md" type="button" data-toggle="dropdown">
                 <span id="control-bar-label">{{ .ControlBarLabel }}</span> 
@@ -137,9 +136,11 @@
              </div>
         </form>
     </div>
+    <button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ControlBarRestart }}</button>
   {{ else }}
     <div id="bottom-control-bar">
         <span class="label label-info">{{ .ControlBarNoUser }}</span>
+        <button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ControlBarRestart }}</button>
     </div>  
   {{ end }}
   <ul>
@@ -565,7 +566,6 @@ window.liveEditor = new LiveEditor({
     imagesDir: "static/userdata/{{ .UserNameForImages }}/images/",
     soundsDir: "../static/userdata/{{ .UserNameForImages }}/sounds/",
     jshintFile: "../build/external/jshint/jshint.js",
-    newErrorExperience: true 
 });
 window.liveEditor.editor.on("change", function () {
     CPG_modified = true;
