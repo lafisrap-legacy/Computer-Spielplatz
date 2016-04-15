@@ -16,7 +16,10 @@
 	"arts_controllers"                  : "Spiel-Steuerung",
 	"arts_hacking"                      : "Hacken (Freestyle)",
                                         
-    "control_bar_label"                 : "Speichern",
+	"live_editor_header_pjs"			: "Processing/JavaScript",
+	"live_editor_header_html"			: "HTML",
+    
+	"control_bar_label"                 : "Speichern",
     "control_bar_save"                  : "Speichern",
     "control_bar_save_as"               : "Speichern unter ...",
     "control_bar_version"               : "Version speichern",
@@ -43,6 +46,9 @@
 	"control_bar_modal_sound_title"		: "Wähle einen Sound aus ...",
 	"control_bar_modal_file_changed"	: "Du hast den Programmtext geändert!",
 	"control_bar_modal_file_changed_2"	: "Willst du ihn speichern?",
+
+	"graphics_header_graphics"			: "Bild-Editor",
+	"graphics_header_animations"		: "Animations-Editor",
 	"graphics_commands_import_title"	: "Bilder importieren",
 	"graphics_commands_import_local_1"	: "Vom lokalen Computer",
 	"graphics_commands_import_local_2"	: "Importieren",

@@ -412,6 +412,8 @@ func (c *LiveEditorController) Get() {
 	} else {
 		c.Data["UserName"] = userName
 		c.Data["LoginTime"] = s.Get("LoginTime")
+		c.Data["LiveEditorHeaderPjs"] = T["live_editor_header_pjs"]
+		c.Data["LiveEditorHeaderHTML"] = T["live_editor_header_html"]
 		c.Data["ControlBarLabel"] = T["control_bar_label"]
 		c.Data["ControlBarSave"] = T["control_bar_save"]
 		c.Data["ControlBarSaveAs"] = T["control_bar_save_as"]
@@ -599,6 +601,8 @@ func (c *GraphicsController) Get() {
 	c.Data["LoginLogin"] = T["login_login"]
 	c.Data["LoginSignup"] = T["login_signup"]
 	c.Data["LoginLogout"] = T["login_logout"]
+	c.Data["GraphicsHeaderGraphics"] = T["graphics_header_graphics"]
+	c.Data["GraphicsHeaderAnimations"] = T["graphics_header_animations"]
 	c.Data["GraphicsCommandsImportTitle"] = T["graphics_commands_import_title"]
 	c.Data["GraphicsCommandsImportLocal1"] = T["graphics_commands_import_local_1"]
 	c.Data["GraphicsCommandsImportLocal2"] = T["graphics_commands_import_local_2"]

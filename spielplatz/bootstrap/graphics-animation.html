@@ -95,8 +95,8 @@
         {{end}}                       
     </div>
     <ul class="nav nav-tabs">
-        <li id="nav-bar-paper" rel="page-paper" class="nav-bar-page"><a href="#">Graphics</a></li>
-        <li id="nav-bar-animation" rel="page-animation" class="nav-bar-page"><a href="#">Animation</a></li>
+        <li id="nav-bar-paper" rel="page-paper" class="nav-bar-page"><a href="#">{{ .GraphicsHeaderGraphics }}</a></li>
+        <li id="nav-bar-animation" rel="page-animation" class="nav-bar-page"><a href="#">{{ .GraphicsHeaderAnimations }}</a></li>
     </ul>
     <div class="pages">
         <div id="page-paper" class="page active">
@@ -216,6 +216,6 @@
     };
 })();
 </script>
-<script src="static/js/cpg-paper.js" type="text/paperscript" canvas="paperCanvas"></script>
+<script src="static/js/cpg-graphics-animation.ps" type="text/paperscript" canvas="paperCanvas"></script>
 </body>
 </html>
