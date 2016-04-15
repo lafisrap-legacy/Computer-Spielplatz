@@ -2,74 +2,19 @@
 // Live-Editor-Modul, currently with Processing/Javascript (Khan-Flavour)
 $(function fn() {
 
-fn.pjs = {
-    init: function() {
-        window.liveEditor = new LiveEditor({
-            el: $("#cpg-live-editor-pjs"),
-            code: window.localStorage["test-code-pjs"] || "ellipse(100, 100, 100, 100);",
-            width: 480,
-            height: 800,
-            editorHeight: "800px",
-            autoFocus: true,
-            workersDir: "../build/workers/",
-            execFile: "external/output.html",
-            externalsDir: "../build/external/",
-            imagesDir: "static/userdata/"+window.CPG.UserNameForImages+"/images/",
-            soundsDir: "../static/userdata/"+window.CPG.UserNameForImages+"/sounds/",
-            jshintFile: "../build/external/jshint/jshint.js"
-        });
-
-        window.liveEditor.editor.on("change", function () {
-            CPG_modified = true;
-        });
+//////////////////////////////////////////
+// Initiate the live editor that fits to the current page (tab)
+var CPG_page = sessionStorage["CPG_page"] || "page-pjs",
+    
+    CPG_options = {
+        el: $("#cpg-live-editor-pages"),
+        page: CPG_page
     },
-};
 
-fn.html = {
-    init: function() {
-        window.liveEditorHTML = new LiveEditor({
-            editorType: "ace_webpage",
-            outputType: "webpage",
-            el: $("#cpg-live-editor-html"),
-            code: window.localStorage["test-code"] || "<!DOCTYPE html>\n<strong>Hello</strong>, world!",
-            width: 480,
-            height: 800,
-            editorHeight: "800px",
-            autoFocus: true,
-            workersDir: "../build/workers/",
-            externalsDir: "../build/external/",
-            imagesDir: "static/userdata/"+window.CPG.UserNameForImages+"/images/",
-            execFile: "external/output_webpage.html",
-        });
+    CPG_liveEditor =( CPG_page === "page-pjs") ? new window.LiveEditorFramePjs( CPG_options ) : 
+                    ( CPG_page === "page-html" ) ? new window.LiveEditorFrameHTML( CPG_options ) :
 
-        window.liveEditorHTML.editor.on("change", function() {
-        });
-    }
-};
-
-window.CPG.OutputImages = window.CPG.AllImages;
-
-var CPG_currentLiveEditorPage = sessionStorage["currentLiveEditorPage"] || "pjs";
-$(".page").hide();
-$("#nav-bar-"+CPG_currentLiveEditorPage).addClass("active");
-$("#page-"+CPG_currentLiveEditorPage).show();
-fn[CPG_currentLiveEditorPage].init();
-
-var pages = ["pjs", "html"];
-for( pid in pages) {
-	var page = pages[pid]; 
-	$("#nav-bar-"+page).on("click tap", function(e) {
-		var page = $(this).attr("rel").substr(5);
-		sessionStorage["currentLiveEditorPage"] = page;
-/*		$(".nav-bar-page").removeClass("active");
-		$(this).addClass("active");
-		$(".page").hide();
-		$("#page-"+page).show();
-		fn[page].init();*/
-
-        location.reload();
-	}); 
-}
+                    console.error ( "No valid CPG_page specified" );
 
 window.onbeforeunload = function() {
 	for( pid in pages) {

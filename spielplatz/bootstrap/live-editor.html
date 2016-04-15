@@ -105,11 +105,11 @@
 		</ul>
 	</div>
 	<ul class="nav nav-tabs">
-		<li id="nav-bar-pjs" rel="page-pjs" class="nav-bar-page"><a href="#">{{ .LiveEditorHeaderPjs }}</a></li>
-		<li id="nav-bar-html" rel="page-html" class="nav-bar-page"><a href="#">{{ .LiveEditorHeaderHTML }}</a></li>
+		<li id="nav-bar-page-pjs" rel="page-pjs" class="nav-bar-page"><a href="#">{{ .LiveEditorHeaderPjs }}</a></li>
+		<li id="nav-bar-page-html" rel="page-html" class="nav-bar-page"><a href="#">{{ .LiveEditorHeaderHTML }}</a></li>
 	</ul>
 	<div class="clearfix"></div>
-	<div class="pages">
+	<div class="cpg-live-editor-pages">
 		<div id="page-pjs" class="page active">
 			<div id="cpg-live-editor-pjs" class="span12"></div>
 		</div>
@@ -560,6 +560,7 @@
 		AllImages: JSON.parse({{ .AllImages }}),
         LoginTime: {{ .LoginTime }},
         OutputSounds: JSON.parse({{ .OutputSounds }}),
+        OutputImages: JSON.parse({{ .AllImages }}),
         UserName: {{ .UserName }},
         UserNameForImages: {{ .UserNameForImages }},
         WebsocketsAddress: {{ .WebsocketsAddress }},
@@ -579,6 +580,8 @@
 	}
 })();
 </script>
+<script src="static/js/cpg-live-editor-pjs.js"></script>
+<script src="static/js/cpg-live-editor-html.js"></script>
 <script src="static/js/cpg-live-editor.js"></script>
 </body>
 </html>
