@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/session"
-	"github.com/lavisrap/Computer-Spielplatz-Gitbase/spielplatz/models"
+	"github.com/lafisrap/Computer-Spielplatz-Gitbase/spielplatz/models"
 	"image"
 	"image/png"
 	"io"

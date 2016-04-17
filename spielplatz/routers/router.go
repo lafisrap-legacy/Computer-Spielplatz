@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
-	"github.com/lavisrap/Computer-Spielplatz-Gitbase/spielplatz/controllers"
-	"github.com/lavisrap/Computer-Spielplatz-Gitbase/spielplatz/models"
+	"github.com/lafisrap/Computer-Spielplatz-Gitbase/spielplatz/controllers"
+	"github.com/lafisrap/Computer-Spielplatz-Gitbase/spielplatz/models"
 	"os"
 	"strings"
 )

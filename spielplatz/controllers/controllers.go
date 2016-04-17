@@ -6,7 +6,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/session"
-	"github.com/lavisrap/Computer-Spielplatz-Gitbase/spielplatz/models"
+	"github.com/lafisrap/Computer-Spielplatz-Gitbase/spielplatz/models"
 	"github.com/libgit2/git2go"
 	"html/template"
 	"os"

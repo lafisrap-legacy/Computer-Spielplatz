@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/astaxie/beego"
-	_ "github.com/lavisrap/Computer-Spielplatz-Gitbase/spielplatz/routers"
+	_ "github.com/lafisrap/Computer-Spielplatz-Gitbase/spielplatz/routers"
 )
 
 func init() {
