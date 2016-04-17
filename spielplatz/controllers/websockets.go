@@ -9,7 +9,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/session"
-	"github.com/lavisrap/Computer-Spielplatz/spielplatz/models"
+	"github.com/lafisrap/Computer-Spielplatz/spielplatz/models"
 	"image"
 	"image/png"
 	"io"

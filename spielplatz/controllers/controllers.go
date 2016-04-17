@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/session"
-	"github.com/lavisrap/Computer-Spielplatz/spielplatz/models"
+	"github.com/lafisrap/Computer-Spielplatz/spielplatz/models"
 	"html/template"
 	"os"
 	"os/exec"
