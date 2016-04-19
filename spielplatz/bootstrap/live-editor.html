@@ -33,62 +33,61 @@
 <!-- RIDDLE: Modal dialogs won't work if live-editor file are called after bootstrap.js -->
 <script src="static/js/bootstrap.min.js"></script>
 <script src="static/js/websockets.js"></script>
-<script src="static/js/cpg-sessions.js"></script>
 </head>
 <body>
 <div class="container">
 	<div id="control-bar-yes-no-modal" class="modal fade">
-	  <div class="modal-dialog">
+		<div class="modal-dialog">
 		<div class="modal-content">
-		  <div class="modal-header">
+			<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times,</span></button>
 			<h4 class="modal-title">You forgot to set the title!</h4>
-		  </div>
-		  <div class="modal-body">
+			</div>
+			<div class="modal-body">
 			<p>You forgot to set the body text&hellip,</p>
-		  </div>
-		  <div class="modal-footer">
+			</div>
+			<div class="modal-footer">
 			<button type="button" class="modal-yes btn btn-default" data-dismiss="modal">{{ .ControlBarModalYes }}</button>
 			<button type="button" class="modal-no btn btn-primary" data-dismiss="modal">{{ .ControlBarModalNo }}</button>
-		  </div>
+			</div>
 		</div><!-- /.modal-content -->
-	  </div><!-- /.modal-dialog -->
+		</div><!-- /.modal-dialog -->
 	</div><!-- /.modal -->	
 
 	<div id="control-bar-sound-modal" class="modal fade">
-	  <div class="modal-dialog">
+		<div class="modal-dialog">
 		<div class="modal-content">
-		  <div class="modal-header">
+			<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times,</span></button>
 			<h4 class="modal-title">{{ .ControlBarModalSoundTitle }}</h4>
-		  </div>
-		  <div class="modal-body">
-		  </div>
-		  <div class="modal-footer">
+			</div>
+			<div class="modal-body">
+			</div>
+			<div class="modal-footer">
 			<button type="button" class="modal-cancel btn btn-default" data-dismiss="modal">{{ .ControlBarModalCancel }}</button>
 			<button type="button" class="modal-open btn btn-primary" data-dismiss="modal">{{ .ControlBarModalOpen }}</button>
-		  </div>
+			</div>
 		</div><!-- /.modal-content -->
-	  </div><!-- /.modal-dialog -->
+		</div><!-- /.modal-dialog -->
 	</div><!-- /.modal -->	
 
 	<div id="control-bar-codefile-modal" class="modal fade">
-	  <div class="modal-dialog modal-lg">
+		<div class="modal-dialog modal-lg">
 		<div class="modal-content">
-		  <div class="modal-header">
+			<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times,</span></button>
 			<h4 class="modal-title">{{ .ControlBarModalCodefileTitle }}</h4>
-		  </div>
-		  <div class="modal-body">
-		  </div>
+			</div>
+			<div class="modal-body">
+			</div>
 			<div class="clearfix"></div>
-		  <div class="modal-footer">
+			<div class="modal-footer">
 			<button type="button" class="modal-delete pull-left btn btn-default" data-dismiss="modal">{{ .ControlBarModalDelete }}</button>
 			<button type="button" class="modal-open pull-right btn btn-primary" data-dismiss="modal">{{ .ControlBarModalOpen }}</button>
 			<button type="button" class="modal-cancel pull-right btn btn-default" data-dismiss="modal">{{ .ControlBarModalCancel }}</button>
-		  </div>
+			</div>
 		</div><!-- /.modal-content -->
-	  </div><!-- /.modal-dialog -->
+		</div><!-- /.modal-dialog -->
 	</div><!-- /.modal -->	
 
 	<div class="login-area">
@@ -101,7 +100,7 @@
 		<ul class="nav nav-tabs kuenste" style="display:none,">
 		{{range $i, $art := .Arts}}
 			<li><a href="{{$art.Page}}" class="btn btn-default btn-sm btn-{{ $i }}">{{$art.Name}}</a></li>
-		{{end}}					   
+		{{end}}						 
 		</ul>
 	</div>
 	<ul class="nav nav-tabs">
@@ -114,45 +113,19 @@
 			<div id="cpg-live-editor-pjs" class="span12"></div>
 		</div>
 		<div id="page-html" class="page">
-            <div id="cpg-live-editor-html" class="span12"></div>
+						<div id="cpg-live-editor-html" class="span12"></div>
 		</div>
 	</div>
 	{{ if .UserName }}
-	<div id="bottom-control-bar">
-		<button id="control-bar-new" class="btn btn-primary btn-sm">{{ .ControlBarNew }}</button>
-		<span class="dropup">
-			<button class="btn btn-primary dropdown-toggle btn-md" type="button" data-toggle="dropdown">
-				<span id= "control-bar-current-file"></span>
-				<span class="caret"></span></button>
-				<ul id= "control-bar-files" class="dropdown-menu">
-				</ul>
-		</span>
-		<button id="control-bar-delete" class="btn btn-primary btn-sm">{{ .ControlBarDelete }}</button>
-		<span class="dropdown" style="float: right">
-			<button class="btn btn-primary dropdown-toggle btn-md" type="button" data-toggle="dropdown">
-				<span id="control-bar-label">{{ .ControlBarLabel }}</span> 
-				<span id="control-bar-caret" class="caret"></span></button>
-				<ul class="dropdown-menu">
-					<li><a id="control-bar-save">{{ .ControlBarSave }}</a></li>
-					<li><a id="control-bar-saveas">{{ .ControlBarSaveAs }}</a></li>
-					<li><a id="control-bar-version">{{ .ControlBarVersion }}</a></li>
-					<li><a id="control-bar-history">{{ .ControlBarHistory }}</a></li>
-				</ul>
-		</span>
-		<form id="control-bar-input" class="form-inline" role="form" action="" style="float:right">  
-			 <div class="form-group col-sm-3">
-				 <input class="form-control" type="text" name="filename" value="{{ .ControlBarNewFile }}" placeholder="Description" style="display:none"/>
-			 </div>
-		</form>
-	</div>
+	<div id="project-button-group"></div>
 	<button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ControlBarRestart }}</button>
-  {{ else }}
+	{{ else }}
 	<div id="bottom-control-bar">
 		<span class="label label-info">{{ .ControlBarNoUser }}</span>
 		<button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ControlBarRestart }}</button>
-	</div>  
-  {{ end }}
-  <ul>
+	</div>	
+	{{ end }}
+	<ul>
 <li>
 	<h4>rect(x, y, Breite, Höhe, Radius*)</h4>
 	<p>Zeichnet ein Rechteck, wobei die ersten beiden Koordinaten die linke obere Ecke bezeichnen und die beiden anderen die Breite und die Höhe. Um die Position zu ändern, siehe rectMode()</p>
@@ -239,15 +212,15 @@
 </li>
 <li style="display:none">
 	<h4>beginShape(MODE*)</h4>
-	<p>Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().  Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().</p>
+	<p>Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().	Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().</p>
 </li>
 <li style="display:none">
 	<h4>endShape(MODE*)</h4>
-	<p>Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().  Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().</p>
+	<p>Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().	Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().</p>
 </li>
 <li style="display:none">
 	<h4>vertex(x, y)</h4>
-	<p>Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().  Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().</p>
+	<p>Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().	Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().</p>
 </li>
 <li>
 	<h4>background(r, g, b, a*)</h4>
@@ -362,7 +335,7 @@
 </li>
 <li style="display:none">
 	<h4>scale(amount, amountY*)</h4>
-	<p>Increases the size of shapes drawn after the command, by expanding and contracting vertices. For example, scale(2) makes it increase in size by 200%. If called multiple times, the sizes will multiply (accumulative effect). It can be called with one parameter to resize the same in both dimensions, or with two parameters to size differently in each dimension.  To stop resizing shapes, use pushMatrix()/popMatrix().</p>
+	<p>Increases the size of shapes drawn after the command, by expanding and contracting vertices. For example, scale(2) makes it increase in size by 200%. If called multiple times, the sizes will multiply (accumulative effect). It can be called with one parameter to resize the same in both dimensions, or with two parameters to size differently in each dimension.	To stop resizing shapes, use pushMatrix()/popMatrix().</p>
 </li>
 <li style="display:none">
 	<h4>translate(x, y)</h4>
@@ -558,13 +531,13 @@
 (function() {
 	window.CPG = {
 		AllImages: JSON.parse({{ .AllImages }}),
-        LoginTime: {{ .LoginTime }},
-        OutputSounds: JSON.parse({{ .OutputSounds }}),
-        OutputImages: JSON.parse({{ .AllImages }}),
-        UserName: {{ .UserName }},
-        UserNameForImages: {{ .UserNameForImages }},
-        WebsocketsAddress: {{ .WebsocketsAddress }},
-        xsrfdata: {{ .xsrfdata }},
+		LoginTime: {{ .LoginTime }},
+		OutputSounds: JSON.parse({{ .OutputSounds }}),
+		OutputImages: JSON.parse({{ .AllImages }}),
+		UserName: {{ .UserName }},
+		UserNameForImages: {{ .UserNameForImages }},
+		WebsocketsAddress: {{ .WebsocketsAddress }},
+		xsrfdata: {{ .xsrfdata }},
 		ControlBarAllFiles: {{ .ControlBarAllFiles }},
 		ControlBarLabel: {{ .ControlBarLabel }},
 		ControlBarModalAlreadyOpenP: {{ .ControlBarModalAlreadyOpenP }},
@@ -577,9 +550,25 @@
 		ControlBarModalFileOutdated: {{ .ControlBarModalFileOutdated }},
 		ControlBarNewFile: {{ .ControlBarNewFile }},
 		ControlBarSaved: {{ .ControlBarSaved }},
+		ProjectBarNew: {{ .ProjectBarNew }},
+		ProjectBarOpen: {{ .ProjectBarOpen }},
+		ProjectBarSave: {{ .ProjectBarSave }},
+		ProjectBarAdministrate: {{ .ProjectBarAdministrate }},
+		ProjectBarDisinvite: {{ .ProjectBarDisinvite }},
+		ProjectBarTransfer: {{ .ProjectBarTransfer }},
+		ProjectBarRename: {{ .ProjectBarRename }},
+		ProjectBarOrganize: {{ .ProjectBarOrganize }},
+		ProjectBarSaveTemplate: {{ .ProjectBarSaveTemplate }},
+		ProjectBarMessage: {{ .ProjectBarMessage }},
+		ProjectBarInvite: {{ .ProjectBarInvite }},
+		ProjectBarGalleryOn: {{ .ProjectBarGalleryOn }},
+		ProjectBarMail: {{ .ProjectBarMail }},
+		ProjectBarGalleryOn: {{ .ProjectBarGalleryOn }},
+		ProjectBarGalleryOff: {{ .ProjectBarGalleryOff }},
 	}
 })();
 </script>
+<script src="static/js/cpg-project-bar.js"></script>
 <script src="static/js/cpg-live-editor-pjs.js"></script>
 <script src="static/js/cpg-live-editor-html.js"></script>
 <script src="static/js/cpg-live-editor.js"></script>

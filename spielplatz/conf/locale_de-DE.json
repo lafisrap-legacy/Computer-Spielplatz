@@ -18,7 +18,22 @@
                                         
 	"live_editor_header_pjs"			: "Processing/JavaScript",
 	"live_editor_header_html"			: "HTML",
-    
+	
+	"project_bar_new"					: "Neu",
+	"project_bar_open"					: "Öffnen",
+	"project_bar_save"					: "Projekt speichern",
+	"project_bar_administrate"			: "Projekt verwalten",
+	"project_bar_gallery_on"			: "In die Galerie stellen",
+	"project_bar_gallery_off"			: "Aus der Galerie nehmen",
+	"project_bar_invite"				: "Ins Projekt einladen",
+	"project_bar_message"				: "Nachricht schicken",
+	"project_bar_disinvite"				: "Aus dem Projekt ausladen",
+	"project_bar_transfer"				: "Projekt übergeben",
+	"project_bar_rename"				: "Projekt umbenennen",
+	"project_bar_organize"				: "Dateien aufräumen",
+	"project_bar_saveTemplate"			: "Vorlage speichern",
+	"project_bar_mail"					: "Nachrichten",
+
 	"control_bar_label"                 : "Speichern",
     "control_bar_save"                  : "Speichern",
     "control_bar_save_as"               : "Speichern unter ...",

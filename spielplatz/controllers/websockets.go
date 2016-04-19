@@ -205,7 +205,7 @@ func writeJSFiles(s session.Store, fileNames []string, codeFiles []string, timeS
 
 	T := models.T
 	name := s.Get("UserName").(string)
-	dir := beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::jsfiles")
+	dir := beego.AppConfig.String("userdata::location") + name + "/pjs/"
 	savedFiles := []string{}
 	savedTimeStamps := []int64{}
 	outdatedFiles := []string{}
@@ -345,8 +345,8 @@ func readJSDir(s session.Store) Data {
 	}
 
 	name := s.Get("UserName").(string)
-	dir := beego.AppConfig.String("userdata::location") + name + "/pjs"
-
+	dir := beego.AppConfig.String("userdata::location") + name + "/pjs/"
+	beego.Trace(name, dir)
 	filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 
 		name := f.Name()
@@ -372,7 +372,7 @@ func deleteJSFiles(s session.Store, fileNames []string) Data {
 	}
 
 	name := s.Get("UserName").(string)
-	dir := beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::jsfiles")
+	dir := beego.AppConfig.String("userdata::location") + name + "/pjs/"
 
 	for i := 0; i < len(fileNames); i++ {
 		/////////////////////////////////////////

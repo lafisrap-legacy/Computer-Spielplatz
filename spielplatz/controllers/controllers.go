@@ -7,9 +7,9 @@ import (
 	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/session"
 	"github.com/lafisrap/Computer-Spielplatz-Gitbase/spielplatz/models"
-	"github.com/libgit2/git2go"
 	"html/template"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -376,11 +376,7 @@ func cloneProject(fromUser string, toUser string, project string) error {
 		beego.AppConfig.String("userdata::projects") + "/" +
 		project
 
-	options := git.CloneOptions{
-		Bare: false,
-	}
-	_, err := git.Clone(url, dir, &options)
-
+	err := exec.Command("git", "clone", url, dir).Run()
 	if err == nil {
 		models.MountResourceFiles(toUser, project)
 	}
@@ -414,6 +410,22 @@ func (c *LiveEditorController) Get() {
 		c.Data["LoginTime"] = s.Get("LoginTime")
 		c.Data["LiveEditorHeaderPjs"] = T["live_editor_header_pjs"]
 		c.Data["LiveEditorHeaderHTML"] = T["live_editor_header_html"]
+
+		c.Data["ProjectBarNew"] = T["project_bar_new"]
+		c.Data["ProjectBarOpen"] = T["project_bar_open"]
+		c.Data["ProjectBarSave"] = T["project_bar_save"]
+		c.Data["ProjectBarAdministrate"] = T["project_bar_administrate"]
+		c.Data["ProjectBarGalleryOn"] = T["project_bar_gallery_on"]
+		c.Data["ProjectBarGalleryOff"] = T["project_bar_gallery_off"]
+		c.Data["ProjectBarInvite"] = T["project_bar_invite"]
+		c.Data["ProjectBarMessage"] = T["project_bar_message"]
+		c.Data["ProjectBarDisinvite"] = T["project_bar_disinvite"]
+		c.Data["ProjectBarTransfer"] = T["project_bar_transfer"]
+		c.Data["ProjectBarRename"] = T["project_bar_rename"]
+		c.Data["ProjectBarOrganize"] = T["project_bar_organize"]
+		c.Data["ProjectBarSaveTemplate"] = T["project_bar_saveTemplate"]
+		c.Data["ProjectBarMail"] = T["project_bar_mail"]
+
 		c.Data["ControlBarLabel"] = T["control_bar_label"]
 		c.Data["ControlBarSave"] = T["control_bar_save"]
 		c.Data["ControlBarSaveAs"] = T["control_bar_save_as"]

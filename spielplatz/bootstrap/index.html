@@ -10,13 +10,12 @@
 <script src="static/js/jquery-2.1.4.min.js"></script>
 <script src="static/js/bootstrap.min.js"></script>
 <script src="static/js/processing.js"></script>
-<script src="static/js/cpg-sessions.js"></script>
 </head>
 <body>
 <div class="container" style="height: 1024px;">
     <canvas id="canvas" style="position: absolute; top: 0px; left:0; z-index: 10; pointer-events:none;"></canvas>
   <script>
-    refreshSession("{{ .LoginTime }}");
+    //refreshSession("{{ .LoginTime }}");
     
     var canvas = document.getElementById("canvas");
     var processing = new Processing(canvas, function(processing) {

@@ -119,50 +119,42 @@ body {
   margin: 5px;
 }
 
-.login-area .kuenste 
-
-#top-control-bar button,
-#bottom-control-bar button,
- {
-  margin: 5px;
+#project-button-group {
+  margin: 5px 0px;
 }
 
-#bottom-control-bar {
+#project-button-group button {
+  height: 40px;
 }
 
-.control-bar-file {
+#project-button-group ul {
   padding: 5px;
 }
 
-.control-bar-file span {
+#project-button-group ul span {
   padding: 0px 5px;
   display: inline-block;
   overflow: hidden;
   width: 86%;
 }
 
-.control-bar-file .timestamp {
+#project-button-group ul li {
+  padding: 3px 0px;
+}
+
+#project-button-group ul li:hover {
+  background-color: lightgrey;
+}
+
+#project-bar-open-files {
+  width: 222px;
+}
+
+.project-bar-open-file .timestamp {
   position: absolute;
   text-align: right;
   right: 3px;
   font-size: 0.7em;
-}
-
-#control-bar-files {
-  width: 222px;
-}
-
-#control-bar-files li {
-  padding: 3px 0px;
-}
-
-#control-bar-files li:hover {
-  background-color: lightgrey;
-}
-
-#control-bar-files .border-top {
-  border-top: 1px solid grey;
-  margin-top: 5px;
 }
 
 #control-bar-codefile-modal .file {
