@@ -439,21 +439,21 @@ func (c *LiveEditorController) Get() {
 		c.Data["ControlBarNoUser"] = T["control_bar_no_user"]
 		c.Data["ControlBarAllFiles"] = T["control_bar_all_files"]
 		c.Data["ControlBarFileDelete"] = T["control_bar_file_delete"]
-		c.Data["ControlBarModalYes"] = T["control_bar_modal_yes"]
-		c.Data["ControlBarModalNo"] = T["control_bar_modal_no"]
-		c.Data["ControlBarModalFileExists"] = T["control_bar_modal_file_exists"]
-		c.Data["ControlBarModalFileOutdated"] = T["control_bar_modal_file_outdated"]
-		c.Data["ControlBarModalFileDeleteS"] = T["control_bar_modal_file_delete_s"]
-		c.Data["ControlBarModalFileDeleteP"] = T["control_bar_modal_file_delete_p"]
-		c.Data["ControlBarModalAlreadyOpenS"] = T["control_bar_modal_already_open_s"]
-		c.Data["ControlBarModalAlreadyOpenP"] = T["control_bar_modal_already_open_p"]
-		c.Data["ControlBarModalCodefileTitle"] = T["control_bar_modal_codefile_title"]
-		c.Data["ControlBarModalFileChanged"] = T["control_bar_modal_file_changed"]
-		c.Data["ControlBarModalFileChanged2"] = T["control_bar_modal_file_changed_2"]
-		c.Data["ControlBarModalDelete"] = T["control_bar_modal_delete"]
-		c.Data["ControlBarModalCancel"] = T["control_bar_modal_cancel"]
-		c.Data["ControlBarModalOpen"] = T["control_bar_modal_open"]
-		c.Data["ControlBarModalSoundTitle"] = T["control_bar_modal_sound_title"]
+		c.Data["ProjectBarModalYes"] = T["project_bar_modal_yes"]
+		c.Data["ProjectBarModalNo"] = T["project_bar_modal_no"]
+		c.Data["ProjectBarModalFileExists"] = T["project_bar_modal_file_exists"]
+		c.Data["ProjectBarModalFileOutdated"] = T["project_bar_modal_file_outdated"]
+		c.Data["ProjectBarModalFileDeleteS"] = T["project_bar_modal_file_delete_s"]
+		c.Data["ProjectBarModalFileDeleteP"] = T["project_bar_modal_file_delete_p"]
+		c.Data["ProjectBarModalAlreadyOpenS"] = T["project_bar_modal_already_open_s"]
+		c.Data["ProjectBarModalAlreadyOpenP"] = T["project_bar_modal_already_open_p"]
+		c.Data["ProjectBarModalCodefileTitle"] = T["project_bar_modal_codefile_title"]
+		c.Data["ProjectBarModalFileChanged"] = T["project_bar_modal_file_changed"]
+		c.Data["ProjectBarModalFileChanged2"] = T["project_bar_modal_file_changed_2"]
+		c.Data["ProjectBarModalDelete"] = T["project_bar_modal_delete"]
+		c.Data["ProjectBarModalCancel"] = T["project_bar_modal_cancel"]
+		c.Data["ProjectBarModalOpen"] = T["project_bar_modal_open"]
+		c.Data["ProjectBarModalSoundTitle"] = T["project_bar_modal_sound_title"]
 		c.Data["LoginLogin"] = T["login_login"]
 		c.Data["LoginSignup"] = T["login_signup"]
 		c.Data["LoginLogout"] = T["login_logout"]
@@ -471,23 +471,22 @@ func (c *LiveEditorController) Get() {
 // getImageInfo retrieves a list of all images for one particular user
 func (c *CPGController) getImageInfo(userName string) string {
 	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::imagefiles") + "/"
-	admin := userName == beego.AppConfig.String("userdata::admin")
-	examples := beego.AppConfig.String("userdata::examples")
 
 	imageInfo := make([]imageGroup, 0, 21)
 
 	imageInfo = append(imageInfo, imageGroup{
 		GroupName: "/",
-		Readonly:  false,
 		Images:    []string{},
 	})
+	beego.Trace("Looking for images in ", dir)
 	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
+		beego.Trace("Found file:", path)
 		matches := imageRegexp.FindSubmatch([]byte(path))
 		if matches != nil {
 			folder := string(matches[1])
 			file := string(matches[2])
+			beego.Trace("Match! :", folder, file)
 			found := false
-			readonly := false
 			var i int
 
 			for i = 0; i < len(imageInfo); i++ {
@@ -496,13 +495,9 @@ func (c *CPGController) getImageInfo(userName string) string {
 					break
 				}
 			}
-			if !admin && folder == examples {
-				readonly = true
-			}
 			if !found {
 				imageInfo = append(imageInfo, imageGroup{
 					GroupName: folder,
-					Readonly:  readonly,
 					Images:    []string{file},
 				})
 			} else {

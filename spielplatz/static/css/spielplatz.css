@@ -120,6 +120,7 @@ body {
 }
 
 #project-button-group {
+  position: relative;
   margin: 5px 0px;
 }
 
@@ -146,6 +147,17 @@ body {
   background-color: lightgrey;
 }
 
+#project-button-group .big-filename {
+  position: absolute;
+  width: 800px;
+  height: 50px;
+  right: 285px;
+  bottom: 422px;
+  transform: rotate(270deg);
+  font-size: 3em;
+  color: lightgrey;
+}
+
 #project-bar-open-files {
   width: 222px;
 }
@@ -157,35 +169,35 @@ body {
   font-size: 0.7em;
 }
 
-#control-bar-codefile-modal .file {
+#project-bar-codefile-modal .file {
   margin: 5px;
 }
 
-#control-bar-codefile-modal .filename {
+#project-bar-codefile-modal .filename {
   font-size: 1.2em;
 }
 
-#control-bar-codefile-modal .timestamp {
+#project-bar-codefile-modal .timestamp {
   font-size: 0.7em;
   margin: 5px;
 }
 
-#control-bar-codefile-modal .checkbox {
+#project-bar-codefile-modal .checkbox {
   width: 20px;
   height: 20px;
 }
 
-#control-bar-codefile-modal .modal-dialog {
+#project-bar-codefile-modal .modal-dialog {
   overflow-y: initial !important
 }
 
-#control-bar-codefile-modal .modal-body {
+#project-bar-codefile-modal .modal-body {
   height: 550px;
   overflow-y: auto;
   background-color: #f8f8f8;
 }
 
-#control-bar-codefile-modal .modal-body .bottom {
+#project-bar-codefile-modal .modal-body .bottom {
   background-color: #e8e8e8;
   border-top: 1px solid #c8c8c8;
   height: 28px;

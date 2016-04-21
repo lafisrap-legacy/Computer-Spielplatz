@@ -4,19 +4,26 @@ $( function fn( ) {
 
 /////////////////////////////////////////////////////////////////
 // Initiate the live editor that fits to the current page ( tab )
-var CPG_page = sessionStorage[ "CPG_page" ] || "page-pjs",  
+var CPG_page = sessionStorage[ "CPG_page" ] || "pjs",  
 	CPG_options = {
 		el: $( "#cpg-live-editor-pages" ),
 		page: CPG_page
 	},
 
-CPG_liveEditor =( CPG_page === "page-pjs" ) ? new window.LiveEditorFramePjs( CPG_options ) : 
-				( CPG_page === "page-html" ) ? new window.LiveEditorFrameHTML( CPG_options ) :
+CPG_liveEditor =( CPG_page === "pjs" ) ? new window.LiveEditorFramePjs( CPG_options ) : 
+				( CPG_page === "html" ) ? new window.LiveEditorFrameHTML( CPG_options ) :
 
 				console.error ( "No valid CPG_page specified" );
 
 CPG_projectControlBar = new window.ProjectControlBar( {
 								el: $( "#project-button-group" ),
+								userName: window.CPG.UserName, 
+								fileType: CPG_page,
+								editor: CPG_liveEditor,
+								wsAddress: window.CPG.WebsocketsAddress, 
+								xsrfdata: window.CPG.xsrfdata,
+								newFile: window.CPG.ControlBarNewFile + "." + CPG_page,
+								modalContainer: $( ".container" ),
 							} );
 
 

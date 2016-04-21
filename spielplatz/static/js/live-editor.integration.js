@@ -41,16 +41,6 @@ if( !TooltipEngine.classes.imagePicker.prototype.defaultImage )
 	console.error( errMsg + "Default image file is not in place." );
 TooltipEngine.classes.imagePicker.prototype.defaultImage = "Spielplatz/Leer";
 
-///////////////////////////////////////////////////////////
-// Deactivate maybeShowErrors
-//
-if( !window.LiveEditor.prototype.maybeShowErrors ) 
-	console.error( errMsg + "maybeShowErrors method is not available." );
-window.LiveEditor.prototype.maybeShowErrors = function maybeShowErrors() {
-
-	return;
-};
-
 
 ///////////////////////////////////////////////////////////
 // Late integration functions

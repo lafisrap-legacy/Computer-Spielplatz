@@ -4,7 +4,7 @@
 ( function( ) {
 
 window.LiveEditorFrame = Backbone.View.extend ( {
-	LiveEditor: null,
+	liveEditor: null,
 
 	page: null,
 	codeFileList: null,
@@ -17,115 +17,18 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 	initialize: function initialize ( options ) {
 
         var self = this;
-		this.page = options.page || "page-pjs";
+		this.page = options.page || "pjs";
 
 		$( ".page" ).hide( );
-		$( "#nav-bar-" + this.page ).addClass( "active" );
-		$( "#" + this.page ).show( );
+		$( "#nav-bar-page-" + this.page ).addClass( "active" );
+		$( "#page-" + this.page ).show( );
 
 		$( ".nav-bar-page" ).on( "click tap ", function( e ) {
 			sessionStorage.CPG_page = $( this ).attr( "rel" );
 
 			location.reload( );
 		} );
-
-		//////////////////////////////////////////
-		// Fill in the globals form session storage
-		this.codeFileList = sessionStorage[ this.page + "CodeFileList" ] && JSON.parse( sessionStorage[ this.page + "CodeFileList" ] ) || [ ],
-		this.allFilesList = sessionStorage[ this.page + "AllFilesList" ] && JSON.parse( sessionStorage[ this.page + "AllFilesList" ] ) || [ ],
-		this.currentCodeFile = sessionStorage[ this.page + "CurrentCodeFile" ] || window.CPG.ControlBarNewFile;
-        this.codeFiles = {};
-
-		for( var i = 0 ; i < this.codeFileList.length ; i++ ) {
-			this.codeFiles[ this.codeFileList[ i ] ] = sessionStorage[ this.codeFileList[ i ] ] && JSON.parse( sessionStorage[ this.codeFileList[ i ] ] ) || {};
-		}
-		this.codeFiles[ window.CPG.ControlBarNewFile ] = sessionStorage[ window.CPG.ControlBarNewFile ] && JSON.parse( sessionStorage[ window.CPG.ControlBarNewFile ] ) || { code: "" };
-
-
-        //////////////////////////////////////////
-        // WS.connect connects to server and loads code files
-        $WS.connect( window.CPG.WebsocketsAddress, window.CPG.xsrfdata, function( ) {
-
-            if( window.CPG.UserName === "" ) {
-                
-                self.reset( self.codeFiles[ window.CPG.ControlBarNewFile ].code || "" );
-                self._dirty = false;
-
-            } else if( !sessionStorage[ self.page + "CodeFileList" ] ) {
-                $WS.sendMessage( {
-                    Command: "readJSDir"
-                }, function( message ) {
-                    self.codeFileList = [ ];
-
-                    var files=[ ];
-                    for( file in message.Files ) {
-                         files.push( { name: file, timeStamp: message.Files[ file ].TimeStamp } );
-                    }
-
-                    files.sort( function( a, b ) {
-                        if( a.timeStamp < b.timeStamp ) return 1;
-                        else return -1;
-                    } );
-
-                    self.allFilesList = files;
-                    sessionStorage[ self.page + "AllFilesList" ] = JSON.stringify( self.allFilesList );
-
-                    for( var i=0, codeFilesToRead=[ ] ; i<5 && i<files.length ; i++ ) {
-                        codeFilesToRead.push( files[ i ].name );
-                    }
-
-                    if( codeFilesToRead.length ) {
-                        $WS.sendMessage( {
-                            command: "readJSFiles",
-                            FileNames: codeFilesToRead,
-                        }, function( message ) {
-                            for( var i=0 ; i<codeFilesToRead.length ; i++ ) {
-                                var fileName = codeFilesToRead[ i ],
-                                    codeFile = message.CodeFiles[ fileName ];
-                                if( codeFile ) {
-                                    self.codeFiles[ fileName ] = {
-                                        code: codeFile.Code,
-                                        timeStamp: codeFile.TimeStamp,
-                                    }
-                                    sessionStorage[ fileName ] = JSON.stringify( self.codeFiles[ fileName ] );
-                                    self.codeFileList.push( fileName );                          
-                                }
-                            }
-                            sessionStorage[ self.page + "CodeFileList" ] = JSON.stringify( self.codeFileList );
-
-                            sessionStorage[ self.page + "CurrentCodeFile" ] = self.currentCodeFile = self.codeFileList[ 0 ];
-                            $( "#control-bar-input input" ).val( self.currentCodeFile );
-                            self.fillButtonControl( );
-
-                            self.reset( self.codeFiles[ self.currentCodeFile ].code );
-                            self._dirty = false;
-                        } );
-                    } else {
-                        self.currentCodeFile = window.CPG.ControlBarNewFile;
-                        self.codeFileList = [ ];
-                        self.codeFiles[ self.currentCodeFile ] = { code: "", timeStamp: null };
-
-                        sessionStorage[ self.page + "CodeFileList" ] = JSON.stringify( self.codeFileList );
-                        sessionStorage[ self.page + "CurrentCodeFile" ] = self.currentCodeFile;
-                        sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
-
-                        $( "#control-bar-input input" ).val( self.currentCodeFile );
-                        self.fillButtonControl( );
-                        self.reset( "" );
-                        self._dirty = false;
-                    }
-                } );
-            } else {
-
-                self.fillButtonControl( );
-                
-                self.reset( self.codeFiles[ self.currentCodeFile ]? self.codeFiles[ self.currentCodeFile ].code : "" );
-                self._dirty = false;
-            }
-
-            console.log( "Websockets connected!" );
-        } );
-
+ 
         ///////////////////////////////////////////
         // Delete button
         $( "#control-bar-delete" ).on( 'click', function( ) {
@@ -160,33 +63,6 @@ window.LiveEditorFrame = Backbone.View.extend ( {
             }
         } );
 
-        $( "#control-bar-new" ).on( 'click', function( ) {
-            var newFile = function( ) {
-                sessionStorage[ self.page + "CurrentCodeFile" ] = self.currentCodeFile = window.CPG.ControlBarNewFile;
-
-                $( "#control-bar-current-file" ).text( self.currentCodeFile );
-                $( "#control-bar-input input" ).val( self.currentCodeFile );
-                self.reset( "" );
-                self._dirty = false;
-
-                self.storeCurrentCodeFile( );        
-            };
-
-            if( self._dirty && self.currentCodeFile !== window.CPG.ControlBarNewFile ) {
-             self.showModalYesNo( window.CPG.ControlBarModalFileChanged, window.CPG.ControlBarModalFileChanged2, function( yes ) {
-                    if( yes ) {
-                        self.saveCodeFile( this.currentCodeFile, function( ) { newFile( ); } ); 
-                    } else {
-                        newFile( );
-                    }
-                } );
-
-                return false;
-            }
-
-            newFile( );
-        } );
-
         $( "#control-bar-save" ).on( 'click', function( e ) {
             var input = $( "#control-bar-input input" ),
                 filename = input.val( );
@@ -194,8 +70,8 @@ window.LiveEditorFrame = Backbone.View.extend ( {
             if( filename === window.CPG.ControlBarNewFile ) {
                 self.selectFilename( input );
             } else {
-                if( filename.slice( -3 ) != ".js" ) {
-                    filename += ".js";
+                if( filename.slice( -4 ) != ".pjs" ) {
+                    filename += ".pjs";
                     input.val( filename );
                 }
 
@@ -224,8 +100,8 @@ window.LiveEditorFrame = Backbone.View.extend ( {
                 self.selectFilename( input );
             } else {
 
-                if( filename.slice( -3 ) != ".js" ) {
-                    filename += ".js"
+                if( filename.slice( -3 ) != ".pjs" ) {
+                    filename += ".pjs"
                     input.val( filename );
                 }
 
@@ -301,38 +177,6 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 		} ); 
 	},
 
-	////////////////////////////////////////////
-	// storeCurrentCodeFile syncs the current code file with the global variable and the local storage
-	storeCurrentCodeFile: function( ) {
-		if( this.currentCodeFile ) {
-			this.codeFiles[ this.currentCodeFile ].code = this.text( );
-			sessionStorage[ this.page + this.currentCodeFile ] = JSON.stringify( this.codeFiles[ this.currentCodeFile ] );		 
-		}
-	},
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-	// showModalYesNo displays a modal dialog with answers yes and no
-	showModalYesNo: function( title, body, cb ) {
-		var modal = $( "#control-bar-yes-no-modal" );
-
-		$( ".modal-title", modal ).text( title );
-		$( ".modal-body p", modal ).text( body );
-		$( ".modal-yes", modal ).off( "click" ).one( "click", function( e ) {
-			var lcb = cb;
-			cb = null;
-			modal.modal( 'hide' );
-			if( lcb ) lcb( true );
-		} );
-		$( ".modal-no", modal ).off( "click" ).one( "click", function( e ) {
-			// cb is called on hide event
-			modal.modal( 'hide' );
-		} );
-
-		modal.modal( 'show' );
-		modal.one( 'hidden.bs.modal', function( e ) {
-			if( cb ) cb( false );
-		} );
-	},
 
 	///////////////////////////////////////////
 	// showModalSound displays a modal dialog to select sounds
@@ -390,295 +234,6 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 		} );
 	},
 
-	///////////////////////////////////////////
-	// showModalCodeFiles shows the code file info and modification dialog
-	showModalCodeFiles: function( cb ) {
-		var modal = $( "#control-bar-codefile-modal" );
-
-		var afl = this.allFilesList,
-			files = $( "<div id='modal-codefiles'>" ),
-			row = null;
-
-		for( var i=0 ; i<afl.length ; i++ ) {
-			files.append( 
-				"<div class='file file" + i+" pull-left' filename='" + afl[ i ].name + "'>" + 
-				" <div class='top'>" + 
-				" </div>" + 
-				" <div class='middle'>" + 
-				"	<img src='static/userdata/" + window.CPG.UserName + "/pjs/" + ( afl[ i ].name.slice( 0,-3 ) + ".png" ) + "'>" + 
-				" </div>" + 
-				" <div class='bottom'>" + 
-				"	<span class='filename text-center'>" + afl[ i ].name + "</span>" + 
-				"	<span class='timestamp pull-left vbottom'>" + this.getFormatedDate( afl[ i ].timeStamp ) + "</span>" + 
-				"	<input type='checkbox' class='checkbox large pull-right' value=''>" + 
-				" </div>" + 
-				"</div>"
-			 );
-		}
-		
-		// Correct font size of filenames
-		$( ".modal-body", modal ).html( files );
-		modal.one( 'shown.bs.modal', function( ) {
-
-			for( var i=0 ; i<afl.length ; i++ ) {
-				var filename = $( ".file" + i+" .filename", files ),
-					maxWidth = filename.width( ),
-					realWidth = filename[ 0 ].scrollWidth;
-
-				if( realWidth > maxWidth ) {
-					var fontSize = parseFloat( filename.css( "font-size" ) );
-
-					for( var j=1 ; j<10 ; j++ ) {
-						filename.css( "font-size", ( fontSize - j ) );
-						if( filename[ 0 ].scrollWidth <= maxWidth ) break;
-					}
-				}
-			}
-		} );
-
-		/*
-		$( ".file .middle", modal ).one( "dblclick", function( e ) {
-			cb( "open", [ $( this ).parent( ).attr( "filename" ) ] );
-			cb = null;
-			modal.modal( 'hide' );
-		} );
-		*/
-
-		$( ".file .middle", modal ).on( "click", function( e ) {
-			var checkbox = $( ".checkbox", $( this ).parent( ) ); 
-			checkbox.prop( "checked", !checkbox.prop( "checked" ) );
-		} );
-
-		var getCheckedFilenames = function( ) { 
-			var filenames = [ ];
-			$.each( $( ".file", modal ), function( index, file ) {
-				var checkbox = $( ".checkbox", $( this ) )
-				if( checkbox.is( ':checked' ) ) {
-					filenames.push( $( this ).attr( "filename" ) );
-				}
-			} );
-			return filenames;
-		}
-
-		$( ".modal-open", modal ).off( "click" ).one( "click", function( e ) {
-
-			var lcb = cb;
-			cb = null;
-			modal.modal( 'hide' );
-
-			//if( !lcb ) debugger;
-			if( lcb ) lcb( "open", getCheckedFilenames( ) );
-		} );
-
-		$( ".modal-cancel", modal ).off( "click" ).one( "click", function( e ) {
-			modal.modal( 'hide' );
-		} );
-
-		$( ".modal-delete", modal ).off( "click" ).one( "click", function( e ) {
-			var lcb = cb;
-			cb = null;
-			modal.modal( 'hide' );
-
-			//if( !lcb ) debugger;
-			if( lcb ) lcb( "delete", getCheckedFilenames( ) );
-		} );
-
-		modal.one( 'hidden.bs.modal', function( e ) {
-			if( cb ) cb( "cancel" );
-		} );
-
-		modal.modal( 'show' );
-	},
-
-	/////////////////////////////////////////////
-	// fillButtonControl fills the file select button with current files
-	fillButtonControl: function( ) {
-
-        var self = this;
-
-		// create file list for button control
-		var fileList = [ ];
-		for( var i=0 ; i<this.codeFileList.length ; i++ ) {
-			fileList.push( {
-				fileName: this.codeFileList[ i ],
-				timeStamp: this.codeFiles[ this.codeFileList[ i ] ].timeStamp
-			} );
-		}
-
-		fileList.sort( function( a,b ) {
-			if( a.timeStamp > b.timeStamp ) return -1;
-			else return 1;
-		} );
-
-		var cbf = $( "#project-bar-open-files" ),
-			width = cbf.width( );
-
-		cbf.html( "" );
-		for( var i=0 ; i<fileList.length ; i++ ) {
-
-			cbf.append( '<li class="project-bar-open-file" codefile="' + fileList[ i ].fileName + '">' +
-                    '<span>' + fileList[ i ].fileName + '</span>' +
-                    '<span class="timestamp">' + this.getFormatedDate( fileList[ i ].timeStamp ) + '</span>' +
-                '</li>' ).width( width + 20 ); 
-		}
-
-		if( this.allFilesList.length >= 2 ) {
-			cbf.append( '<hr><li class="project-bar-open-file" codefile="all"><span>' + window.CPG.ControlBarAllFiles + '</span></li>' );
-		}
-
-		$( "#control-bar-current-file" ).text( this.currentCodeFile );
-		$( "#control-bar-input input" ).val( this.currentCodeFile );
-
-		$( ".project-bar-open-file" ).on( 'click', function( e ) {
-			if( self.currentCodeFile !== window.CPG.ControlBarNewFile ) {
-				self.storeCurrentCodeFile( );
-			}
-
-			var codeFile = $( this ).attr( "codeFile" );
-	 
-			if( codeFile !== "all" ) {
-				sessionStorage[ self.currentCodeFile ] = self.currentCodeFile = codeFile;
-				$( "#control-bar-current-file" ).text( self.currentCodeFile );
-				$( "#control-bar-input input" ).val( self.currentCodeFile )
-				self.reset( self.codeFiles[ self.currentCodeFile ].code );
-				self._dirty = false;
-			} else {
-				self.showModalCodeFiles( function( button, selFiles ) {
-					switch( button ) {
-
-					/////////////////////////////////////////////////
-					// User selected "open"
-					case "open":
-						for( var i=0, openFiles=[ ] ; i<selFiles.length ; i++ ) {
-							if( self.codeFileList.indexOf( selFiles[ i ] ) !== -1 ) openFiles.push( selFiles[ i ] );
-						}
-
-						var readFiles = function( ) {
-							if( selFiles.length ) {
-								$WS.sendMessage( {
-									command: "readJSFiles",
-									FileNames: selFiles,
-								}, function( message ) {
-									for( var i=0 ; i<selFiles.length ; i++ ) {
-										var fileName = selFiles[ i ],
-											codeFile = message.CodeFiles[ fileName ];
-										if( codeFile ) {
-											self.codeFiles[ fileName ] = {
-												code: codeFile.Code,
-												timeStamp: codeFile.TimeStamp,
-											}
-											sessionStorage[ fileName ] = JSON.stringify( self.codeFiles[ fileName ] );
-											if( self.codeFileList.indexOf( fileName ) === -1 ) self.codeFileList.push( fileName );
-										}
-									}
-									sessionStorage[ self.page + "CodeFileList" ] = JSON.stringify( self.codeFileList );
-									sessionStorage[ self.page + "CurrentCodeFile" ] = self.currentCodeFile = selFiles[ 0 ];
-									$( "#control-bar-input input" ).val( self.currentCodeFile );
-									self.fillButtonControl( );
-
-									self.reset( self.codeFiles[ self.currentCodeFile ].code );
-									self._dirty = false;
-								} );
-							}
-						}
-
-						if( openFiles.length ) {
-							self.showModalYesNo( openFiles.join( " " ), openFiles.length === 1? window.CPG.ControlBarModalAlreadyOpenS : window.CPG.ControlBarModalAlreadyOpenP, function( yes ) {
-								if( !yes ) {
-									for( var i=openFiles.length-1 ; i>=0 ; i-- ) selFiles.splice( selFiles.indexOf( openFiles[ i ] ),1 );
-								}
-
-								readFiles( );
-							} );
-						} else {
-							readFiles( );
-						}
-						break;
-
-					/////////////////////////////////////////////////
-					// User selected "cancel" or closed the dialog
-					case "cancel":
-						break;
-
-					/////////////////////////////////////////////////
-					// User selected "delete"
-					case "delete":
-						if( selFiles.length ) {
-							self.showModalYesNo( selFiles.join( " " ), selFiles.length === 1? window.CPG.ControlBarModalFileDeleteS : window.CPG.ControlBarModalFileDeleteP, function( yes ) {
-								if( yes ) {
-									$WS.sendMessage( {
-										command: "deleteJSFiles",
-										FileNames: selFiles,
-									}, function( message ) {
-
-										// Todo: Error message
-										//if( message.Error ) return;
-
-										for( var i=selFiles.length-1 ; i>=0 ; i-- ) {
-											// hier wird ab und zu ein Wort nicht aus allFiles gelöscht ... ( step debug!! )
-
-											self.codeFileList.splice( self.codeFileList.indexOf( selFiles[ i ] ),1 );
-											for( var afl=self.allFilesList, j=afl.length-1 ; j>=0 ; j-- ) {
-												if( afl[ j ].name === selFiles[ i ] ) {
-													afl.splice( j,1 );
-													break;
-												}
-											} 
-											self.codeFiles[ selFiles[ i ] ] = null;
-
-											if( selFiles[ i ] === self.currentCodeFile ) sessionStorage[ self.page + "CurrentCodeFile" ] = self.currentCodeFile = self.codeFileList[ 0 ] || window.CPG.ControlBarNewFile
-										}
-										sessionStorage[ self.page + "AllFilesList" ] = JSON.stringify( self.allFilesList );
-										sessionStorage[ self.page + "CodeFileList" ] = JSON.stringify( self.codeFileList );
-										sessionStorage[ self.page + "CurrentCodeFile" ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] || { code: "" } );
-
-										self.fillButtonControl( );
-										self.reset( self.codeFiles[ self.currentCodeFile ]? self.codeFiles[ self.currentCodeFile ].code : "" );
-										self._dirty = false;
-									} );
-								}
-							} );
-							return;
-
-						}
-						break;
-					}
-				} );
-			}
-		} );
-	},
-
-    ///////////////////////////////////////////
-    // getFormatedDate returns a neatly formated date or time
-    getFormatedDate: function( time ) {
-        if( !time ) return "";
-
-        var monthNames = [ "Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sep.", "Okt.", "Nov.", "Dez." ];
-
-        var date = new Date( ),
-            today = date.toDateString( ),
-            yearNow = date.getFullYear( ),
-            yesterday = date.setDate( date.getDate( )-1 );
-        yesterday = date.toDateString( );
-
-        date.setTime( time );
-        var day = date.getDate( ),
-            monthIndex = date.getMonth( ),
-            year = date.getFullYear( ),
-            hour = date.getHours( ),
-            minute = date.getMinutes( );
-        if( today == date.toDateString( ) ) var dateString = hour+":"+( minute<10?"0":"" )+minute;
-        else if( yesterday == date.toDateString( ) ) var dateString = "Gestern";
-        else {
-            var dateString = day+". "+monthNames[ monthIndex ];
-            if( year != yearNow ) {
-                dateString += " "+year;
-            }
-        }
-
-        return dateString;
-    },
-
     /////////////////////////////////////////
     // selectFilename displays a filename input and selects the js filename
     selectFilename: function( input ) {
@@ -687,8 +242,8 @@ window.LiveEditorFrame = Backbone.View.extend ( {
         input.focus( );
         var filename = input.val( );
 
-        if( filename.slice( -3 ) != ".js" ) {
-            filename += ".js";
+        if( filename.slice( -3 ) != ".pjs" ) {
+            filename += ".pjs";
             input.val( filename );
         }
 
@@ -807,12 +362,13 @@ window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
 			externalsDir: "../build/external/",
 			imagesDir: "static/userdata/" + window.CPG.UserNameForImages + "/images/",
 			soundsDir: "../static/userdata/" + window.CPG.UserNameForImages + "/sounds/",
-			jshintFile: "../build/external/jshint/jshint.js"
+			jshintFile: "../build/external/jshint/jshint.js",
+            newErrorExperience: true,
 		} );
 
-		this.liveEditor.editor.on( "change", function ( ) {
-			this._dirty = true;
-		} );
+        this.liveEditor.editor.on( "change", function ( ) {
+            this._dirty = true;
+        } );
 
         // Patch for changing the width, bug in live-editor as of April 2016
         // Right and bottom border still missing ... 
@@ -834,8 +390,9 @@ window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
     },
 
     // reset: Reset the editor with code
-    reset: function( code ) {        
+    reset: function( code ) {
         this.liveEditor.editor.reset( code );
+        this._dirty = false;
     },
 
     // restart: Restarts the code

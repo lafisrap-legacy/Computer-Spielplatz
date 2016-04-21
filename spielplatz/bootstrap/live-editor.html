@@ -36,59 +36,23 @@
 </head>
 <body>
 <div class="container">
-	<div id="control-bar-yes-no-modal" class="modal fade">
-		<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times,</span></button>
-			<h4 class="modal-title">You forgot to set the title!</h4>
-			</div>
-			<div class="modal-body">
-			<p>You forgot to set the body text&hellip,</p>
-			</div>
-			<div class="modal-footer">
-			<button type="button" class="modal-yes btn btn-default" data-dismiss="modal">{{ .ControlBarModalYes }}</button>
-			<button type="button" class="modal-no btn btn-primary" data-dismiss="modal">{{ .ControlBarModalNo }}</button>
-			</div>
-		</div><!-- /.modal-content -->
-		</div><!-- /.modal-dialog -->
-	</div><!-- /.modal -->	
-
 	<div id="control-bar-sound-modal" class="modal fade">
 		<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times,</span></button>
-			<h4 class="modal-title">{{ .ControlBarModalSoundTitle }}</h4>
+			<h4 class="modal-title">{{ .ProjectBarModalSoundTitle }}</h4>
 			</div>
 			<div class="modal-body">
 			</div>
 			<div class="modal-footer">
-			<button type="button" class="modal-cancel btn btn-default" data-dismiss="modal">{{ .ControlBarModalCancel }}</button>
-			<button type="button" class="modal-open btn btn-primary" data-dismiss="modal">{{ .ControlBarModalOpen }}</button>
+			<button type="button" class="modal-cancel btn btn-default" data-dismiss="modal">{{ .ProjectBarModalCancel }}</button>
+			<button type="button" class="modal-open btn btn-primary" data-dismiss="modal">{{ .ProjectBarModalOpen }}</button>
 			</div>
 		</div><!-- /.modal-content -->
 		</div><!-- /.modal-dialog -->
 	</div><!-- /.modal -->	
 
-	<div id="control-bar-codefile-modal" class="modal fade">
-		<div class="modal-dialog modal-lg">
-		<div class="modal-content">
-			<div class="modal-header">
-			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times,</span></button>
-			<h4 class="modal-title">{{ .ControlBarModalCodefileTitle }}</h4>
-			</div>
-			<div class="modal-body">
-			</div>
-			<div class="clearfix"></div>
-			<div class="modal-footer">
-			<button type="button" class="modal-delete pull-left btn btn-default" data-dismiss="modal">{{ .ControlBarModalDelete }}</button>
-			<button type="button" class="modal-open pull-right btn btn-primary" data-dismiss="modal">{{ .ControlBarModalOpen }}</button>
-			<button type="button" class="modal-cancel pull-right btn btn-default" data-dismiss="modal">{{ .ControlBarModalCancel }}</button>
-			</div>
-		</div><!-- /.modal-content -->
-		</div><!-- /.modal-dialog -->
-	</div><!-- /.modal -->	
 
 	<div class="login-area">
 		{{if not .UserName }}
@@ -529,42 +493,49 @@
 
 <script>
 (function() {
+	// This is for Khan Live-Editor
+	window.AllImages = JSON.parse({{ .AllImages }});
+	window.OutputSounds = JSON.parse({{ .OutputSounds }});
+	window.OutputImages = JSON.parse({{ .AllImages }});
+
+	// Server data
 	window.CPG = {
-		AllImages: JSON.parse({{ .AllImages }}),
 		LoginTime: {{ .LoginTime }},
-		OutputSounds: JSON.parse({{ .OutputSounds }}),
-		OutputImages: JSON.parse({{ .AllImages }}),
 		UserName: {{ .UserName }},
 		UserNameForImages: {{ .UserNameForImages }},
 		WebsocketsAddress: {{ .WebsocketsAddress }},
 		xsrfdata: {{ .xsrfdata }},
 		ControlBarAllFiles: {{ .ControlBarAllFiles }},
 		ControlBarLabel: {{ .ControlBarLabel }},
-		ControlBarModalAlreadyOpenP: {{ .ControlBarModalAlreadyOpenP }},
-		ControlBarModalAlreadyOpenS: {{ .ControlBarModalAlreadyOpenS }},
-		ControlBarModalFileChanged: {{ .ControlBarModalFileChanged }},
-		ControlBarModalFileChanged2: {{ .ControlBarModalFileChanged2 }},
-		ControlBarModalFileDeleteP: {{ .ControlBarModalFileDeleteP }},
-		ControlBarModalFileDeleteS: {{ .ControlBarModalFileDeleteS }},
-		ControlBarModalFileExists: {{ .ControlBarModalFileExists }},
-		ControlBarModalFileOutdated: {{ .ControlBarModalFileOutdated }},
-		ControlBarNewFile: {{ .ControlBarNewFile }},
-		ControlBarSaved: {{ .ControlBarSaved }},
-		ProjectBarNew: {{ .ProjectBarNew }},
-		ProjectBarOpen: {{ .ProjectBarOpen }},
-		ProjectBarSave: {{ .ProjectBarSave }},
 		ProjectBarAdministrate: {{ .ProjectBarAdministrate }},
 		ProjectBarDisinvite: {{ .ProjectBarDisinvite }},
-		ProjectBarTransfer: {{ .ProjectBarTransfer }},
-		ProjectBarRename: {{ .ProjectBarRename }},
-		ProjectBarOrganize: {{ .ProjectBarOrganize }},
-		ProjectBarSaveTemplate: {{ .ProjectBarSaveTemplate }},
-		ProjectBarMessage: {{ .ProjectBarMessage }},
-		ProjectBarInvite: {{ .ProjectBarInvite }},
-		ProjectBarGalleryOn: {{ .ProjectBarGalleryOn }},
-		ProjectBarMail: {{ .ProjectBarMail }},
-		ProjectBarGalleryOn: {{ .ProjectBarGalleryOn }},
 		ProjectBarGalleryOff: {{ .ProjectBarGalleryOff }},
+		ProjectBarGalleryOn: {{ .ProjectBarGalleryOn }},
+		ProjectBarGalleryOn: {{ .ProjectBarGalleryOn }},
+		ProjectBarInvite: {{ .ProjectBarInvite }},
+		ProjectBarMail: {{ .ProjectBarMail }},
+		ProjectBarMessage: {{ .ProjectBarMessage }},
+		ProjectBarModalAlreadyOpenP: {{ .ProjectBarModalAlreadyOpenP }},
+		ProjectBarModalAlreadyOpenS: {{ .ProjectBarModalAlreadyOpenS }},
+		ProjectBarModalYes: {{ .ProjectBarModalYes }},
+		ProjectBarModalNo: {{ .ProjectBarModalNo }},
+		ProjectBarModalCancel: {{ .ProjectBarModalCancel }},
+		ProjectBarModalCodefileTitle: {{ .ProjectBarModalCodefileTitle }},
+		ProjectBarModalDelete: {{ .ProjectBarModalDelete }},
+		ProjectBarModalFileChanged2: {{ .ProjectBarModalFileChanged2 }},
+		ProjectBarModalFileChanged: {{ .ProjectBarModalFileChanged }},
+		ProjectBarModalFileDeleteP: {{ .ProjectBarModalFileDeleteP }},
+		ProjectBarModalFileDeleteS: {{ .ProjectBarModalFileDeleteS }},
+		ProjectBarModalFileExists: {{ .ProjectBarModalFileExists }},
+		ProjectBarModalFileOutdated: {{ .ProjectBarModalFileOutdated }},
+		ProjectBarModalOpen: {{ .ProjectBarModalOpen }},
+		ProjectBarNew: {{ .ProjectBarNew }},
+		ProjectBarOpen: {{ .ProjectBarOpen }},
+		ProjectBarOrganize: {{ .ProjectBarOrganize }},
+		ProjectBarRename: {{ .ProjectBarRename }},
+		ProjectBarSave: {{ .ProjectBarSave }},
+		ProjectBarSaveTemplate: {{ .ProjectBarSaveTemplate }},
+		ProjectBarTransfer: {{ .ProjectBarTransfer }},
 	}
 })();
 </script>

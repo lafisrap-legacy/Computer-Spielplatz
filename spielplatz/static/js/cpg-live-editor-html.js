@@ -18,11 +18,12 @@ window.LiveEditorFrameHTML = window.LiveEditorFrame.extend ( {
 			externalsDir: "../build/external/",
 			imagesDir: "static/userdata/"+window.CPG.UserNameForImages+"/images/",
 			execFile: "external/output_webpage.html",
+            newErrorExperience: true,
 		} );
 
-		this.liveEditor.editor.on( "change", function( ) {
-			this._dirty = true;
-		} );
+        this.liveEditor.editor.on( "change", function ( ) {
+            this._dirty = true;
+        } );
 
 		// We have an own toolbar ...
 		$( ".scratchpad-toolbar" ).hide( );

@@ -12,9 +12,9 @@ import (
 	"image"
 	"image/png"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 )
@@ -48,20 +48,23 @@ type Message struct {
 	Command    string
 	returnChan chan Data
 
-	FileName   string
-	FileNames  []string
-	TimeStamps []int64
-	CodeFiles  []string
-	Images     []string
-	SortedBy   string
-	Range      Range
+	FileType     string
+	FileName     string
+	FileNames    []string
+	FileProjects []string
+	TimeStamps   []int64
+	CodeFiles    []string
+	Images       []string
+	SortedBy     string
+	Range        Range
 
 	Overwrite bool
 }
 
-type JSFile struct {
+type SourceFile struct {
 	TimeStamp int64
 	Code      string
+	Project   string
 }
 
 type Range struct {
@@ -174,18 +177,14 @@ func serveMessages(messageChan chan Message) {
 		data := make(Data)
 		s := message.Session
 		switch message.Command {
-		case "readJSFiles":
-			data = readJSFiles(s, message.FileNames)
-		case "readJSDir":
-			data = readJSDir(s)
-		case "writeJSFiles":
-			data = writeJSFiles(s, message.FileNames, message.CodeFiles, message.TimeStamps, message.Images, message.Overwrite)
-		case "deleteJSFiles":
-			data = deleteJSFiles(s, message.FileNames)
-		case "commitJSFiles":
-			//data = commitJSFiles(s, message.FileNames)
-		case "getPrevJSFiles":
-			//data = getArchivedJSFiles(s, message.FileName, message.Range)
+		case "readDir":
+			data = readDir(s, message.FileType)
+		case "readSourceFiles":
+			data = readSourceFiles(s, message.FileNames, message.FileProjects, message.FileType)
+		case "writeSourceFiles":
+			data = writeSourceFiles(s, message.FileNames, message.CodeFiles, message.TimeStamps, message.Images, message.Overwrite)
+		case "deleteSourceFiles":
+			data = deleteSourceFiles(s, message.FileNames)
 		default:
 			beego.Error("Unknown command:", message.Command)
 		}
@@ -196,7 +195,7 @@ func serveMessages(messageChan chan Message) {
 	}
 }
 
-func writeJSFiles(s session.Store, fileNames []string, codeFiles []string, timeStamps []int64, Images []string, overwrite bool) Data {
+func writeSourceFiles(s session.Store, fileNames []string, codeFiles []string, timeStamps []int64, Images []string, overwrite bool) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -288,7 +287,7 @@ func writeJSFiles(s session.Store, fileNames []string, codeFiles []string, timeS
 	}
 }
 
-func readJSFiles(s session.Store, fileNames []string) Data {
+func readSourceFiles(s session.Store, fileNames []string, fileProjects []string, fileType string) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -296,17 +295,26 @@ func readJSFiles(s session.Store, fileNames []string) Data {
 	}
 
 	name := s.Get("UserName").(string)
-	dir := beego.AppConfig.String("userdata::location") + name + "/pjs/"
-	codeFiles := make(map[string]JSFile)
+	dir := beego.AppConfig.String("userdata::location") + name + "/"
+	codeFiles := make(map[string]SourceFile)
 
+	beego.Trace("fileNames", fileNames, "Length:", len(fileNames))
 	for i := 0; i < len(fileNames); i++ {
 		var (
 			file *os.File
 			err  error
 		)
+
 		/////////////////////////////////////////
 		// Read file
-		fileName := dir + fileNames[i]
+		var fileName string
+		project := fileProjects[i]
+		if project != "" {
+			fileName = dir + beego.AppConfig.String("userdata::projects") + "/" + project + "/" + fileType + "/" + fileNames[i]
+		} else {
+			fileName = dir + fileType + "/" + fileNames[i]
+		}
+		beego.Trace(project, fileType, fileNames[i])
 
 		if file, err = os.Open(fileName); err != nil {
 			beego.Error("Cannot open file", fileName)
@@ -324,47 +332,85 @@ func readJSFiles(s session.Store, fileNames []string) Data {
 			return Data{}
 		}
 
-		codeFiles[fileNames[i]] = JSFile{
+		codeFiles[fileNames[i]] = SourceFile{
 			TimeStamp: fileInfo.ModTime().UnixNano() / int64(time.Millisecond),
 			Code:      string(codeFile),
+			Project:   project,
 		}
 	}
+
+	beego.Trace("Codefiles loaded:", codeFiles)
+
 	return Data{
 		"CodeFiles": codeFiles,
 	}
 }
 
-func readJSDir(s session.Store) Data {
+func readDir(s session.Store, fileType string) Data {
 
 	data := Data{}
-	files := make(map[string]JSFile)
+	sourceFiles := make(map[string]SourceFile)
+	userName := s.Get("UserName")
 
 	// if user is not logged in return
-	if s.Get("UserName") == nil {
+	if userName == nil {
 		return data
 	}
 
-	name := s.Get("UserName").(string)
-	dir := beego.AppConfig.String("userdata::location") + name + "/pjs/"
-	beego.Trace(name, dir)
-	filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
+	// First search in the main directory
+	name := userName.(string)
+	dir := beego.AppConfig.String("userdata::location") + name + "/" + fileType
 
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		beego.Error(err)
+		return data
+	}
+
+	for _, f := range files {
 		name := f.Name()
-		if len(name) > 3 && name[len(name)-3:] == ".js" {
-			files[name] = JSFile{
+		if name[len(name)-len(fileType):] == fileType {
+			sourceFiles[name] = SourceFile{
 				TimeStamp: f.ModTime().UnixNano() / int64(time.Millisecond),
+				Project:   "",
 			}
 		}
+	}
 
-		return nil
-	})
+	// Then read all projects and look into the dir of the specified filetype (e.g. pjs)
+	dir = beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::projects")
+	projects, err := ioutil.ReadDir(dir)
+	if err != nil {
+		beego.Error(err)
+		return data
+	}
 
-	data["Files"] = files
+	for _, p := range projects {
+
+		var dir2 string
+		if p.IsDir() == true {
+			project := p.Name()
+			dir2 = dir + "/" + p.Name() + "/" + fileType
+			files, _ := ioutil.ReadDir(dir2)
+
+			for _, f := range files {
+				name := f.Name()
+				if name[len(name)-len(fileType):] == fileType {
+					sourceFiles[name] = SourceFile{
+						TimeStamp: f.ModTime().UnixNano() / int64(time.Millisecond),
+						Project:   project,
+					}
+				}
+			}
+		}
+	}
+
+	data["Files"] = sourceFiles
 
 	return data
 }
 
-func deleteJSFiles(s session.Store, fileNames []string) Data {
+func deleteSourceFiles(s session.Store, fileNames []string) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
