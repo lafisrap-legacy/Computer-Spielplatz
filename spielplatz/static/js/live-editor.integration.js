@@ -61,6 +61,14 @@ $( window ).on("live-editor-late-integration", function( e ) {
 	$( ".tipbar .tipnav .prev" ).html( "<span>&#8592;</span>" );
 	$( ".tipbar .tipnav .next" ).html( "<span>&#8594;</span>" );
 
+	///////////////////////////////////////////////////////////
+	// Replace throbber
+	var elem = [ ".scratchpad-editor-bigplay-loading img", ".scratchpad-canvas-loading img" ];
+	for( e in elem ) {
+		var src = $( elem[ e ] ).attr( "src" );
+		src = src.substr( 0, src.search( "/static/userdata") ) + "/static/img/live-editor-throbber-full.gif";
+		$( elem[ e ] ).attr( "src", src ); 		
+	}
 });
 	
 })();

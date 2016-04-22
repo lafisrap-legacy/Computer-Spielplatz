@@ -77,16 +77,16 @@
 			<div id="cpg-live-editor-pjs" class="span12"></div>
 		</div>
 		<div id="page-html" class="page">
-						<div id="cpg-live-editor-html" class="span12"></div>
+			<div id="cpg-live-editor-html" class="span12"></div>
 		</div>
 	</div>
 	{{ if .UserName }}
 	<div id="project-button-group"></div>
-	<button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ControlBarRestart }}</button>
+	<button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ProjectBarRestart }}</button>
 	{{ else }}
 	<div id="bottom-control-bar">
-		<span class="label label-info">{{ .ControlBarNoUser }}</span>
-		<button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ControlBarRestart }}</button>
+		<span class="label label-info">{{ .ProjectBarNoUser }}</span>
+		<button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ProjectBarRestart }}</button>
 	</div>	
 	{{ end }}
 	<ul>
@@ -505,8 +505,9 @@
 		UserNameForImages: {{ .UserNameForImages }},
 		WebsocketsAddress: {{ .WebsocketsAddress }},
 		xsrfdata: {{ .xsrfdata }},
-		ControlBarAllFiles: {{ .ControlBarAllFiles }},
 		ControlBarLabel: {{ .ControlBarLabel }},
+		ProjectBarNewFile: {{ .ProjectBarNewFile }},
+		ProjectBarAllFiles: {{ .ProjectBarAllFiles }},
 		ProjectBarAdministrate: {{ .ProjectBarAdministrate }},
 		ProjectBarDisinvite: {{ .ProjectBarDisinvite }},
 		ProjectBarGalleryOff: {{ .ProjectBarGalleryOff }},
@@ -520,6 +521,10 @@
 		ProjectBarModalYes: {{ .ProjectBarModalYes }},
 		ProjectBarModalNo: {{ .ProjectBarModalNo }},
 		ProjectBarModalCancel: {{ .ProjectBarModalCancel }},
+        ProjectBarModalSave: {{ .ProjectBarModalSave }},
+        ProjectBarModalFilename: {{ .ProjectBarModalFilename }},
+        ProjectBarModalSaveFilename: {{ .ProjectBarModalSaveFilename }},
+        ProjectBarModalSaveFilename2: {{ .ProjectBarModalSaveFilename2 }},
 		ProjectBarModalCodefileTitle: {{ .ProjectBarModalCodefileTitle }},
 		ProjectBarModalDelete: {{ .ProjectBarModalDelete }},
 		ProjectBarModalFileChanged2: {{ .ProjectBarModalFileChanged2 }},
@@ -534,6 +539,9 @@
 		ProjectBarOrganize: {{ .ProjectBarOrganize }},
 		ProjectBarRename: {{ .ProjectBarRename }},
 		ProjectBarSave: {{ .ProjectBarSave }},
+		ProjectBarSaved: {{ .ProjectBarSaved }},
+		ProjectBarSaveAs: {{ .ProjectBarSaveAs }},
+		ProjectBarSaveProject: {{ .ProjectBarSaveProject }},
 		ProjectBarSaveTemplate: {{ .ProjectBarSaveTemplate }},
 		ProjectBarTransfer: {{ .ProjectBarTransfer }},
 	}

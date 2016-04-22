@@ -22,7 +22,7 @@ CPG_projectControlBar = new window.ProjectControlBar( {
 								editor: CPG_liveEditor,
 								wsAddress: window.CPG.WebsocketsAddress, 
 								xsrfdata: window.CPG.xsrfdata,
-								newFile: window.CPG.ControlBarNewFile + "." + CPG_page,
+								newFile: window.CPG.ProjectBarNewFile + "." + CPG_page,
 								modalContainer: $( ".container" ),
 							} );
 
@@ -30,7 +30,7 @@ CPG_projectControlBar = new window.ProjectControlBar( {
 // Start integration functions AFTER live-editor has loaded
 $( window ).trigger( "live-editor-late-integration" );
 
-CPG_liveEditor.refreshSession( window.CPG.LoginTime );
+CPG_projectControlBar.refreshSession( window.CPG.LoginTime );
 
 window.onbeforeunload = function( ) {
 	//storeCurrentCodeFile( );

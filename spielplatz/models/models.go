@@ -190,8 +190,8 @@ func MountResourceFiles(user string, project string) error {
 			user + "/" + beego.AppConfig.String("userdata::"+res+"files") + "/" +
 			project
 
-		_, err := os.Stat(toDir)
-		if os.IsNotExist(err) {
+		res, _ := exec.Command("sh", "-c", "mount | grep "+toDir).Output()
+		if len(res) == 0 {
 
 			beego.Trace("MOUNTING resource", res, "of project", project, "from user", user)
 			if err := os.MkdirAll(toDir, os.ModePerm); err != nil {

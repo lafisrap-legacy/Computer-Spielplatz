@@ -159,24 +159,6 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 		this._dirty = false;
 	},
 
-	refreshSession: function( loginTime ) {
-
-		// If User changed: clear everything from sessionStorage
-		if( sessionStorage.ĈPG_loginTime !== loginTime ) {
-			var fileList = sessionStorage.codeFileList && JSON.parse( sessionStorage.codeFileList ) || [ ];
-			for( var i=0 ; i<fileList.length ; i++ ) sessionStorage.removeItem( fileList[ i ] );
-			sessionStorage.removeItem( "codeFileList" );
-			sessionStorage.removeItem( "allFilesList" );
-			sessionStorage.removeItem( "currentCodeFile" );
-			localStorage.ĈPG_loginTime = sessionStorage.ĈPG_loginTime = loginTime;
-		}
-
-		// Look if another Tab or window logged out ( and maybe in again ) in the meantime
-		$( window ).focus( function( e ) {
-			if( sessionStorage.ĈPG_loginTime !== localStorage.ĈPG_loginTime ) location.reload( ); 
-		} ); 
-	},
-
 
 	///////////////////////////////////////////
 	// showModalSound displays a modal dialog to select sounds
@@ -256,88 +238,6 @@ window.LiveEditorFrame = Backbone.View.extend ( {
         }
     },
 
-    saveCodeFile: function( filename, cb ) {
-
-        var self = this;
-
-        $( "#control-bar-label" ).text( "..." );
-        var code = this.text( );
-        // Unbind any handlers this function may have set for previous
-        // screenshots
-
-        this.getScreenshot( function ( data ) {
-
-            // remove BASE64-HTML header
-            var image = data.substr( data.search( "," )+1 );
-
-            $WS.sendMessage( {
-                Command: "writeJSFiles",
-                FileNames: [ filename ],
-                TimeStamps: self.codeFiles[ filename ] && [ self.codeFiles[ filename ].timeStamp ] || null,
-                CodeFiles: [ code ],
-                Overwrite: self.currentCodeFile === filename,
-                Images : [ image ], 
-            }, function( message ) {
-                if( message.Error ) {
-                    self.showModalYesNo( window.CPG.ControlBarModalFileExists, message.Error, function( yes ) {
-                        if( yes ) {
-                            self.currentCodeFile = filename;
-                            self.saveCodeFile( filename );
-                        } else {
-                            $( "#control-bar-label" ).text( window.CPG.ControlBarLabel );
-                        }
-                    } );
-                    return false;
-                } else if( self.currentCodeFile !== filename ) {
-
-                    self.codeFiles[ self.currentCodeFile ].code = self.currentCodeFile !== window.CPG.ControlBarNewFile? self.text( ) : "";
-                    
-                    self.codeFileList.push( filename );
-                    for( var i=0, filenameExists=false, afl=self.allFilesList ; i<afl.length ; i++ ) {
-                        if( afl[ i ].name === filename ) {
-                            filenameExists = true;
-                            break;
-                        }
-                    }
-                    if( !filenameExists ) self.allFilesList.push( {
-                        name: filename,
-                        timeStamp: self.codeFiles[ self.currentCodeFile ].timeStamp
-                    } );
-                    sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
-                    sessionStorage[ self.page + "CodeFileList" ] = JSON.stringify( self.codeFileList );
-                    sessionStorage[ self.page + "AllFilesList" ] = JSON.stringify( self.allFilesList );
-                    sessionStorage[ self.page + "CurrentCodeFile" ] = self.currentCodeFile = filename;
-
-                } else if( message.OutdatedTimeStamps.length > 0 ) {
-                    self.showModalYesNo( filename, window.CPG.ControlBarModalFileOutdated, function( yes ) {
-                        if( yes ) {
-                            self.codeFiles[ filename ].timeStamp = message.OutdatedTimeStamps[ 0 ] 
-                            self.saveCodeFile( filename );
-                        } else {
-                            $( "#control-bar-label" ).text( window.CPG.ControlBarLabel );
-                        }
-                    } );
-                    return false;
-                } 
-
-                self.codeFiles[ filename ] = { 
-                    code: self.text( ),
-                    timeStamp: message.SavedTimeStamps[ 0 ]
-                };
-                sessionStorage[ filename ] = JSON.stringify( self.codeFiles[ filename ] );
-                self.fillButtonControl( );
-                self.modified = false;
-                if( cb ) cb( ); // call callback function after saving the file
-                $( "#control-bar-label" ).text( window.CPG.ControlBarSaved ).parent( ).removeClass( "btn-primary" ).addClass( "btn-success" );
-                $
-                setTimeout( function( ) { 
-                    $( "#control-bar-label" ).text( window.CPG.ControlBarLabel )
-                        .parent( ).addClass( "btn-primary" )
-                        .removeClass( "btn-success" ); 
-                }, 2000 );
-            } );
-        } );
-    },
 
 
 } );
