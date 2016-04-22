@@ -51,6 +51,7 @@ type Message struct {
 	FileType     string
 	FileName     string
 	FileNames    []string
+	FileProject  string
 	FileProjects []string
 	TimeStamps   []int64
 	CodeFiles    []string
@@ -182,7 +183,7 @@ func serveMessages(messageChan chan Message) {
 		case "readSourceFiles":
 			data = readSourceFiles(s, message.FileNames, message.FileProjects, message.FileType)
 		case "writeSourceFiles":
-			data = writeSourceFiles(s, message.FileNames, message.CodeFiles, message.TimeStamps, message.Images, message.Overwrite)
+			data = writeSourceFiles(s, message.FileNames, message.FileProject, message.FileType, message.CodeFiles, message.TimeStamps, message.Images, message.Overwrite)
 		case "deleteSourceFiles":
 			data = deleteSourceFiles(s, message.FileNames)
 		default:
@@ -195,7 +196,7 @@ func serveMessages(messageChan chan Message) {
 	}
 }
 
-func writeSourceFiles(s session.Store, fileNames []string, codeFiles []string, timeStamps []int64, Images []string, overwrite bool) Data {
+func writeSourceFiles(s session.Store, fileNames []string, project string, fileType string, codeFiles []string, timeStamps []int64, Images []string, overwrite bool) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -204,7 +205,12 @@ func writeSourceFiles(s session.Store, fileNames []string, codeFiles []string, t
 
 	T := models.T
 	name := s.Get("UserName").(string)
-	dir := beego.AppConfig.String("userdata::location") + name + "/pjs/"
+	var dir string
+	if project != "" {
+		dir = beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::projects") + "/" + project + "/" + fileType + "/"
+	} else {
+		dir = beego.AppConfig.String("userdata::location") + name + "/" + fileType + "/"
+	}
 	savedFiles := []string{}
 	savedTimeStamps := []int64{}
 	outdatedFiles := []string{}
@@ -216,13 +222,6 @@ func writeSourceFiles(s session.Store, fileNames []string, codeFiles []string, t
 			imgFile *os.File
 			err     error
 		)
-		/////////////////////////////////////////
-		// Make sure the filename has an *.js-Ending
-		if fileNames[i][len(fileNames[i])-3:] != ".js" {
-			beego.Warning("Codefile should have a *.js suffix (" + fileNames[i] + ")")
-			fileNames[i] += ".js"
-		}
-
 		fileName := dir + fileNames[i]
 
 		/////////////////////////////////////////
@@ -237,6 +236,7 @@ func writeSourceFiles(s session.Store, fileNames []string, codeFiles []string, t
 			}
 		} else if err == nil {
 			time := fileStat.ModTime().UnixNano() / int64(time.Millisecond)
+			// Look if the file changed on disk since last writing
 			if i < len(timeStamps) && time > timeStamps[i] {
 				outdatedFiles = append(outdatedFiles, fileNames[i])
 				outdatedTimeStamps = append(outdatedTimeStamps, time)
@@ -271,7 +271,7 @@ func writeSourceFiles(s session.Store, fileNames []string, codeFiles []string, t
 		if err != nil {
 			beego.Error(err)
 		}
-		if imgFile, err = os.Create(fileName[0:len(fileName)-3] + ".png"); err != nil {
+		if imgFile, err = os.Create(fileName[0:len(fileName)-len(fileType)-1] + ".png"); err != nil {
 			beego.Error("Cannot create or overwrite file (", err, ")")
 			return Data{}
 		}

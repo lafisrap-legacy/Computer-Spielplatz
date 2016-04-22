@@ -101,6 +101,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
                                     self.codeFiles[ fileName ] = {
                                         code: codeFile.Code,
                                         timeStamp: codeFile.TimeStamp,
+                                        project: codeFile.Project
                                     }
                                     sessionStorage[ fileName ] = JSON.stringify( self.codeFiles[ fileName ] );
                                     self.codeFileList.push( fileName );                          
@@ -108,13 +109,14 @@ window.ProjectControlBar = Backbone.Model.extend( {
                             }
                             sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
                             sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = self.codeFileList[ 0 ];
-                            $( "#control-bar-input input" ).val( self.currentCodeFile );
                             self.buttonGroup.fillButtonControl( this );
 
                             self.editor.reset( self.codeFiles[ self.currentCodeFile ].code );
+
+				            self.buttonGroup.showFilename( self.currentCodeFile );
                         } );
                     } else {
-                        self.currentCodeFile = window.CPG.ControlBarNewFile;
+                        self.currentCodeFile = window.CPG.ProjectBarNewFile;
                         self.codeFileList = [ ];
                         self.codeFiles[ self.currentCodeFile ] = { code: "", timeStamp: null };
 
@@ -122,10 +124,11 @@ window.ProjectControlBar = Backbone.Model.extend( {
                         sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile;
                         sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
 
-                        $( "#control-bar-input input" ).val( self.currentCodeFile );
                         self.buttonGroup.fillButtonControl( );
                         self.editor.reset( "" );
                         self._dirty = false;
+
+			            self.buttonGroup.showFilename( self.currentCodeFile );
                     }
                 } );
             } else {
@@ -133,7 +136,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
                 self.buttonGroup.fillButtonControl( );
                 
                 self.editor.reset( self.codeFiles[ self.currentCodeFile ]? self.codeFiles[ self.currentCodeFile ].code : "" );
-                self._dirty = false;
+	            self.buttonGroup.showFilename( self.currentCodeFile );
             }
         });
 	},
@@ -142,7 +145,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
     	var self = this;
 
         var newFile = function( ) {
-            sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = window.CPG.ControlBarNewFile + "." + self.fileType;
+            sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = window.CPG.ProjectBarNewFile + "." + self.fileType;
 
             self.buttonGroup.showFilename( self.currentCodeFile );
             self.editor.reset( "" );
@@ -150,7 +153,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
             self.storeCurrentCodeFile( );	        
         };
 
-        if( this.editor.modified() && self.currentCodeFile !== window.CPG.ControlBarNewFile + "." + this.fileType ) {
+        if( this.editor.modified() && self.currentCodeFile !== window.CPG.ProjectBarNewFile + "." + this.fileType ) {
         self.showModalYesNo( window.CPG.ProjectBarModalFileChanged, window.CPG.ProjectBarModalFileChanged2, function( yes ) {
 	            if( yes ) {
 	                self.saveCodeFile( this.projectBar.currentCodeFile, function( ) { newFile( ); } ); 
@@ -204,6 +207,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 										self.codeFiles[ fileName ] = {
 											code: codeFile.Code,
 											timeStamp: codeFile.TimeStamp,
+	                                        project: codeFile.Project
 										}
 										sessionStorage[ fileName ] = JSON.stringify( self.codeFiles[ fileName ] );
 										if( self.codeFileList.indexOf( fileName ) === -1 ) self.codeFileList.push( fileName );
@@ -211,7 +215,6 @@ window.ProjectControlBar = Backbone.Model.extend( {
 								}
 								sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
 								sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = selFiles[ 0 ];
-								$( "#control-bar-input input" ).val( self.currentCodeFile );
 								self.buttonGroup.fillButtonControl( );
 
 								self.editor.reset( self.codeFiles[ self.currentCodeFile ].code );
@@ -236,53 +239,109 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				// User selected "cancel" or closed the dialog
 				case "cancel":
 					break;
-
-				/////////////////////////////////////////////////
-				// User selected "delete"
-				case "delete":
-					if( selFiles.length ) {
-						self.showModalYesNo( selFiles.join( " " ), selFiles.length === 1? window.CPG.ControlBarModalFileDeleteS : window.CPG.ControlBarModalFileDeleteP, function( yes ) {
-							if( yes ) {
-								$WS.sendMessage( {
-									command: "deleteJSFiles",
-									FileNames: selFiles,
-								}, function( message ) {
-
-									// Todo: Error message
-									//if( message.Error ) return;
-
-									for( var i=selFiles.length-1 ; i>=0 ; i-- ) {
-										// hier wird ab und zu ein Wort nicht aus allFiles gelöscht ... ( step debug!! )
-
-										self.codeFileList.splice( self.codeFileList.indexOf( selFiles[ i ] ),1 );
-										for( var afl=self.allFilesList, j=afl.length-1 ; j>=0 ; j-- ) {
-											if( afl[ j ].name === selFiles[ i ] ) {
-												afl.splice( j,1 );
-												break;
-											}
-										} 
-										self.codeFiles[ selFiles[ i ] ] = null;
-
-										if( selFiles[ i ] === self.currentCodeFile ) sessionStorage[ self.page + "CurrentCodeFile" ] = self.currentCodeFile = self.codeFileList[ 0 ] || window.CPG.ControlBarNewFile
-									}
-									sessionStorage[ self.page + "AllFilesList" ] = JSON.stringify( self.allFilesList );
-									sessionStorage[ self.page + "CodeFileList" ] = JSON.stringify( self.codeFileList );
-									sessionStorage[ self.page + "CurrentCodeFile" ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] || { code: "" } );
-
-									self.fillButtonControl( );
-									self.reset( self.codeFiles[ self.currentCodeFile ]? self.codeFiles[ self.currentCodeFile ].code : "" );
-									self._dirty = false;
-								} );
-							}
-						} );
-						return;
-
-					}
-					break;
 				}
 			} );
 		}
 	},
+
+    save: function( ) {
+
+        var self = this,
+        	filename = this.currentCodeFile;
+
+        if( filename === window.CPG.ProjectBarNewFile + "." + this.fileType ) {
+            this.buttonGroup.showModalSave( "", function( filename ) {
+            	if( filename !== "" ) {
+            		self.saveSourceFile( filename );
+            	}
+            } );
+        } else {
+            if( filename.slice( -this.fileType.length - 1 ) != "." + this.fileType ) {
+                filename += "." + this.fileType;
+                this.currentCodeFile = filename;
+            }
+
+            self.saveSourceFile( filename, self.codeFiles[ filename ].project );
+        }
+    },
+
+    saveSourceFile: function( filename, project ) {
+
+    	var self = this;
+
+    	this.buttonGroup.showSaving( "..." );
+        var code = this.editor.text( );
+
+        this.editor.getScreenshot( function ( data ) {
+
+            // remove BASE64-HTML header
+            var image = data.substr( data.search( "," )+1 );
+
+            $WS.sendMessage( {
+                Command: "writeSourceFiles",
+                FileNames: [ filename ],
+                FileProject: project || "",
+                FileType: self.fileType,
+                TimeStamps: self.codeFiles[ filename ] && [ self.codeFiles[ filename ].timeStamp ] || null,
+                CodeFiles: [ code ],
+                Overwrite: self.currentCodeFile === filename,
+                Images : [ image ], 
+            }, function( message ) {
+                if( message.Error ) {
+                    self.buttonGroup.showModalYesNo( window.CPG.ProjectBarModalFileExists, message.Error, function( yes ) {
+                        if( yes ) {
+                            self.currentCodeFile = filename;
+                            self.saveSourceFile( filename, project );
+                        } else {
+					    	self.buttonGroup.showSaving( false );
+                        }
+                    } );
+                    return false;
+                } else if( self.currentCodeFile !== filename ) {
+
+                    self.codeFiles[ self.currentCodeFile ].code = self.editor.text( );
+                    self.codeFileList.push( filename );
+
+                    for( var i=0, filenameExists=false, afl=self.allFilesList ; i<afl.length ; i++ ) {
+                        if( afl[ i ].name === filename ) {
+                            filenameExists = true;
+                            break;
+                        }
+                    }
+                    if( !filenameExists ) self.allFilesList.push( {
+                        name: filename,
+                        timeStamp: self.codeFiles[ self.currentCodeFile ].timeStamp,
+                        project: self.codeFiles[ self.currentCodeFile ].Project
+                    } );
+                    sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
+                    sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
+                    sessionStorage[ self.fileType + "AllFilesList" ] = JSON.stringify( self.allFilesList );
+                    sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = filename;
+
+                } else if( message.OutdatedTimeStamps.length > 0 ) {
+                    self.buttonGroup.showModalYesNo( filename, window.CPG.ProjectBarModalFileOutdated, function( yes ) {
+                        if( yes ) {
+                            self.codeFiles[ filename ].timeStamp = message.OutdatedTimeStamps[ 0 ] 
+                            self.saveSourceFile( filename, project );
+                        } else {
+							self.buttonGroup.showSaving( false );
+                        }
+                    } );
+                    return false;
+                } 
+
+                self.codeFiles[ filename ] = { 
+                    code: code,
+                    timeStamp: message.SavedTimeStamps[ 0 ],
+                    project: project
+                };
+                sessionStorage[ filename ] = JSON.stringify( self.codeFiles[ filename ] );
+                self.buttonGroup.fillButtonControl( );
+                self.editor.setClean();
+				self.buttonGroup.showSaving( "ok" );
+           } );
+        } );
+    },
 
    	////////////////////////////////////////////
 	// storeCurrentCodeFile syncs the current code file with the global variable and the local storage
@@ -309,9 +368,9 @@ var ButtonGroup = Backbone.View.extend( {
 
 		this.fillDomElements( options.modalContainer );
 
-		$( "#project-bar-new" ).on( 'click', function() { 
-			self.projectBar.new(); 
-		} );
+		$( "#project-bar-new" ).on( 'click', function() { self.projectBar.new(); } );
+		$( "#project-bar-save" ).on( 'click', function() { self.projectBar.save(); } );
+		$( "#project-bar-save-as" ).on( 'click', function() { self.projectBar.saveAs(); } );
 
 	},
 
@@ -329,6 +388,7 @@ var ButtonGroup = Backbone.View.extend( {
 					"</ul>" +
 				"</div>" +
 				"<button id='project-bar-save' type='button' class='btn btn-primary'>" + window.CPG.ProjectBarSave + "</button>" +
+				"<button id='project-bar-save-project' type='button' class='btn btn-primary'>" + window.CPG.ProjectBarSaveProject + "</button>" +
 				"<div class='btn-group dropup'>" +
 					"<button type='button' class='btn btn-primary dropup-toggle' data-toggle='dropdown'>" +
 						"<span class='title'>" + window.CPG.ProjectBarAdministrate + " </span>" +
@@ -416,7 +476,8 @@ var ButtonGroup = Backbone.View.extend( {
 		for( var i=0 ; i<this.projectBar.codeFileList.length ; i++ ) {
 			fileList.push( {
 				fileName: this.projectBar.codeFileList[ i ],
-				timeStamp: this.projectBar.codeFiles[ this.projectBar.codeFileList[ i ] ].timeStamp
+				timeStamp: this.projectBar.codeFiles[ this.projectBar.codeFileList[ i ] ].timeStamp,
+				project: this.projectBar.codeFiles[ this.projectBar.codeFileList[ i ] ].project
 			} );
 		}
 
@@ -438,7 +499,7 @@ var ButtonGroup = Backbone.View.extend( {
 		}
 
 		if( this.projectBar.allFilesList.length >= 2 ) {
-			cbf.append( '<hr><li class="project-bar-open-file" codefile="all"><span>' + window.CPG.ControlBarAllFiles + '</span></li>' );
+			cbf.append( '<hr><li class="project-bar-open-file" codefile="all"><span>' + window.CPG.ProjectBarAllFiles + '</span></li>' );
 		}
 
 		$( "#control-bar-current-file" ).text( this.projectBar.currentCodeFile );
@@ -537,7 +598,7 @@ var ButtonGroup = Backbone.View.extend( {
 			//if( !lcb ) debugger;
 			if( lcb ) lcb( "open", [$( this ).attr( "filename" )], [$( this ).attr( "project" )] );
 		} );
-		
+
 		$( ".modal-cancel", modal ).off( "click" ).one( "click", function( e ) {
 			modal.modal( 'hide' );
 		} );
@@ -573,6 +634,20 @@ var ButtonGroup = Backbone.View.extend( {
 		} );
 	},
 
+	showSaving: function( show ) {
+		if( !show ) {
+	        $( "#project-bar-save" ).text( window.CPG.ProjectBarSave );
+		} else if( show === "..." ) {
+	        $( "#project-bar-save" ).text( "..." );
+		} else if( show === "ok" ) {
+	        $( "#project-bar-save" ).text( window.CPG.ProjectBarSaved )
+	        		.removeClass( "btn-primary" ).addClass( "btn-success" );
+            setTimeout( function( ) { 
+                $( "#project-bar-save" ).text( window.CPG.ProjectBarSave )
+                    .addClass( "btn-primary" ).removeClass( "btn-success" );
+            }, 2000 );
+        }
+ 	},
 
     showFilename: function( filename ) {
         $( ".big-filename", this.el ).text( filename );

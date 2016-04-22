@@ -22,7 +22,7 @@ CPG_projectControlBar = new window.ProjectControlBar( {
 								editor: CPG_liveEditor,
 								wsAddress: window.CPG.WebsocketsAddress, 
 								xsrfdata: window.CPG.xsrfdata,
-								newFile: window.CPG.ControlBarNewFile + "." + CPG_page,
+								newFile: window.CPG.ProjectBarNewFile + "." + CPG_page,
 								modalContainer: $( ".container" ),
 							} );
 
