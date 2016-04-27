@@ -91,7 +91,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
                         $WS.sendMessage( {
                             command: "readSourceFiles",
                             FileNames: codeFilesToRead,
-                            FileProjects: projects,
+                            ProjectNames: projects,
                             FileType: self.fileType
                         }, function( message ) {
                             for( var i=0 ; i<codeFilesToRead.length ; i++ ) {
@@ -197,7 +197,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 							$WS.sendMessage( {
 								command: "readSourceFiles",
 								FileNames: selFiles,
-								FileProjects: selProjects,
+								ProjectNames: selProjects,
 								FileType: self.fileType,
 							}, function( message ) {
 								for( var i=0 ; i<selFiles.length ; i++ ) {
@@ -269,6 +269,33 @@ window.ProjectControlBar = Backbone.Model.extend( {
         }
     },
 
+    saveProject: function( ) {
+        var self = this;
+
+        var projectName = this.codeFiles[ this.currentCodeFile ].project || "";
+        if(  projectName === "" ) {
+            projectName = this.currentCodeFile.substr( 0, this.currentCodeFile.length - this.fileType.length - 1 );
+
+            // Initialize new project
+            $WS.sendMessage( {
+                Command: "initProject",
+                ProjectName: projectName,
+                FileType: this.fileType,
+                FileNames: [ this.currentCodeFile ],
+                ResourceFiles: [],
+            }, function( message ) {
+                if( message.Error ) {
+                    debugger;
+                } else {
+                    debugger;
+                }
+            } );
+
+        } else {
+            // Just save the project
+        }
+    },
+
     saveSourceFile: function( filename, project ) {
 
     	var self = this;
@@ -284,7 +311,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
             $WS.sendMessage( {
                 Command: "writeSourceFiles",
                 FileNames: [ filename ],
-                FileProject: project || "",
+                ProjectName: project || "",
                 FileType: self.fileType,
                 TimeStamps: self.codeFiles[ filename ] && [ self.codeFiles[ filename ].timeStamp ] || null,
                 CodeFiles: [ code ],
@@ -396,7 +423,8 @@ var ButtonGroup = Backbone.View.extend( {
 
 		$( "#project-bar-new" ).on( 'click', function() { self.projectBar.new(); } );
 		$( "#project-bar-save" ).on( 'click', function() { self.projectBar.save(); } );
-		$( "#project-bar-save-as" ).on( 'click', function() { self.projectBar.saveAs(); } );
+        $( "#project-bar-save-as" ).on( 'click', function() { self.projectBar.saveAs(); } );
+        $( "#project-bar-save-project" ).on( 'click', function() { self.projectBar.saveProject(); } );
 
 	},
 

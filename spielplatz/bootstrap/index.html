@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<title>Hello World! {{ .Title }}</title>
+<title>{{ .Title }}</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="static/css/bootstrap.min.css">
@@ -44,12 +44,30 @@
         processing.keyPressed = function () { keyIsPressed = true; };
         processing.keyReleased = function () { keyIsPressed = false; };
 
-        function getSound() {
+        var keyIsPressed = false;
+        processing.keyPressed = function () { keyIsPressed = true; };
+        processing.keyReleased = function () { keyIsPressed = false; };
+
+        function getSound(s) {
+            var url = "http://c2064.org/schm9/sounds/" + s + ".mp3";
+            return new Audio(url);
+        }
+
+        function playSound(s) {
+            s.play();
+        }
+
+        function stopSound(s) {
+            s.pause();
+            sound.currentTime = 0;
+        }
+
+        function debug() {
         }
 
         function getImage(s) {
-            var url = "http://c2064/schm9/bilder/" + s + ".png";
-            processing.externals.sketch.imageCache.add(url);
+            var url = "http://c2064.org/schm9/bilder/" + s + ".png";
+            //processing.externals.sketch.imageCache.add(url);
             return processing.loadImage(url);
         }
 
@@ -57,7 +75,23 @@
         processing.rotate = function(angle) {
             rotateFn(processing.radians(angle));
         }
-
+        var cosFn = processing.cos;
+        processing.cos = function(angle) {
+            return cosFn(processing.radians(angle));
+        }
+        var sinFn = processing.sin;
+        processing.sin = function(angle) {
+            return sinFn(processing.radians(angle));
+        }
+        var atan2Fn = processing.atan2;
+        processing.atan2 = function(y, x) {
+            return processing.degrees(atan2Fn(y,x));
+        }
+        var arcFn = processing.arc;
+        processing.arc = function(x,y,w,h,a1,a2) {
+            return arcFn(x,y,w,h,processing.radians(a1), processing.radians(a2));
+        }
+        
         with (processing) {
             var y = 0,
                 dy = 5,

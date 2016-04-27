@@ -665,8 +665,8 @@ var i18n = {
 
     _ : function (str, options) {
 		if( !translations[ str ] ) {
-	console.log( "Translation of '" + str + "' is not available."); 
-	return str;
+			console.log( "Translation of '" + str + "' is not available."); 
+			return this.interpolateStringToArray( str, options).join("");;
 		}
 
         return this.interpolateStringToArray( translations[ str ], options).join("");

@@ -9,7 +9,7 @@ window.LiveEditorFrameHTML = window.LiveEditorFrame.extend ( {
 			editorType: "ace_webpage",
 			outputType: "webpage",
 			el: $( "#cpg-live-editor-html" ),
-			code: window.localStorage[ "test-code" ] || "<!DOCTYPE html>\n<strong>Hello</strong>, world!",
+			code: "<!DOCTYPE html>\n<body>\n<strong>Hello</strong>, world!\n</body>",
 			width: 480,
 			height: 800,
 			editorHeight: "800px",

@@ -252,10 +252,10 @@ window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
 
 		this.liveEditor = new LiveEditor ( {
 			el: $( "#cpg-live-editor-pjs" ),
-			code: window.localStorage[ "test-code-pjs" ] || "ellipse( 100, 100, 100, 100 );",
-			width: 480,
-			height: 800,
-			editorHeight: "800px",
+			code: "// Live-Editor, Processing / Javascript",
+			width: 320,
+			height: 568,
+			editorHeight: "568px",
 			autoFocus: true,
 			workersDir: "../build/workers/",
 			execFile: "external/output.html",
@@ -272,7 +272,7 @@ window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
 
         // Patch for changing the width, bug in live-editor as of April 2016
         // Right and bottom border still missing ... 
-        $( "#output-frame" ).width( 480 );
+        $( "#output-frame" ).width( 320 );
 
         // We have an own toolbar ...
 		$( ".scratchpad-toolbar" ).hide( );

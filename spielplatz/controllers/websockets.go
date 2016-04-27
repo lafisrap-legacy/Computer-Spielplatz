@@ -7,6 +7,7 @@ import (
 	_ "errors"
 	"fmt"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/session"
 	"github.com/lafisrap/Computer-Spielplatz-Gitbase/spielplatz/models"
 	"image"
@@ -48,16 +49,17 @@ type Message struct {
 	Command    string
 	returnChan chan Data
 
-	FileType     string
-	FileName     string
-	FileNames    []string
-	FileProject  string
-	FileProjects []string
-	TimeStamps   []int64
-	CodeFiles    []string
-	Images       []string
-	SortedBy     string
-	Range        Range
+	FileType       string
+	FileName       string
+	FileNames      []string
+	ProjectName    string
+	ProjectNames   []string
+	RessourceFiles []string
+	TimeStamps     []int64
+	CodeFiles      []string
+	Images         []string
+	SortedBy       string
+	Range          Range
 
 	Overwrite bool
 }
@@ -180,11 +182,13 @@ func serveMessages(messageChan chan Message) {
 		case "readDir":
 			data = readDir(s, message.FileType)
 		case "readSourceFiles":
-			data = readSourceFiles(s, message.FileNames, message.FileProjects, message.FileType)
+			data = readSourceFiles(s, message.FileNames, message.ProjectNames, message.FileType)
 		case "writeSourceFiles":
-			data = writeSourceFiles(s, message.FileNames, message.FileProject, message.FileType, message.CodeFiles, message.TimeStamps, message.Images, message.Overwrite)
+			data = writeSourceFiles(s, message.FileNames, message.ProjectName, message.FileType, message.CodeFiles, message.TimeStamps, message.Images, message.Overwrite)
 		case "deleteSourceFiles":
 			data = deleteSourceFiles(s, message.FileNames)
+		case "initProject":
+			data = initProject(s, message.ProjectName, message.FileType, message.FileNames, message.RessourceFiles)
 		default:
 			beego.Error("Unknown command:", message.Command)
 		}
@@ -438,4 +442,167 @@ func deleteSourceFiles(s session.Store, fileNames []string) Data {
 		}
 	}
 	return Data{}
+}
+
+func initProject(s session.Store, projectName string, fileType string, fileNames []string, resourceFiles []string) Data {
+
+	T := models.T
+
+	beego.Trace("Entering initProject", projectName, fileNames, resourceFiles)
+	// if user is not logged in return
+	if s.Get("UserName") == nil {
+		beego.Error("No user name available.")
+		return Data{}
+	}
+	if projectName == "" {
+		beego.Error("No project name available.")
+		return Data{}
+	}
+
+	userName := s.Get("UserName").(string)
+	userDir := beego.AppConfig.String("userdata::location") + userName
+	projectDir := userDir + "/" + beego.AppConfig.String("userdata::projects") + "/" + projectName
+	bareDir := beego.AppConfig.String("userdata::location") + beego.AppConfig.String("userdata::bareprojects") + "/" + projectName
+
+	_, err := os.Stat(bareDir)
+	if !os.IsNotExist(err) {
+		return Data{
+			"Error": T["websockets_project_exists"],
+		}
+	}
+
+	// Create new directory
+	if err := os.MkdirAll(bareDir, os.ModePerm); err != nil {
+		beego.Error("Cannot create directory", bareDir)
+	}
+
+	// Initialize as bare git directory
+	err = models.GitInit(bareDir, true)
+	if err != nil {
+		beego.Error("Cannot init git directory", bareDir, "(", err.Error(), ")")
+	}
+
+	// Clone it to own project directory
+	err = models.GitClone(bareDir, projectDir)
+	if err != nil {
+		beego.Error("Cannot clone git directory", bareDir, "into", projectDir, "(", err.Error(), ")")
+	}
+
+	// Set user name and email (for push purpuses)
+	err = models.GitSetName(userName, userName+"@"+beego.AppConfig.String("userdata::emailserver"))
+	if err != nil {
+		beego.Error("Cannot set user name and password of", userName, "(", err.Error(), ")")
+	}
+
+	beego.Trace("Create directories ... in", userDir)
+	// Create project directories
+	models.CreateDirectories(projectDir, false)
+
+	// Move source files
+	for i := 0; i < len(fileNames); i++ {
+
+		// Move source file
+		err = os.Rename(userDir+"/"+fileType+"/"+fileNames[i], projectDir+"/"+fileType+"/"+fileNames[i])
+		if err != nil {
+			beego.Error("Cannot move file", fileNames[i], "from", userDir, "to", projectDir)
+		}
+
+		// And corresponding png file
+		pngName := fileNames[i][:len(fileNames[i])-len(fileType)] + "png"
+		beego.Warning("pngName:", pngName)
+		err = os.Rename(userDir+"/"+fileType+"/"+pngName, projectDir+"/"+fileType+"/"+pngName)
+		if err != nil {
+			beego.Error("Cannot move file", fileNames[i], "from", userDir, "to", projectDir)
+		}
+	}
+
+	// Copy resource files
+	for i := 0; i < len(resourceFiles); i++ {
+		err = copyFileContents(userDir+"/"+resourceFiles[i], projectDir+"/"+resourceFiles[i])
+		if err != nil {
+			beego.Error("Cannot copy resource file", resourceFiles[i], "from", userDir, "to", projectDir, "(", err.Error(), ")")
+		}
+	}
+
+	// Mount resource directories
+	models.MountResourceFiles(userName, projectName)
+
+	// Create project config file
+	projectFile := projectDir + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/project"
+	file, err := os.Create(projectFile)
+	if err != nil {
+		beego.Error(err)
+	}
+	file.Close()
+	cnf, err := config.NewConfig("ini", projectFile)
+	if err != nil {
+		beego.Error("Cannot create project file " + projectFile + " (" + err.Error() + ")")
+	}
+	cnf.Set("Playground", projectName)
+	cnf.Set("Origin", "none")
+	cnf.Set("ReadOnly", "false")
+	cnf.Set("Gallery", "false")
+	cnf.SaveConfigFile(projectFile)
+
+	// Create database entry
+	user, _ := models.GetUser(userName)
+	project := new(models.Project)
+	project.Name = projectName
+	project.Playground = projectName
+	project.User = user
+	project.ReadOnly = false
+	project.Origin = "none"
+	project.Gallery = false
+	project.Forks = 0
+	project.Stars = 0
+	models.CreateProjectDatabaseEntry(project)
+
+	// Create .gitignore file
+	createTextFile(projectDir+"/"+".gitignore", ".spielplatz")
+
+	// Add, commit and push
+	models.GitAddCommitPush(projectDir, beego.AppConfig.String("userdata::firstcommit"))
+	return Data{}
+}
+
+func createTextFile(name string, text string) (err error) {
+	out, err := os.Create(name)
+	if err != nil {
+		return
+	}
+	defer func() {
+		cerr := out.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+
+	if _, err = out.Write([]byte(text)); err != nil {
+		return
+	}
+	err = out.Sync()
+	return
+}
+
+func copyFileContents(src, dst string) (err error) {
+	in, err := os.Open(src)
+	if err != nil {
+		return
+	}
+	defer in.Close()
+	out, err := os.Create(dst)
+	if err != nil {
+		return
+	}
+	defer func() {
+		cerr := out.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+	if _, err = io.Copy(out, in); err != nil {
+		return
+	}
+	err = out.Sync()
+	return
 }

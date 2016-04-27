@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 //////////////////////////////////////////////////
@@ -26,14 +27,15 @@ type User struct {
 
 // Project contains a list of user projects
 type Project struct {
-	Id      int
-	Name    string
-	User    *User `orm:"rel(fk)"`
-	Bare    bool
-	Origin  string
-	Gallery bool
-	Forks   int
-	Stars   int
+	Id         int
+	Name       string
+	Playground string
+	User       *User `orm:"rel(fk)"`
+	ReadOnly   bool
+	Origin     string
+	Gallery    bool
+	Forks      int
+	Stars      int
 }
 
 // Stars contains a list of all stars
@@ -155,13 +157,13 @@ func createAllUserDatabaseEntries() {
 				projectFile := projectsDir + projectName + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/project"
 				cnf, err := config.NewConfig("ini", projectFile)
 				if err == nil {
-					gallery, _ := cnf.Bool("Gallery")
 					project = new(Project)
 					project.Name = projectName
+					project.Playground = cnf.String("Playground")
 					project.User = user
-					project.Bare = false
+					project.ReadOnly, _ = cnf.Bool("ReadOnly")
 					project.Origin = cnf.String("Origin")
-					project.Gallery = gallery
+					project.Gallery, _ = cnf.Bool("Gallery")
 					project.Forks = 0
 					project.Stars = 0
 
@@ -302,4 +304,43 @@ func AuthenticateUser(uf *UserForm) (User, error) {
 	}
 
 	return u, nil
+}
+
+/////////////////////////////////////////////////////
+// CreateDirectories
+func CreateDirectories(dir string, base bool) error {
+
+	dirs := strings.Split(beego.AppConfig.String("userdata::codefiles"), ",")
+	dirs = append(dirs, beego.AppConfig.String("userdata::soundfiles"))
+	dirs = append(dirs, beego.AppConfig.String("userdata::imagefiles"))
+	dirs = append(dirs, beego.AppConfig.String("userdata::jsonfiles"))
+	dirs = append(dirs, beego.AppConfig.String("userdata::spielplatzdir"))
+
+	// A project directory is only contained in a base directory
+	if base == true {
+		dirs = append(dirs, beego.AppConfig.String("userdata::projects"))
+	}
+
+	beego.Trace("Creating dirs:", dirs)
+	for i := 0; i < len(dirs); i++ {
+		if err := os.MkdirAll(dir+"/"+dirs[i], os.ModePerm); err != nil {
+			beego.Error("Cannot create directory", dir, dirs[i])
+			return err
+		}
+	}
+
+	return nil
+}
+
+//////////////////////////////////////////////////////////
+// GetUserName
+func GetUser(userName string) (*User, error) {
+
+	o := orm.NewOrm()
+	user := new(User)
+	user.Name = userName
+	err := o.Read(user, "Name")
+
+	beego.Warning("user:", user, userName)
+	return user, err
 }

@@ -16,8 +16,8 @@
 	"arts_controllers"                  : "Spiel-Steuerung",
 	"arts_hacking"                      : "Hacken (Freestyle)",
                                         
-	"live_editor_header_pjs"			: "Processing/JavaScript",
-	"live_editor_header_html"			: "HTML",
+	"live_editor_header_pjs"			: "Processing / JavaScript",
+	"live_editor_header_html"			: "HTML / CSS",
 	
 	"project_bar_new"					: "Neu",
 	"project_bar_open"					: "Öffnen",
@@ -100,6 +100,7 @@
 	"login_input_password"				: "Passwort",
 	"login_login_go"					: "Einloggen",
 
-	"websockets_file_exists"	        : "Es gibt schon eine Datei mit dem gleichen Namen. Überschreiben?"
+	"websockets_file_exists"	        : "Es gibt schon eine Datei mit dem gleichen Namen. Überschreiben?",
+	"websockets_project_exists"	        : "Es gibt schon eine Project mit dem gleichen Namen."
 }
 

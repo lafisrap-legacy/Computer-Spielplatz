@@ -9,10 +9,8 @@ import (
 	"github.com/lafisrap/Computer-Spielplatz-Gitbase/spielplatz/models"
 	"html/template"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"time"
 )
 
@@ -328,23 +326,10 @@ func (c *SignupController) Post() {
 func (c *SignupController) createUserDirectory(user models.User) {
 
 	// Create project directories
-	var dir string
-	dirs := strings.Split(beego.AppConfig.String("userdata::codefiles"), ",")
-	dirs = append(dirs, beego.AppConfig.String("userdata::soundfiles"))
-	dirs = append(dirs, beego.AppConfig.String("userdata::imagefiles"))
-	dirs = append(dirs, beego.AppConfig.String("userdata::jsonfiles"))
-	dirs = append(dirs, beego.AppConfig.String("userdata::projects"))
-	dirs = append(dirs, "bare_"+beego.AppConfig.String("userdata::projects"))
-	dirs = append(dirs, beego.AppConfig.String("userdata::spielplatzdir"))
-	for i := 0; i < len(dirs); i++ {
-		dir = beego.AppConfig.String("userdata::location") + user.Name + "/" + dirs[i]
-		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-			beego.Error("Cannot create directory", dir)
-		}
-	}
+	models.CreateDirectories(beego.AppConfig.String("userdata::location")+user.Name, true)
 
 	// Create .spielplatz files
-	dir = beego.AppConfig.String("userdata::location") + user.Name + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/"
+	dir := beego.AppConfig.String("userdata::location") + user.Name + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/"
 	identityFile := dir + "identity"
 	file, err := os.Create(identityFile)
 	if err != nil {
@@ -359,16 +344,15 @@ func (c *SignupController) createUserDirectory(user models.User) {
 	cnf.SaveConfigFile(identityFile)
 
 	// Clone Admin Spielplatz project
-	err = cloneProject(beego.AppConfig.String("userdata::admin"), user.Name, beego.AppConfig.String("userdata::commonproject"))
+	err = cloneProject(user.Name, beego.AppConfig.String("userdata::commonproject"))
 	if err != nil {
 		beego.Error(err)
 	}
 }
 
-func cloneProject(fromUser string, toUser string, project string) error {
-	url := beego.AppConfig.String("userdata::location") +
-		fromUser +
-		"/bare_" + beego.AppConfig.String("userdata::projects") + "/" +
+func cloneProject(toUser string, project string) error {
+	url := beego.AppConfig.String("userdata::location") + "/" +
+		beego.AppConfig.String("userdata::bareprojects") + "/" +
 		project
 
 	dir := beego.AppConfig.String("userdata::location") +
@@ -376,7 +360,7 @@ func cloneProject(fromUser string, toUser string, project string) error {
 		beego.AppConfig.String("userdata::projects") + "/" +
 		project
 
-	err := exec.Command("git", "clone", url, dir).Run()
+	err := models.GitClone(url, dir)
 	if err == nil {
 		models.MountResourceFiles(toUser, project)
 	}
@@ -475,14 +459,11 @@ func (c *CPGController) getImageInfo(userName string) string {
 		GroupName: "/",
 		Images:    []string{},
 	})
-	beego.Trace("Looking for images in ", dir)
 	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
-		beego.Trace("Found file:", path)
 		matches := imageRegexp.FindSubmatch([]byte(path))
 		if matches != nil {
 			folder := string(matches[1])
 			file := string(matches[2])
-			beego.Trace("Match! :", folder, file)
 			found := false
 			var i int
 
