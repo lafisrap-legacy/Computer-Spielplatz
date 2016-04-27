@@ -7,9 +7,7 @@ Image Editor (Grafik & Animation)
 
 Live-Editor (Programmieren)
 ###########################
-
-- Umstellung auf 640/720 x 400
-- Verschiedene Plugins vorbereiten (neuer Live-Editor (HTML, SQL), Paper.js, go, ruby)
+throbber.gif und ohnoes.png Pfade umleiten (wie fir throbber-full in integration)
 
 
 Sound Editor
@@ -20,8 +18,6 @@ Hall, Compression, eq-editor equalizer
 
 Programm veröffentlichen
 ########################
-
-Häckchen: Programm veröffentlichen
 
 -> Kommt in die Übersicht (Name / Programm, wird allen gezeigt, die in einer der Autor-Gruppen sind)
 -> Von der Hauptseite aus, wird die Programmübersicht angezeigt.
@@ -49,21 +45,12 @@ Login/Signup
 
 Testen
 ######
+casper.js !
+
 mocha Structure
-karma
 chai
 unit-coverage
 
 
-Dateimanager für Live-Editor:
-#############################
-
-- setup a git server
-- during signup ...
-    - create GIT account
-	- create symlinks to default images
-
-
-- Locale-Strings für login, logout und signup
 - Shortcuts für alles!
 

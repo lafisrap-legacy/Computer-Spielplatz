@@ -425,7 +425,6 @@ var ButtonGroup = Backbone.View.extend( {
 		$( "#project-bar-save" ).on( 'click', function() { self.projectBar.save(); } );
         $( "#project-bar-save-as" ).on( 'click', function() { self.projectBar.saveAs(); } );
         $( "#project-bar-save-project" ).on( 'click', function() { self.projectBar.saveProject(); } );
-
 	},
 
 	fillDomElements: function( container ) {
