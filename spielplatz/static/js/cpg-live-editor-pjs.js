@@ -147,6 +147,14 @@ window.LiveEditorFrame = Backbone.View.extend ( {
         return "Each editor has to restart in it's own way."        
     },
 
+    resources: function() {
+        return "Each editor has it's own way to return resources."        
+    },
+
+    moveResources: function( projectName ) {
+        return "Each editor has it's own way to move resources into a project environment."        
+    },
+
 
     // End of interface methods
     ////////////////////////////////////////////////////////////////////////
@@ -247,6 +255,10 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 //
 window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
 
+    imagesRegex: /getImage\(\s*\"([^\"]+)/g,
+    soundsRegex: /getSound\(\s*\"([^\"]+)/g,
+    projectRegex: /\"\s*[^\/]+/g,
+
 	initialize: function( options ) {
 		window.LiveEditorFrame.prototype.initialize.call( this, options );
 
@@ -303,6 +315,42 @@ window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
     // getScreenShot takes the current canvas and passes it as first parameter to a call back function
     getScreenshot: function( cb ) {
         this.liveEditor.getScreenshot( cb );
+    },
+
+    // Hier geht's weiter ... resource mbraucht eine Option, um die Resourcen ins neue Projektverzeichnis zu verschieben
+    // Ungeschehen machen, wenn etwas schief geht :-( 
+    // Project cleanup erforderlich
+
+    // resouces returns a list of all images, sounds and other resources used in the code file
+    resources: function() {
+        var t = this.text(),
+            res = [];
+
+        while( match = this.imagesRegex.exec( t ) ) {
+            res.push( match[ 1 ] + ".png" );
+        };
+
+        while( match = this.soundsRegex.exec( t ) ) {
+            res.push( match[ 1 ] + ".mp3" );
+        };
+
+        return res;
+    },
+
+    // moveResouces moves all resources to the project directory and returns the code file 
+    // (doesn't change it in the editor though)
+    moveResources: function( projectName ) {
+        var self = this,
+            code = this.text();
+
+        code = code.replace( this.imagesRegex, function( match, group ) {
+            return match.replace( self.projectRegex, "\""+projectName );
+        } );
+        code = code.replace( this.soundsRegex, function( match, group ) {
+            return match.replace( self.projectRegex, "\""+projectName );
+        } );
+
+        return code;
     },
 } );
 

@@ -321,7 +321,6 @@ func CreateDirectories(dir string, base bool) error {
 		dirs = append(dirs, beego.AppConfig.String("userdata::projects"))
 	}
 
-	beego.Trace("Creating dirs:", dirs)
 	for i := 0; i < len(dirs); i++ {
 		if err := os.MkdirAll(dir+"/"+dirs[i], os.ModePerm); err != nil {
 			beego.Error("Cannot create directory", dir, dirs[i])

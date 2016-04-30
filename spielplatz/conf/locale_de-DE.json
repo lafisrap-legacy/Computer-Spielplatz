@@ -60,6 +60,9 @@
     "project_bar_restart"               : "Neu starten",
     "project_bar_saved"                 : "Gespeichert",
     "project_bar_no_user"               : "Wenn du Dateien laden und speichern willst, musst du dich anmelden.",
+	"project_bar_modal_project_init"	: "Neues Projekt anlegen",
+	"project_bar_modal_project_init_2"	: "Wähle einen Projektnamen",
+	"project_bar_modal_project_init_ok"	: "Projekt anlegen",
 
 	"graphics_header_graphics"			: "Bild-Editor",
 	"graphics_header_animations"		: "Animations-Editor",
@@ -101,6 +104,6 @@
 	"login_login_go"					: "Einloggen",
 
 	"websockets_file_exists"	        : "Es gibt schon eine Datei mit dem gleichen Namen. Überschreiben?",
-	"websockets_project_exists"	        : "Es gibt schon eine Project mit dem gleichen Namen."
+	"websockets_project_exists"	        : "Es gibt schon ein Projekt mit dem gleichen Namen."
 }
 

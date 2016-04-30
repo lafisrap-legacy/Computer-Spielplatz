@@ -360,6 +360,7 @@ func cloneProject(toUser string, project string) error {
 		beego.AppConfig.String("userdata::projects") + "/" +
 		project
 
+	//options := git.
 	err := models.GitClone(url, dir)
 	if err == nil {
 		models.MountResourceFiles(toUser, project)
@@ -435,6 +436,9 @@ func (c *LiveEditorController) Get() {
 		c.Data["ProjectBarModalSaveFilename2"] = T["project_bar_modal_save_filename_2"]
 		c.Data["ProjectBarModalFilename"] = T["project_bar_modal_filename"]
 		c.Data["ProjectBarModalSoundTitle"] = T["project_bar_modal_sound_title"]
+		c.Data["ProjectBarModalProjectInit"] = T["project_bar_modal_project_init"]
+		c.Data["ProjectBarModalProjectInit2"] = T["project_bar_modal_project_init_2"]
+		c.Data["ProjectBarModalProjectInitOk"] = T["project_bar_modal_project_init_ok"]
 		c.Data["LoginLogin"] = T["login_login"]
 		c.Data["LoginSignup"] = T["login_signup"]
 		c.Data["LoginLogout"] = T["login_logout"]

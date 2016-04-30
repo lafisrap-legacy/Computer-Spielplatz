@@ -49,17 +49,17 @@ type Message struct {
 	Command    string
 	returnChan chan Data
 
-	FileType       string
-	FileName       string
-	FileNames      []string
-	ProjectName    string
-	ProjectNames   []string
-	RessourceFiles []string
-	TimeStamps     []int64
-	CodeFiles      []string
-	Images         []string
-	SortedBy       string
-	Range          Range
+	FileType      string
+	FileName      string
+	FileNames     []string
+	ProjectName   string
+	ProjectNames  []string
+	ResourceFiles []string
+	TimeStamps    []int64
+	CodeFiles     []string
+	Images        []string
+	SortedBy      string
+	Range         Range
 
 	Overwrite bool
 }
@@ -186,9 +186,9 @@ func serveMessages(messageChan chan Message) {
 		case "writeSourceFiles":
 			data = writeSourceFiles(s, message.FileNames, message.ProjectName, message.FileType, message.CodeFiles, message.TimeStamps, message.Images, message.Overwrite)
 		case "deleteSourceFiles":
-			data = deleteSourceFiles(s, message.FileNames)
+			data = deleteSourceFiles(s, message.FileNames, message.ProjectNames)
 		case "initProject":
-			data = initProject(s, message.ProjectName, message.FileType, message.FileNames, message.RessourceFiles)
+			data = initProject(s, message.ProjectName, message.FileType, message.FileNames, message.CodeFiles, message.ResourceFiles, message.Images)
 		default:
 			beego.Error("Unknown command:", message.Command)
 		}
@@ -221,9 +221,8 @@ func writeSourceFiles(s session.Store, fileNames []string, project string, fileT
 
 	for i := 0; i < len(fileNames); i++ {
 		var (
-			file    *os.File
-			imgFile *os.File
-			err     error
+			file *os.File
+			err  error
 		)
 		fileName := dir + fileNames[i]
 
@@ -268,18 +267,8 @@ func writeSourceFiles(s session.Store, fileNames []string, project string, fileT
 		}
 
 		////////////////////////////////////////
-		// Write image file
-		imageReader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(Images[i]))
-		pngImage, _, err := image.Decode(imageReader)
-		if err != nil {
-			beego.Error(err)
-		}
-		if imgFile, err = os.Create(fileName[0:len(fileName)-len(fileType)-1] + ".png"); err != nil {
-			beego.Error("Cannot create or overwrite file (", err, ")")
-			return Data{}
-		}
-		defer imgFile.Close()
-		png.Encode(imgFile, pngImage)
+		// Create image file
+		createImageFile(Images[i], fileName)
 	}
 
 	return Data{
@@ -301,7 +290,7 @@ func readSourceFiles(s session.Store, fileNames []string, fileProjects []string,
 	dir := beego.AppConfig.String("userdata::location") + name + "/"
 	codeFiles := make(map[string]SourceFile)
 
-	beego.Trace("fileNames", fileNames, "Length:", len(fileNames))
+	beego.Trace("fileNames", fileNames)
 	for i := 0; i < len(fileNames); i++ {
 		var (
 			file *os.File
@@ -413,7 +402,7 @@ func readDir(s session.Store, fileType string) Data {
 	return data
 }
 
-func deleteSourceFiles(s session.Store, fileNames []string) Data {
+func deleteSourceFiles(s session.Store, fileNames []string, projectNames []string) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -421,30 +410,30 @@ func deleteSourceFiles(s session.Store, fileNames []string) Data {
 	}
 
 	name := s.Get("UserName").(string)
-	dir := beego.AppConfig.String("userdata::location") + name + "/pjs/"
+	dir := beego.AppConfig.String("userdata::location") + name
 
 	for i := 0; i < len(fileNames); i++ {
 		/////////////////////////////////////////
 		// Remove js and png file
-		fileName := dir + fileNames[i]
-
-		if err := os.Remove(fileName); err != nil {
-			beego.Error("Cannot remove file")
-			return Data{
-				"Error": "I cannot remove " + fileName + ".",
-			}
+		fileType := fileNames[i][strings.LastIndex(fileNames[i], ".")+1:]
+		var fileName string
+		if projectNames != nil && projectNames[i] != "" {
+			fileName = dir + "/" + beego.AppConfig.String("userdata::projects") + "/" + projectNames[i] + "/" + fileType + "/" + fileNames[i]
+		} else {
+			fileName = dir + "/" + fileType + "/" + fileNames[i]
 		}
-		if err := os.Remove(fileName[0:len(fileName)-3] + ".png"); err != nil {
-			beego.Error("Cannot remove file")
-			return Data{
-				"Error": "I cannot remove " + fileName[0:len(fileName)-3] + ".png.",
-			}
+		if err := os.Remove(fileName); err != nil {
+			beego.Error("Cannot remove file", fileName, "(", err.Error(), ")")
+		}
+		fileName = fileName[:strings.LastIndex(fileName, ".")] + ".png"
+		if err := os.Remove(fileName); err != nil {
+			beego.Error("Cannot remove file", fileName, "(", err.Error(), ")")
 		}
 	}
 	return Data{}
 }
 
-func initProject(s session.Store, projectName string, fileType string, fileNames []string, resourceFiles []string) Data {
+func initProject(s session.Store, projectName string, fileType string, fileNames []string, codeFiles []string, resourceFiles []string, images []string) Data {
 
 	T := models.T
 
@@ -494,31 +483,35 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 		beego.Error("Cannot set user name and password of", userName, "(", err.Error(), ")")
 	}
 
-	beego.Trace("Create directories ... in", userDir)
 	// Create project directories
 	models.CreateDirectories(projectDir, false)
 
-	// Move source files
-	for i := 0; i < len(fileNames); i++ {
+	// Write source files to new project directory
+	timeStamps := []int64{0}
+	fileName := []string{projectName + "." + fileType}
+	data := writeSourceFiles(s, fileName, projectName, fileType, codeFiles, timeStamps, images, false)
 
-		// Move source file
-		err = os.Rename(userDir+"/"+fileType+"/"+fileNames[i], projectDir+"/"+fileType+"/"+fileNames[i])
-		if err != nil {
-			beego.Error("Cannot move file", fileNames[i], "from", userDir, "to", projectDir)
-		}
-
-		// And corresponding png file
-		pngName := fileNames[i][:len(fileNames[i])-len(fileType)] + "png"
-		beego.Warning("pngName:", pngName)
-		err = os.Rename(userDir+"/"+fileType+"/"+pngName, projectDir+"/"+fileType+"/"+pngName)
-		if err != nil {
-			beego.Error("Cannot move file", fileNames[i], "from", userDir, "to", projectDir)
-		}
+	// Remove old files, if any
+	if fileNames[0] != "" {
+		deleteSourceFiles(s, fileNames, nil)
 	}
+
+	// Create .gitignore file
+	createTextFile(projectDir+"/"+".gitignore", beego.AppConfig.String("userdata::spielplatzdir"))
 
 	// Copy resource files
 	for i := 0; i < len(resourceFiles); i++ {
-		err = copyFileContents(userDir+"/"+resourceFiles[i], projectDir+"/"+resourceFiles[i])
+		resType := resourceFiles[i][strings.LastIndex(resourceFiles[i], ".")+1:]
+		filename := resourceFiles[i][strings.LastIndex(resourceFiles[i], "/")+1:]
+		dir := "."
+
+		switch resType {
+		case "png":
+			dir = beego.AppConfig.String("userdata::imagefiles")
+		case "mp3":
+			dir = beego.AppConfig.String("userdata::soundfiles")
+		}
+		err = copyFileContents(userDir+"/"+dir+"/"+resourceFiles[i], projectDir+"/"+dir+"/"+filename)
 		if err != nil {
 			beego.Error("Cannot copy resource file", resourceFiles[i], "from", userDir, "to", projectDir, "(", err.Error(), ")")
 		}
@@ -557,12 +550,9 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 	project.Stars = 0
 	models.CreateProjectDatabaseEntry(project)
 
-	// Create .gitignore file
-	createTextFile(projectDir+"/"+".gitignore", ".spielplatz")
-
 	// Add, commit and push
 	models.GitAddCommitPush(projectDir, beego.AppConfig.String("userdata::firstcommit"))
-	return Data{}
+	return data
 }
 
 func createTextFile(name string, text string) (err error) {
@@ -605,4 +595,23 @@ func copyFileContents(src, dst string) (err error) {
 	}
 	err = out.Sync()
 	return
+}
+
+func createImageFile(img string, fileName string) error {
+
+	////////////////////////////////////////
+	// Write image file
+	var imgFile *os.File
+	imageReader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(img))
+	pngImage, _, err := image.Decode(imageReader)
+	if err != nil {
+		beego.Error(err)
+	}
+	if imgFile, err = os.Create(fileName[0:strings.LastIndex(fileName, ".")] + ".png"); err != nil {
+		beego.Error("Cannot create or overwrite file (", err, ")")
+	}
+	defer imgFile.Close()
+	png.Encode(imgFile, pngImage)
+
+	return err
 }
