@@ -63,6 +63,7 @@
 	"project_bar_modal_project_init"	: "Neues Projekt anlegen",
 	"project_bar_modal_project_init_2"	: "Wähle einen Projektnamen",
 	"project_bar_modal_project_init_ok"	: "Projekt anlegen",
+	"project_bar_project"				: "Projekt",
 
 	"graphics_header_graphics"			: "Bild-Editor",
 	"graphics_header_animations"		: "Animations-Editor",

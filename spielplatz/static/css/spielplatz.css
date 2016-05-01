@@ -149,13 +149,30 @@ body {
 
 #project-button-group .big-filename {
   position: absolute;
-  width: 800px;
+  width: 568px;
   height: 50px;
-  left: -435px;
-  top: -425px;
+  left: -319px;
+  top: -319px;
   transform: rotate(270deg);
   font-size: 3em;
-  color: lightgrey;
+  color: #bbb;
+}
+
+#project-button-group .big-filename .project {
+  position: absolute;
+  font-size: 0.9em;
+  right:  0px;
+  bottom: -10px;
+  float: right;
+  color: #ddd;
+}
+
+#project-button-group .big-filename .points {
+  position: absolute;
+  font-size: 0.8em;
+  right: 0px;
+  bottom: -20px;
+  color: #999;
 }
 
 #project-bar-open-files {

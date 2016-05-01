@@ -113,7 +113,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
                             self.editor.reset( self.codeFiles[ self.currentCodeFile ].code );
 
-				            self.buttonGroup.showFilename( self.currentCodeFile );
+				            self.buttonGroup.showFilename( self.currentCodeFile, self.codeFiles[ self.currentCodeFile ].project !== "" ? 1 : 0 );
                         } );
                     } else {
                         self.currentCodeFile =self.newFile;
@@ -128,7 +128,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
                         self.editor.reset( "" );
                         self._dirty = false;
 
-			            self.buttonGroup.showFilename( self.currentCodeFile );
+                        self.buttonGroup.showFilename( self.currentCodeFile, self.codeFiles[ self.currentCodeFile ].project !== "" ? 1 : 0 );
                     }
                 } );
             } else {
@@ -136,7 +136,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
                 self.buttonGroup.fillButtonControl( );
                 
                 self.editor.reset( self.codeFiles[ self.currentCodeFile ]? self.codeFiles[ self.currentCodeFile ].code : "" );
-	            self.buttonGroup.showFilename( self.currentCodeFile );
+                self.buttonGroup.showFilename( self.currentCodeFile, self.codeFiles[ self.currentCodeFile ].project !== "" ? 1 : 0 );
             }
         });
 	},
@@ -147,7 +147,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
         var newFile = function( ) {
             sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = self.newFile;
 
-            self.buttonGroup.showFilename( self.currentCodeFile );
+            self.buttonGroup.showFilename( self.currentCodeFile, false );
             self.editor.reset( "" );
 
             self.storeCurrentCodeFile( );	        
@@ -180,7 +180,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 			sessionStorage[ self.currentCodeFile ] = self.currentCodeFile = codeFile;
 
 			self.editor.reset( self.codeFiles[ self.currentCodeFile ].code );
-			self.buttonGroup.showFilename( self.currentCodeFile );
+            self.buttonGroup.showFilename( self.currentCodeFile, self.codeFiles[ self.currentCodeFile ].project !== "" );
 		} else {
 			self.buttonGroup.showModalCodeFiles( function( button, selFiles, selProjects ) {
 				switch( button ) {
@@ -284,6 +284,8 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 	            self.buttonGroup.showModalStringInput( window.CPG.ProjectBarModalProjectInit , window.CPG.ProjectBarModalProjectInit2, projectName, window.CPG.ProjectBarModalProjectInit2, function( name ) {
 
+                    self.buttonGroup.showSaving( "...", true );
+
 	            	var code = self.editor.moveResources( name );
 	                if( name ) {
 
@@ -300,20 +302,33 @@ window.ProjectControlBar = Backbone.Model.extend( {
 	                        if( message.Error ) {
 	                            debugger;
 	                        } else {
-	                            
+	                            // Success: Project was created
 	                            var newCodeFile = name + "." + self.fileType;
 	                            if( newCodeFile !== self.currentCodeFile ) {
-	                                self.codeFiles[ newCodeFile ] = self.codeFiles[ self.currentCodeFile ];    
+	                                self.codeFiles[ newCodeFile ] = self.codeFiles[ self.currentCodeFile ];
+                                    self.codeFileList[ newCodeFile ] = self.codeFileList[ self.currentCodeFile ];
+                                    self.allFilesList[ newCodeFile ] = self.allFilesList[ self.currentCodeFile ];
+                                    delete self.codeFiles[ self.currentCodeFile ];
+                                    delete self.codeFileList[ self.currentCodeFile ];
+                                    delete self.allFilesList[ self.currentCodeFile ];
+                                    
 	                                self.currentCodeFile = newCodeFile;
 	                            }
 
-						        self.editor.reset( code );
-
 	                            self.codeFiles[ self.currentCodeFile ].project = name;
+
+                                sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
+                                sessionStorage[ self.fileType + "AllFilesList" ] = JSON.stringify( self.allFilesList );
+                                sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
+                                sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile;
+                                self.buttonGroup.fillButtonControl( );
+
+                                self.buttonGroup.showSaving( "ok", true );
+                                self.buttonGroup.showFilename( self.currentCodeFile, self.codeFiles[ self.currentCodeFile ].project !== "" );
 	                        }
 	                    } );                                    	                			
 		            }
-	            } )
+	            } );
 
 	        } else {
 	            // Just save the project
@@ -401,7 +416,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
                 self.buttonGroup.fillButtonControl( );
                 self.editor.setClean();
 				self.buttonGroup.showSaving( "ok" );
-                self.buttonGroup.showFilename( self.currentCodeFile );
+                self.buttonGroup.showFilename( self.currentCodeFile, self.codeFiles[ self.currentCodeFile ].project !== "" );
                 
                 if( cb ) cb( true );
            } );
@@ -501,11 +516,15 @@ var ButtonGroup = Backbone.View.extend( {
 					"</button>" +
 					"<ul class='dropdown-menu' role='menu'>" +
 				"</div>" +
-				"<button id='project-bar-new' type='button' class='btn btn-primary'>" +
+				"<button id='project-bar-display' type='button' class='btn btn-primary'>" +
 					"<span class='glyphicon glyphicon-star'><span class='badge'>0</span>" +
 					" <span class='glyphicon glyphicon-share'></span><span class='badge'>0</span>" +
 				"</button>" +
-				"<div class='big-filename'></div>" +
+				"<div class='big-filename'>" +
+                    "<span class='name'></span>" +
+                    "<span class='project'></span>" +
+					"<span class='points'></span>" +
+				"</div>" +
 			"</div>"
 		);
 
@@ -785,25 +804,35 @@ var ButtonGroup = Backbone.View.extend( {
         } );
     },
 
-	showSaving: function( show ) {
+	showSaving: function( show, project ) {
+        var button = $( project ? "#project-bar-save-project" : "#project-bar-save" ),
+            text = project ? window.CPG.ProjectBarSaveProject : window.CPG.ProjectBarSave;
+
 		if( !show ) {
-	        $( "#project-bar-save" ).text( window.CPG.ProjectBarSave );
+	        button.text( text );
 		} else if( show === "..." ) {
-	        $( "#project-bar-save" ).text( "..." );
+	        button.text( "..." );
 		} else if( show === "ok" ) {
-	        $( "#project-bar-save" ).text( window.CPG.ProjectBarSaved )
+	        button.text( window.CPG.ProjectBarSaved )
 	        		.removeClass( "btn-primary" ).addClass( "btn-success" );
             setTimeout( function( ) { 
-                $( "#project-bar-save" ).text( window.CPG.ProjectBarSave )
+                button.text( text )
                     .addClass( "btn-primary" ).removeClass( "btn-success" );
             }, 2000 );
         }
  	},
 
-    showFilename: function( filename ) {
-        $( ".big-filename", this.el ).text( filename );
+    showFilename: function( filename, projectMembers ) {
+        $( ".big-filename .name", this.el ).text( filename );
+        if( projectMembers ) {
+            for( var i = 0, points = "" ; i < projectMembers ; i++ ) points += ".";
+            $( ".big-filename .project", this.el ).text( window.CPG.ProjectBarProject );
+            $( ".big-filename .points", this.el ).text( points );
+        } else {
+            $( ".big-filename .project", this.el ).text( "" );
+            $( ".big-filename .points", this.el ).text( "" );            
+        }
     },
-
 });
 
 

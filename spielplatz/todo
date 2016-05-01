@@ -8,6 +8,31 @@ Image Editor (Grafik & Animation)
 Live-Editor (Programmieren)
 ###########################
 throbber.gif und ohnoes.png Pfade umleiten (wie fir throbber-full in integration)
+- Project init
+
+FEATURE:
+Projekt speichern anzeigen
+Projekt init abrunden
+BUG:
+Editor muss neu gestartet werden, wenn die Resourcedatei verändert werden
+Sound-Auswahl lädt nicht
+Editor muss refreshed werden
+
+
+Beispiel-Programme für DLwmds
+#############################
+- Schlange
+- Planeten
+- ?
+
+
+
+
+Testsystem
+##########
+
+Casper.js
+
 
 
 Sound Editor
@@ -19,7 +44,7 @@ Hall, Compression, eq-editor equalizer
 Programm veröffentlichen
 ########################
 
--> Kommt in die Übersicht (Name / Programm, wird allen gezeigt, die in einer der Autor-Gruppen sind)
+-> Kommt in die Übersicht 
 -> Von der Hauptseite aus, wird die Programmübersicht angezeigt.
 -> Admin der Seite kann einzelne Programm allen anzeigen
 -> Kann einzeln aufgerufen werden

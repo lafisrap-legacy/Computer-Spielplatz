@@ -439,6 +439,7 @@ func (c *LiveEditorController) Get() {
 		c.Data["ProjectBarModalProjectInit"] = T["project_bar_modal_project_init"]
 		c.Data["ProjectBarModalProjectInit2"] = T["project_bar_modal_project_init_2"]
 		c.Data["ProjectBarModalProjectInitOk"] = T["project_bar_modal_project_init_ok"]
+		c.Data["ProjectBarProject"] = T["project_bar_project"]
 		c.Data["LoginLogin"] = T["login_login"]
 		c.Data["LoginSignup"] = T["login_signup"]
 		c.Data["LoginLogout"] = T["login_logout"]
