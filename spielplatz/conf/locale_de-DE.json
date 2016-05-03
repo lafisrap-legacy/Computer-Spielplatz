@@ -63,6 +63,9 @@
 	"project_bar_modal_project_init"	: "Neues Projekt anlegen",
 	"project_bar_modal_project_init_2"	: "Wähle einen Projektnamen",
 	"project_bar_modal_project_init_ok"	: "Projekt anlegen",
+	"project_bar_modal_project_save"	: "Projekt speichern",
+	"project_bar_modal_project_save_2"	: "Was hast du seit dem letzten Speichern getan (Commit-Nachricht)",
+	"project_bar_modal_project_save_ok"	: "Projekt speichern",
 	"project_bar_project"				: "Projekt",
 
 	"graphics_header_graphics"			: "Bild-Editor",

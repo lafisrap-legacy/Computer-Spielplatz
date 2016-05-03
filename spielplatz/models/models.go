@@ -307,7 +307,7 @@ func AuthenticateUser(uf *UserForm) (User, error) {
 }
 
 /////////////////////////////////////////////////////
-// CreateDirectories
+// CreateDirectories creates directories with one .gitignore file in it (to be added by git)
 func CreateDirectories(dir string, base bool) error {
 
 	dirs := strings.Split(beego.AppConfig.String("userdata::codefiles"), ",")
@@ -326,9 +326,32 @@ func CreateDirectories(dir string, base bool) error {
 			beego.Error("Cannot create directory", dir, dirs[i])
 			return err
 		}
+
+		CreateTextFile(dir+"/"+dirs[i]+"/.gitignore", "")
 	}
 
 	return nil
+}
+
+/////////////////////////////////////////////////////
+// CreateTextFile creates a text file
+func CreateTextFile(name string, text string) (err error) {
+	out, err := os.Create(name)
+	if err != nil {
+		return
+	}
+	defer func() {
+		cerr := out.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+
+	if _, err = out.Write([]byte(text)); err != nil {
+		return
+	}
+	err = out.Sync()
+	return
 }
 
 //////////////////////////////////////////////////////////

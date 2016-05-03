@@ -57,6 +57,7 @@ type Message struct {
 	ResourceFiles []string
 	TimeStamps    []int64
 	CodeFiles     []string
+	Commit        string
 	Images        []string
 	SortedBy      string
 	Range         Range
@@ -189,6 +190,8 @@ func serveMessages(messageChan chan Message) {
 			data = deleteSourceFiles(s, message.FileNames, message.ProjectNames)
 		case "initProject":
 			data = initProject(s, message.ProjectName, message.FileType, message.FileNames, message.CodeFiles, message.ResourceFiles, message.Images)
+		case "writeProject":
+			data = writeProject(s, message.ProjectName, message.FileType, message.FileNames, message.CodeFiles, message.TimeStamps, message.ResourceFiles, message.Images, message.Commit)
 		default:
 			beego.Error("Unknown command:", message.Command)
 		}
@@ -453,6 +456,8 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 	projectDir := userDir + "/" + beego.AppConfig.String("userdata::projects") + "/" + projectName
 	bareDir := beego.AppConfig.String("userdata::location") + beego.AppConfig.String("userdata::bareprojects") + "/" + projectName
 
+	////////////////////////////////////////////////////////////////////7
+	// Everything, that has to be done for init a project
 	_, err := os.Stat(bareDir)
 	if !os.IsNotExist(err) {
 		return Data{
@@ -491,13 +496,8 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 	fileName := []string{projectName + "." + fileType}
 	data := writeSourceFiles(s, fileName, projectName, fileType, codeFiles, timeStamps, images, false)
 
-	// Remove old files, if any
-	if fileNames[0] != "" {
-		deleteSourceFiles(s, fileNames, nil)
-	}
-
 	// Create .gitignore file
-	createTextFile(projectDir+"/"+".gitignore", beego.AppConfig.String("userdata::spielplatzdir"))
+	models.CreateTextFile(projectDir+"/"+".gitignore", beego.AppConfig.String("userdata::spielplatzdir"))
 
 	// Copy resource files
 	for i := 0; i < len(resourceFiles); i++ {
@@ -552,26 +552,65 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 
 	// Add, commit and push
 	models.GitAddCommitPush(projectDir, beego.AppConfig.String("userdata::firstcommit"))
+
+	// Remove old files, if any
+	if fileNames[0] != "" {
+		deleteSourceFiles(s, fileNames, nil)
+	}
+
 	return data
 }
 
-func createTextFile(name string, text string) (err error) {
-	out, err := os.Create(name)
-	if err != nil {
-		return
-	}
-	defer func() {
-		cerr := out.Close()
-		if err == nil {
-			err = cerr
-		}
-	}()
+func writeProject(s session.Store, projectName string, fileType string, fileNames []string, codeFiles []string, timeStamps []int64, resourceFiles []string, images []string, commit string) Data {
 
-	if _, err = out.Write([]byte(text)); err != nil {
-		return
+	beego.Trace("Entering writeProject", projectName, fileNames, resourceFiles)
+	// if user is not logged in return
+	if s.Get("UserName") == nil {
+		beego.Error("No user name available.")
+		return Data{}
 	}
-	err = out.Sync()
-	return
+	if projectName == "" {
+		beego.Error("No project name available.")
+		return Data{}
+	}
+
+	userName := s.Get("UserName").(string)
+	userDir := beego.AppConfig.String("userdata::location") + userName
+	projectDir := userDir + "/" + beego.AppConfig.String("userdata::projects") + "/" + projectName
+
+	// Write source files to new project directory
+	fileName := []string{projectName + "." + fileType}
+	beego.Warning("writeSourceFiles", fileName, projectName, fileType, codeFiles, timeStamps, images)
+	data := writeSourceFiles(s, fileName, projectName, fileType, codeFiles, timeStamps, images, true)
+
+	// Copy resource files
+	for i := 0; i < len(resourceFiles); i++ {
+		resProject := resourceFiles[i][:strings.Index(resourceFiles[i], "/")]
+		resType := resourceFiles[i][strings.LastIndex(resourceFiles[i], ".")+1:]
+		filename := resourceFiles[i][strings.LastIndex(resourceFiles[i], "/")+1:]
+		dir := "."
+
+		beego.Warning("resProject:", resProject, projectName)
+		if resProject == projectName {
+			continue
+		}
+
+		switch resType {
+		case "png":
+			dir = beego.AppConfig.String("userdata::imagefiles")
+		case "mp3":
+			dir = beego.AppConfig.String("userdata::soundfiles")
+		}
+		err := copyFileContents(userDir+"/"+dir+"/"+resourceFiles[i], projectDir+"/"+dir+"/"+filename)
+		if err != nil {
+			beego.Error("Cannot copy resource file", resourceFiles[i], "from", userDir, "to", projectDir, "(", err.Error(), ")")
+		}
+	}
+
+	// Add, commit and push
+	models.GitAddCommitPush(projectDir, commit)
+
+	return data
 }
 
 func copyFileContents(src, dst string) (err error) {

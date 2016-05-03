@@ -35,15 +35,15 @@ func GitAddCommitPush(dir string, message string) {
 
 	_, err := add.Output()
 	if err != nil {
-		beego.Error(err)
+		beego.Error("Add", err)
 	}
 	_, err = commit.Output()
 	if err != nil {
-		beego.Error(err)
+		beego.Error("Commit", err)
 	}
 	_, err = push.Output()
 	if err != nil {
-		beego.Error(err)
+		beego.Error("Push", err)
 	}
 }
 
