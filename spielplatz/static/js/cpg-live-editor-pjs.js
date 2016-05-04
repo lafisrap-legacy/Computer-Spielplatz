@@ -172,7 +172,7 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 	// showModalSound displays a modal dialog to select sounds
 	showModalSound: function( cb ) {
 		var modal = $( "#control-bar-sound-modal" ),
-			soundGroups = window.CPG.OutputSounds[ 0 ].groups,
+			soundGroups = window.OutputSounds[ 0 ].groups,
 			groups = $( "<div id='modal-sound-groups'>" );
 
 		for( var i=0 ; i<soundGroups.length ; i++ ) {
