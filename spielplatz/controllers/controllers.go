@@ -7,6 +7,7 @@ import (
 	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/session"
 	"github.com/lafisrap/Computer-Spielplatz-Gitbase/spielplatz/models"
+	"gopkg.in/libgit2/git2go.v22"
 	"html/template"
 	"os"
 	"path/filepath"
@@ -360,8 +361,10 @@ func cloneProject(toUser string, project string) error {
 		beego.AppConfig.String("userdata::projects") + "/" +
 		project
 
-	//options := git.
-	err := models.GitClone(url, dir)
+	options := git.CloneOptions{
+		Bare: false,
+	}
+	_, err := git.Clone(url, dir, &options)
 	if err == nil {
 		models.MountResourceFiles(toUser, project)
 	}

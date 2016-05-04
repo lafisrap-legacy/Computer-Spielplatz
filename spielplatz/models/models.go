@@ -8,10 +8,12 @@ import (
 	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
+	"gopkg.in/libgit2/git2go.v22"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 //////////////////////////////////////////////////
@@ -363,6 +365,98 @@ func GetUser(userName string) (*User, error) {
 	user.Name = userName
 	err := o.Read(user, "Name")
 
-	beego.Warning("user:", user, userName)
 	return user, err
+}
+
+//////////////////////////////////////////////////////////
+// GitAddCommitPush
+func GitAddCommitPush(userName string, dir string, message string, firstCommit bool) {
+
+	repo, err := git.OpenRepository(dir)
+	if err != nil {
+		beego.Error("OpenRepository - ", err)
+	}
+
+	index, err := repo.Index()
+	if err != nil {
+		beego.Error("Index - ", err)
+	}
+
+	err = index.AddAll([]string{}, git.IndexAddDefault, nil)
+	if err != nil {
+		beego.Error("AddAll - ", err)
+	}
+
+	treeId, err := index.WriteTreeTo(repo)
+	if err != nil {
+		beego.Error("WriteTreeTo - ", err)
+	}
+
+	beego.Warning("Tree Id", treeId.String())
+
+	tree, err := repo.LookupTree(treeId)
+	if err != nil {
+		beego.Error("LookupTree - ", err)
+	}
+
+	sig := &git.Signature{
+		Name:  userName,
+		Email: userName + "@" + beego.AppConfig.String("userdata::emailserver"),
+		When:  time.Now(),
+	}
+
+	var commitId *git.Oid
+	if firstCommit == true {
+
+		commitId, err = repo.CreateCommit("HEAD", sig, sig, message, tree)
+
+	} else {
+
+		currentBranch, err := repo.Head()
+		if err != nil {
+			beego.Error("Head - ", err)
+		}
+		currentTip, err := repo.LookupCommit(currentBranch.Target())
+		if err != nil {
+			beego.Error("LookupCommit - ", err)
+		}
+
+		commitId, err = repo.CreateCommit("HEAD", sig, sig, message, tree, currentTip)
+	}
+
+	if err != nil {
+		beego.Error("CreateCommit - ", err)
+	}
+
+	beego.Warning("Commit Id", commitId.String())
+
+	if firstCommit == false {
+	}
+
+	// Get remote
+	remote, err := repo.LookupRemote("origin")
+	if err != nil {
+		remote, err = repo.CreateRemote("origin", repo.Path())
+		if err != nil {
+			beego.Error("CreateRemote - ", err)
+		}
+	}
+
+	/*
+		// Get the branch
+		branch, err := repo.LookupBranch("master", git.BranchRemote)
+		if err != nil {
+			beego.Error("Branch - ", err)
+		}
+
+		// Get the name
+		branchName, err := branch.Name()
+		if err != nil {
+			beego.Error("Branch name - ", err)
+		}
+	*/
+	err = remote.Push([]string{"refs/heads/master"}, nil, sig, message)
+	if err != nil {
+		beego.Error("Push - ", err)
+	}
 }

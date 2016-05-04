@@ -10,6 +10,7 @@ import (
 	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/session"
 	"github.com/lafisrap/Computer-Spielplatz-Gitbase/spielplatz/models"
+	"gopkg.in/libgit2/git2go.v22"
 	"image"
 	"image/png"
 	"io"
@@ -432,6 +433,8 @@ func deleteSourceFiles(s session.Store, fileNames []string, projectNames []strin
 		if err := os.Remove(fileName); err != nil {
 			beego.Error("Cannot remove file", fileName, "(", err.Error(), ")")
 		}
+
+		beego.Warning("Removing file", fileName)
 	}
 	return Data{}
 }
@@ -471,22 +474,21 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 	}
 
 	// Initialize as bare git directory
-	err = models.GitInit(bareDir, true)
+	_, err = git.InitRepository(bareDir, true)
 	if err != nil {
 		beego.Error("Cannot init git directory", bareDir, "(", err.Error(), ")")
 	}
 
 	// Clone it to own project directory
-	err = models.GitClone(bareDir, projectDir)
+	options := git.CloneOptions{
+		Bare: false,
+	}
+	_, err = git.Clone(bareDir, projectDir, &options)
 	if err != nil {
 		beego.Error("Cannot clone git directory", bareDir, "into", projectDir, "(", err.Error(), ")")
 	}
 
-	// Set user name and email (for push purpuses)
-	err = models.GitSetName(userName, userName+"@"+beego.AppConfig.String("userdata::emailserver"))
-	if err != nil {
-		beego.Error("Cannot set user name and password of", userName, "(", err.Error(), ")")
-	}
+	// err = models.GitSetName(userName, userName+"@"+beego.AppConfig.String("userdata::emailserver"))
 
 	// Create project directories
 	models.CreateDirectories(projectDir, false)
@@ -551,7 +553,7 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 	models.CreateProjectDatabaseEntry(project)
 
 	// Add, commit and push
-	models.GitAddCommitPush(projectDir, beego.AppConfig.String("userdata::firstcommit"))
+	models.GitAddCommitPush(userName, projectDir, beego.AppConfig.String("userdata::firstcommit"), true)
 
 	// Remove old files, if any
 	if fileNames[0] != "" {
@@ -583,6 +585,10 @@ func writeProject(s session.Store, projectName string, fileType string, fileName
 	beego.Warning("writeSourceFiles", fileName, projectName, fileType, codeFiles, timeStamps, images)
 	data := writeSourceFiles(s, fileName, projectName, fileType, codeFiles, timeStamps, images, true)
 
+	if len(data["OutdatedFiles"].([]string)) > 0 {
+		return data
+	}
+
 	// Copy resource files
 	for i := 0; i < len(resourceFiles); i++ {
 		resProject := resourceFiles[i][:strings.Index(resourceFiles[i], "/")]
@@ -608,7 +614,7 @@ func writeProject(s session.Store, projectName string, fileType string, fileName
 	}
 
 	// Add, commit and push
-	models.GitAddCommitPush(projectDir, commit)
+	models.GitAddCommitPush(userName, projectDir, commit, false)
 
 	return data
 }
