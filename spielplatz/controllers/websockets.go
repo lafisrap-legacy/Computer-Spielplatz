@@ -582,7 +582,6 @@ func writeProject(s session.Store, projectName string, fileType string, fileName
 
 	// Write source files to new project directory
 	fileName := []string{projectName + "." + fileType}
-	beego.Warning("writeSourceFiles", fileName, projectName, fileType, codeFiles, timeStamps, images)
 	data := writeSourceFiles(s, fileName, projectName, fileType, codeFiles, timeStamps, images, true)
 
 	if len(data["OutdatedFiles"].([]string)) > 0 {
@@ -614,7 +613,13 @@ func writeProject(s session.Store, projectName string, fileType string, fileName
 	}
 
 	// Add, commit and push
-	models.GitAddCommitPush(userName, projectDir, commit, false)
+	if err := models.GitAddCommitPush(userName, projectDir, commit, false); err != nil {
+		if err.Error() == "Conflicts" {
+			data["Conflicts"] = "Solve conflicts."
+		} else {
+			beego.Error("Add, commit, push: ", err.Error())
+		}
+	}
 
 	return data
 }

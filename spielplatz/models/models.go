@@ -370,7 +370,7 @@ func GetUser(userName string) (*User, error) {
 
 //////////////////////////////////////////////////////////
 // GitAddCommitPush
-func GitAddCommitPush(userName string, dir string, message string, firstCommit bool) {
+func GitAddCommitPush(userName string, dir string, message string, firstCommit bool) error {
 
 	repo, err := git.OpenRepository(dir)
 	if err != nil {
@@ -385,6 +385,11 @@ func GitAddCommitPush(userName string, dir string, message string, firstCommit b
 	err = index.AddAll([]string{}, git.IndexAddDefault, nil)
 	if err != nil {
 		beego.Error("AddAll - ", err)
+	}
+
+	err = index.Write()
+	if err != nil {
+		beego.Error("Write - ", err)
 	}
 
 	treeId, err := index.WriteTreeTo(repo)
@@ -405,13 +410,10 @@ func GitAddCommitPush(userName string, dir string, message string, firstCommit b
 		When:  time.Now(),
 	}
 
-	var commitId *git.Oid
+	var currentCommit *git.Oid
 	if firstCommit == true {
-
-		commitId, err = repo.CreateCommit("HEAD", sig, sig, message, tree)
-
+		_, err = repo.CreateCommit("HEAD", sig, sig, message, tree)
 	} else {
-
 		currentBranch, err := repo.Head()
 		if err != nil {
 			beego.Error("Head - ", err)
@@ -421,16 +423,11 @@ func GitAddCommitPush(userName string, dir string, message string, firstCommit b
 			beego.Error("LookupCommit - ", err)
 		}
 
-		commitId, err = repo.CreateCommit("HEAD", sig, sig, message, tree, currentTip)
+		currentCommit, err = repo.CreateCommit("HEAD", sig, sig, message, tree, currentTip)
 	}
 
 	if err != nil {
 		beego.Error("CreateCommit - ", err)
-	}
-
-	beego.Warning("Commit Id", commitId.String())
-
-	if firstCommit == false {
 	}
 
 	// Get remote
@@ -442,21 +439,89 @@ func GitAddCommitPush(userName string, dir string, message string, firstCommit b
 		}
 	}
 
-	/*
-		// Get the branch
-		branch, err := repo.LookupBranch("master", git.BranchRemote)
+	if firstCommit == false {
+
+		beego.Warning("Starting fetch ...")
+		err = remote.Fetch([]string{}, nil, "")
 		if err != nil {
-			beego.Error("Branch - ", err)
+			beego.Error("Fetch 1 - ", err)
 		}
 
-		// Get the name
-		branchName, err := branch.Name()
+		remoteBranch, err := repo.LookupReference("refs/remotes/origin/master")
 		if err != nil {
-			beego.Error("Branch name - ", err)
+			beego.Error("Fetch 2 - ", err)
 		}
-	*/
+
+		annotatedCommit, err := repo.AnnotatedCommitFromRef(remoteBranch)
+		if err != nil {
+			beego.Error("Fetch 3 - ", err)
+		}
+
+		// Do the merge analysis
+		mergeHeads := make([]*git.AnnotatedCommit, 1)
+		mergeHeads[0] = annotatedCommit
+		analysis, _, err := repo.MergeAnalysis(mergeHeads)
+		if err != nil {
+			beego.Error("Fetch 4 - ", err)
+		}
+
+		beego.Warning("Checking analysis ...", remoteBranch, annotatedCommit, mergeHeads, analysis)
+		if analysis&git.MergeAnalysisUpToDate == 0 && analysis&git.MergeAnalysisNormal != 0 {
+
+			beego.Warning("Some problems occured ...")
+			// Just merge changes
+			if err := repo.Merge([]*git.AnnotatedCommit{annotatedCommit}, nil, nil); err != nil {
+				beego.Error("Fetch 5 - ", err)
+			}
+			// Check for conflicts
+			index, err := repo.Index()
+			if err != nil {
+				beego.Error("Fetch 6 - ", err)
+			}
+
+			if index.HasConflicts() {
+				// There are unsolvable conflicts ... give them back to the user
+				return errors.New("Conflicts")
+			}
+
+			// Make the merge commit
+			sig, err := repo.DefaultSignature()
+			if err != nil {
+				beego.Error("Fetch 8 - ", err)
+			}
+
+			// Get Write Tree
+			treeId, err := index.WriteTree()
+			if err != nil {
+				beego.Error("Fetch 9 - ", err)
+			}
+
+			tree, err := repo.LookupTree(treeId)
+			if err != nil {
+				beego.Error("Fetch 10 - ", err)
+			}
+
+			localCommit, err := repo.LookupCommit(currentCommit)
+			if err != nil {
+				beego.Error("Fetch 11 - ", err)
+			}
+
+			remoteCommit, err := repo.LookupCommit(remoteBranch.Target())
+			if err != nil {
+				beego.Error("Fetch 12 - ", err)
+			}
+
+			repo.CreateCommit("HEAD", sig, sig, "", tree, localCommit, remoteCommit)
+
+			// Clean up
+			repo.StateCleanup()
+		}
+	}
+
 	err = remote.Push([]string{"refs/heads/master"}, nil, sig, message)
 	if err != nil {
 		beego.Error("Push - ", err)
 	}
+
+	return err
 }

@@ -271,8 +271,10 @@ func (c *LogoutController) Get() {
 func (c *SignupController) Get() {
 	T := models.T
 
+	if _, ok := c.Data["Destination"]; !ok {
+		c.Data["Destination"] = "/" + c.Ctx.Input.Param(":dest")
+	}
 	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
-	c.Data["Destination"] = "/" + c.Ctx.Input.Param(":dest")
 	c.Data["SignupInvitation"] = T["signup_invitation"]
 	c.Data["SignupInputName"] = T["signup_input_name"]
 	c.Data["SignupInputPassword"] = T["signup_input_password"]
@@ -317,9 +319,8 @@ func (c *SignupController) Post() {
 	}
 
 	c.Data["Error"] = err.Error()
-	c.TplName = "signup.html"
 	c.Data["Destination"] = dest
-	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
+	c.Get()
 }
 
 ///////////////////////////////////////////////
@@ -420,6 +421,9 @@ func (c *LiveEditorController) Get() {
 		c.Data["ProjectBarOrganize"] = T["project_bar_organize"]
 		c.Data["ProjectBarSaveTemplate"] = T["project_bar_saveTemplate"]
 		c.Data["ProjectBarMail"] = T["project_bar_mail"]
+		c.Data["ProjectBarModalOk"] = T["project_bar_modal_ok"]
+		c.Data["ProjectBarModalConflict"] = T["project_bar_modal_conflicts"]
+		c.Data["ProjectBarModalConflict2"] = T["project_bar_modal_conflicts_2"]
 		c.Data["ProjectBarModalYes"] = T["project_bar_modal_yes"]
 		c.Data["ProjectBarModalNo"] = T["project_bar_modal_no"]
 		c.Data["ProjectBarModalFileExists"] = T["project_bar_modal_file_exists"]

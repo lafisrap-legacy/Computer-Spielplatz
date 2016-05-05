@@ -366,6 +366,27 @@ window.ProjectControlBar = Backbone.Model.extend( {
                                             self.buttonGroup.showSaving( false, true );
                                         }
                                     } );
+                                } else if( message.Conflicts ) {
+                                    self.buttonGroup.showModalOk( window.CPG.ProjectBarModalConflicts, window.CPG.ProjectBarModalConflicts, function() {
+                                        $WS.sendMessage( {
+                                            command: "readSourceFiles",
+                                            FileNames: [ fileName ],
+                                            ProjectNames: [ projectName ],
+                                            FileType: self.fileType,
+                                        }, function( message ) {
+                                            var codeFile = message.CodeFiles[ fileName ];
+                                            if( codeFile ) {
+                                                self.codeFiles[ fileName ] = {
+                                                    code: codeFile.Code,
+                                                    timeStamp: codeFile.TimeStamp,
+                                                    project: codeFile.Project
+                                                }
+                                                sessionStorage[ fileName ] = JSON.stringify( self.codeFiles[ fileName ] );
+                                            }
+
+                                            self.editor.reset( self.codeFiles[ self.currentCodeFile ].code );
+                                        } );
+                                    } );
                                 } else {
                                     self.codeFiles[ fileName ] = { 
                                         code: code,
@@ -622,6 +643,26 @@ var ButtonGroup = Backbone.View.extend( {
 		this.yesNoModal = $( "#project-bar-yes-no-modal" );
 
         container.append(
+            "<div id='project-bar-ok-modal' class='modal fade'>" +
+                "<div class='modal-dialog'>" +
+                "<div class='modal-content'>" +
+                    "<div class='modal-header'>" +
+                    "<button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times,</span></button>" +
+                    "<h4 class='modal-title'>You forgot to set the title!</h4>" +
+                    "</div>" +
+                    "<div class='modal-body'>" +
+                    "<p>You forgot to set the body text&hellip,</p>" +
+                    "</div>" +
+                    "<div class='modal-footer'>" +
+                    "<button type='button' class='modal-ok btn btn-default' data-dismiss='modal'>" + window.CPG.ProjectBarModalOk + "</button>" +
+                    "</div>" +
+                "</div><!-- /.modal-content -->" +
+                "</div><!-- /.modal-dialog -->" +
+            "</div><!-- /.modal --> "
+        );
+        this.okModal = $( "#project-bar-ok-modal" );
+
+        container.append(
             "<div id='project-bar-string-input-modal' class='modal fade'>" +
                 "<div class='modal-dialog'>" +
                 "<div class='modal-content'>" +
@@ -815,6 +856,26 @@ var ButtonGroup = Backbone.View.extend( {
 			if( cb ) cb( false );
 		} );
 	},
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+    // showModalOk displays a modal dialog with only an ok button
+    showModalOk: function( title, body, cb ) {
+        var modal = this.okModal;
+
+        $( ".modal-title", modal ).text( title );
+        $( ".modal-body p", modal ).text( body );
+        $( ".modal-ok", modal ).off( "click" ).one( "click", function( e ) {
+            var lcb = cb;
+            cb = null;
+            modal.modal( 'hide' );
+            if( lcb ) lcb( );
+        } );
+
+        modal.modal( 'show' );
+        modal.one( 'hidden.bs.modal', function( e ) {
+            if( cb ) cb( );
+        } );
+    },
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     // showModalStringInput displays a modal dialog for string input

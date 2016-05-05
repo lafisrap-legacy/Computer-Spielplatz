@@ -38,6 +38,9 @@
     "project_bar_new_file"              : "unbekannt",
 	"project_bar_all_files"             : "Alle Dateien",
 
+	"project_bar_modal_ok"              : "Ok",
+	"project_bar_modal_conflicts"       : "Quelltext-Konflikt",
+	"project_bar_modal_conflicts_2"     : "Es gibt Konflikte im Quelltext, die du auflösen musst, bevor du das Projekt speichern kannst.",
 	"project_bar_modal_yes"             : "Ja",
 	"project_bar_modal_no"              : "Nein",
 	"project_bar_modal_file_exists"     : "Der Dateiname wird schon verwendet",
