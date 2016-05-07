@@ -372,57 +372,82 @@ func GetUser(userName string) (*User, error) {
 // GitAddCommitPush
 func GitAddCommitPush(userName string, dir string, message string, firstCommit bool) error {
 
+	///////////////////////////////////////////////////////////////////////
+	// Add
+	//
+	// 1 Open repository
 	repo, err := git.OpenRepository(dir)
 	if err != nil {
 		beego.Error("OpenRepository - ", err)
 	}
 
+	// 2 Retrieve index
 	index, err := repo.Index()
 	if err != nil {
 		beego.Error("Index - ", err)
 	}
 
+	// 3 Remember if we had conflicts before we added everything to the index
+	indexHadConflicts := index.HasConflicts()
+	if indexHadConflicts {
+		beego.Trace("Index has conflicts!!!")
+	}
+
+	// 4 Add everything to the index
 	err = index.AddAll([]string{}, git.IndexAddDefault, nil)
 	if err != nil {
 		beego.Error("AddAll - ", err)
 	}
 
+	// 5 Write the index (so git knows about it)
 	err = index.Write()
 	if err != nil {
 		beego.Error("Write - ", err)
 	}
 
+	// 6 Write the current index tree to the repo
 	treeId, err := index.WriteTreeTo(repo)
 	if err != nil {
 		beego.Error("WriteTreeTo - ", err)
 	}
 
-	beego.Warning("Tree Id", treeId.String())
-
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	// Commit - Part 1
+	//
+	// 1 Retrieve the tree we just wrote (git's reference of it that it made in the last step)
 	tree, err := repo.LookupTree(treeId)
 	if err != nil {
 		beego.Error("LookupTree - ", err)
 	}
 
+	// 2 Create a signature
 	sig := &git.Signature{
 		Name:  userName,
 		Email: userName + "@" + beego.AppConfig.String("userdata::emailserver"),
 		When:  time.Now(),
 	}
 
+	// 3 Determine if this is a first commit ...
 	var currentCommit *git.Oid
 	if firstCommit == true {
+
+		// 3a ... then create a new one
 		_, err = repo.CreateCommit("HEAD", sig, sig, message, tree)
 	} else {
+
+		// 3b ... or retrieve current head
 		currentBranch, err := repo.Head()
 		if err != nil {
 			beego.Error("Head - ", err)
 		}
+
+		// 4 Retrieve current commit
 		currentTip, err := repo.LookupCommit(currentBranch.Target())
 		if err != nil {
 			beego.Error("LookupCommit - ", err)
 		}
 
+		// 5 Create a new one on top
 		currentCommit, err = repo.CreateCommit("HEAD", sig, sig, message, tree, currentTip)
 	}
 
@@ -430,7 +455,10 @@ func GitAddCommitPush(userName string, dir string, message string, firstCommit b
 		beego.Error("CreateCommit - ", err)
 	}
 
-	// Get remote
+	////////////////////////////////////////////////////////////////////////////////////
+	// Pull (something might have changed by other users)
+	//
+	// 1 Get remote
 	remote, err := repo.LookupRemote("origin")
 	if err != nil {
 		remote, err = repo.CreateRemote("origin", repo.Path())
@@ -439,85 +467,109 @@ func GitAddCommitPush(userName string, dir string, message string, firstCommit b
 		}
 	}
 
-	if firstCommit == false {
-
-		beego.Warning("Starting fetch ...")
-		err = remote.Fetch([]string{}, nil, "")
-		if err != nil {
-			beego.Error("Fetch 1 - ", err)
-		}
-
-		remoteBranch, err := repo.LookupReference("refs/remotes/origin/master")
-		if err != nil {
-			beego.Error("Fetch 2 - ", err)
-		}
-
-		annotatedCommit, err := repo.AnnotatedCommitFromRef(remoteBranch)
-		if err != nil {
-			beego.Error("Fetch 3 - ", err)
-		}
-
-		// Do the merge analysis
-		mergeHeads := make([]*git.AnnotatedCommit, 1)
-		mergeHeads[0] = annotatedCommit
-		analysis, _, err := repo.MergeAnalysis(mergeHeads)
-		if err != nil {
-			beego.Error("Fetch 4 - ", err)
-		}
-
-		beego.Warning("Checking analysis ...", remoteBranch, annotatedCommit, mergeHeads, analysis)
-		if analysis&git.MergeAnalysisUpToDate == 0 && analysis&git.MergeAnalysisNormal != 0 {
-
-			beego.Warning("Some problems occured ...")
-			// Just merge changes
-			if err := repo.Merge([]*git.AnnotatedCommit{annotatedCommit}, nil, nil); err != nil {
-				beego.Error("Fetch 5 - ", err)
-			}
-			// Check for conflicts
-			index, err := repo.Index()
-			if err != nil {
-				beego.Error("Fetch 6 - ", err)
-			}
-
-			if index.HasConflicts() {
-				// There are unsolvable conflicts ... give them back to the user
-				return errors.New("Conflicts")
-			}
-
-			// Make the merge commit
-			sig, err := repo.DefaultSignature()
-			if err != nil {
-				beego.Error("Fetch 8 - ", err)
-			}
-
-			// Get Write Tree
-			treeId, err := index.WriteTree()
-			if err != nil {
-				beego.Error("Fetch 9 - ", err)
-			}
-
-			tree, err := repo.LookupTree(treeId)
-			if err != nil {
-				beego.Error("Fetch 10 - ", err)
-			}
-
-			localCommit, err := repo.LookupCommit(currentCommit)
-			if err != nil {
-				beego.Error("Fetch 11 - ", err)
-			}
-
-			remoteCommit, err := repo.LookupCommit(remoteBranch.Target())
-			if err != nil {
-				beego.Error("Fetch 12 - ", err)
-			}
-
-			repo.CreateCommit("HEAD", sig, sig, "", tree, localCommit, remoteCommit)
-
-			// Clean up
-			repo.StateCleanup()
-		}
+	// 2 Get a reference to the current branch
+	remoteBranch, err := repo.LookupReference("refs/remotes/origin/master")
+	if err != nil {
+		beego.Error("Fetch 2 - ", err)
 	}
 
+	// 3 Do the pull only when it is not the first commit ...
+	if firstCommit == false {
+
+		// 3a ... and if there where no conflicts before (otherwise we get the same conflicts again)
+		if indexHadConflicts == false {
+
+			// 4 Fetch it (pull without commit)
+			err = remote.Fetch([]string{}, nil, "")
+			if err != nil {
+				beego.Error("Fetch 1 - ", err)
+			}
+
+			// 5 Read the remote branch again, after we fetched it
+			remoteBranch, err = repo.LookupReference("refs/remotes/origin/master")
+			if err != nil {
+				beego.Error("Fetch 2 - ", err)
+			}
+
+			// 6 Perform an annotated commit
+			annotatedCommit, err := repo.AnnotatedCommitFromRef(remoteBranch)
+			if err != nil {
+				beego.Error("Fetch 3 - ", err)
+			}
+
+			// 7 Do the merge analysis
+			mergeHeads := make([]*git.AnnotatedCommit, 1)
+			mergeHeads[0] = annotatedCommit
+			analysis, _, err := repo.MergeAnalysis(mergeHeads)
+			if err != nil {
+				beego.Error("Fetch 4 - ", err)
+			}
+
+			// 8 Check if something happend
+			if analysis&git.MergeAnalysisUpToDate == 0 && analysis&git.MergeAnalysisNormal != 0 {
+
+				// 9 Yes! First just merge changes
+				if err := repo.Merge([]*git.AnnotatedCommit{annotatedCommit}, nil, nil); err != nil {
+					beego.Error("Fetch 5 - ", err)
+				}
+
+				// 10 Retrieve the index after that treatment
+				index, err := repo.Index()
+				if err != nil {
+					beego.Error("Fetch 6 - ", err)
+				}
+
+				// 11 Check for conflicts
+				if index.HasConflicts() {
+
+					// 11a There are unsolvable conflicts ... give them back to the user
+					beego.Trace("Conflicts! Write new index and return.", index)
+					err = index.Write()
+					if err != nil {
+						beego.Error("Write - ", err)
+					}
+
+					return errors.New("Conflicts")
+				}
+			}
+		}
+
+		/////////////////////////////////////////////////////////////////////////////////////////////
+		// Commit - Part 2
+		//
+		// 6 Write the new tree
+		treeId, err := index.WriteTree()
+		if err != nil {
+			beego.Error("Fetch 9 - ", err)
+		}
+
+		// 7 Retrieve the new tree
+		tree, err := repo.LookupTree(treeId)
+		if err != nil {
+			beego.Error("Fetch 10 - ", err)
+		}
+
+		// 8 Retrieve the local commit
+		localCommit, err := repo.LookupCommit(currentCommit)
+		if err != nil {
+			beego.Error("Fetch 11 - ", err)
+		}
+
+		// 9 Retrieve the remote commit
+		remoteCommit, err := repo.LookupCommit(remoteBranch.Target())
+		if err != nil {
+			beego.Error("Fetch 12 - ", err)
+		}
+
+		// 10 Create a new one
+		repo.CreateCommit("HEAD", sig, sig, "Merge commit", tree, localCommit, remoteCommit)
+
+		// 11 Clean up
+		repo.StateCleanup()
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Push
 	err = remote.Push([]string{"refs/heads/master"}, nil, sig, message)
 	if err != nil {
 		beego.Error("Push - ", err)

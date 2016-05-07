@@ -256,7 +256,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
                 "", 
                 window.CPG.ProjectBarModalSave, 
                 function( fileName ) {
-                	if( fileName !== "" ) {
+                	if( fileName && fileName !== "" ) {
 			            if( fileName.slice( -self.fileType.length - 1 ) != "." + self.fileType ) {
 			                fileName += "." + self.fileType;
 			            }
@@ -272,141 +272,167 @@ window.ProjectControlBar = Backbone.Model.extend( {
     saveProject: function( ) {
         var self = this;
 
-        this.editor.getScreenshot( function ( data ) {
+	    console.log( "saveProject! " + this.isSaving );
 
-            // remove BASE64-HTML header
-            var image = data.substr( data.search( "," )+1 ),
-            projectName = self.codeFiles[ self.currentCodeFile ].project || "";
-            fileName = self.currentCodeFile !== self.newFile ? self.currentCodeFile : "";
+        if( !this.isSaving ) {
 
-	        if(  projectName === "" ) {
-	            projectName = self.currentCodeFile.substr( 0, self.currentCodeFile.length - self.fileType.length - 1 );
+        	this.isSaving = true;
+	        this.editor.getScreenshot( function ( data ) {
 
-	            self.buttonGroup.showModalStringInput( window.CPG.ProjectBarModalProjectInit , window.CPG.ProjectBarModalProjectInit2, projectName, window.CPG.ProjectBarModalProjectInitOk, function( name ) {
+	            // remove BASE64-HTML header
+	            var image = data.substr( data.search( "," )+1 ),
+	            projectName = self.codeFiles[ self.currentCodeFile ] && self.codeFiles[ self.currentCodeFile ].project || "";
+	            fileName = self.currentCodeFile !== self.newFile ? self.currentCodeFile : "";
 
-                    self.buttonGroup.showSaving( "...", true );
+		        if(  projectName === "" ) {
+		            projectName = self.currentCodeFile.substr( 0, self.currentCodeFile.length - self.fileType.length - 1 );
 
-	            	var code = self.editor.moveResources( name );
-	                if( name ) {
+		            self.buttonGroup.showModalStringInput( window.CPG.ProjectBarModalProjectInit , window.CPG.ProjectBarModalProjectInit2, projectName, window.CPG.ProjectBarModalProjectInitOk, function( name ) {
 
-	                    // Initialize new project
-	                    $WS.sendMessage( {
-	                        Command: "initProject",
-	                        ProjectName: name,
-	                        FileType: self.fileType,
-	                        FileNames: [ fileName ],
-	                        CodeFiles: [ code ],
-	                        ResourceFiles: self.editor.resources(),
-         					Images : [ image ], 
-	                    }, function( message ) {
-	                        if( message.Error ) {
-	                            debugger;
-	                        } else {
-	                            // Success: Project was created
-	                            var newCodeFile = name + "." + self.fileType;
-	                            if( newCodeFile !== self.currentCodeFile ) {
-	                                self.codeFiles[ newCodeFile ] = self.codeFiles[ self.currentCodeFile ];
-                                    self.codeFileList[ newCodeFile ] = self.codeFileList[ self.currentCodeFile ];
-                                    self.allFilesList[ newCodeFile ] = self.allFilesList[ self.currentCodeFile ];
-                                    delete self.codeFiles[ self.currentCodeFile ];
-                                    delete self.codeFileList[ self.currentCodeFile ];
-                                    delete self.allFilesList[ self.currentCodeFile ];
-                                    
-	                                self.currentCodeFile = newCodeFile;
-	                            }
+		            	var code = self.editor.moveResources( name );
+		                if( name ) {
 
-                                self.codeFiles[ self.currentCodeFile ].code = code;
-                                self.codeFiles[ self.currentCodeFile ].project = name;
+	                        self.buttonGroup.showSaving( "...", true );
 
-                                sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
-                                sessionStorage[ self.fileType + "AllFilesList" ] = JSON.stringify( self.allFilesList );
-                                sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
-                                sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile;
-                                self.buttonGroup.fillButtonControl( );
+		                    // Initialize new project
+		                    $WS.sendMessage( {
+		                        Command: "initProject",
+		                        ProjectName: name,
+		                        FileType: self.fileType,
+		                        FileNames: [ fileName ],
+		                        CodeFiles: [ code ],
+		                        ResourceFiles: self.editor.resources(),
+	         					Images : [ image ], 
+		                    }, function( message ) {
+		                        if( message.Error ) {
+		                        	self.isSaving = false;
 
-                                self.buttonGroup.showSaving( "ok", true );
-                                self.buttonGroup.showFilename( self.currentCodeFile, self.codeFiles[ self.currentCodeFile ].project !== "" );
-	                        }
-	                    } );                                    	                			
-		            }
-	            } );
+		                        	self.saveProject();
+		                        } else {
+		                            // Success: Project was created
+		                            var newCodeFile = name + "." + self.fileType;
 
-	        } else {
-                self.buttonGroup.showModalStringInput( window.CPG.ProjectBarModalProjectSave, window.CPG.ProjectBarModalProjectSave2, "", window.CPG.ProjectBarModalProjectSaveOk, function( commit ) {
-                    if( commit ) {
-                        self.buttonGroup.showSaving( "...", true );
+	                                self.codeFiles[ newCodeFile ] = {
+	                                    code: code,
+	                                    project: name,
+	                                    timeStamp: message.SavedTimeStamps[0]
+	                                };
 
-                        var projectName = self.codeFiles[ self.currentCodeFile ].project,
-                            code = self.editor.moveResources( projectName );
+		                            if( newCodeFile !== self.currentCodeFile ) {
+	                                    self.codeFileList.unshift( newCodeFile );
+	                                    self.allFilesList.unshift( self.codeFiles[ newCodeFile ] );
 
-                        (function sendWriteProject( ) {
+	                                    if( self.currentCodeFile !== self.newFile ) {
+		                                    delete self.codeFiles[ self.currentCodeFile ];
+		                                    self.codeFileList.splice( self.codeFileList.indexOf( self.currentCodeFile ), 1 );
+		                                    self.allFileList.splice( self.allFileList.indexOf( self.codeFiles[ self.currentCodeFile ] ), 1 );
+	                                    }
+	                                    
+		                                self.currentCodeFile = newCodeFile;
+		                            }
 
-                            // Save project
-                            $WS.sendMessage( {
-                                Command: "writeProject",
-                                ProjectName: projectName,
-                                FileType: self.fileType,
-                                FileNames: [ fileName ],
-                                CodeFiles: [ code ],
-                                TimeStamps: self.codeFiles[ fileName ] && [ self.codeFiles[ fileName ].timeStamp ] || null,
-                                ResourceFiles: self.editor.resources(),
-                                Images : [ image ],
-                                Commit: commit
-                            }, function( message ) {
-                                if( message.Error ) {
-                                    debugger;
-                                
-                                } else if( message.OutdatedTimeStamps.length > 0 ) {
+	                                sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
+	                                sessionStorage[ self.fileType + "AllFilesList" ] = JSON.stringify( self.allFilesList );
+	                                sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
+	                                sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile;
+	                                self.buttonGroup.fillButtonControl( );
 
-                                    self.buttonGroup.showModalYesNo( fileName, window.CPG.ProjectBarModalFileOutdated, function( yes ) {
-                                        if( yes ) {
-                                            self.codeFiles[ fileName ].timeStamp = message.OutdatedTimeStamps[ 0 ] 
-                                            sendWriteProject();
-                                        } else {
-                                            self.buttonGroup.showSaving( false, true );
-                                        }
-                                    } );
-                                } else if( message.Conflicts ) {
-                                    self.buttonGroup.showModalOk( window.CPG.ProjectBarModalConflicts, window.CPG.ProjectBarModalConflicts, function() {
-                                        $WS.sendMessage( {
-                                            command: "readSourceFiles",
-                                            FileNames: [ fileName ],
-                                            ProjectNames: [ projectName ],
-                                            FileType: self.fileType,
-                                        }, function( message ) {
-                                            var codeFile = message.CodeFiles[ fileName ];
-                                            if( codeFile ) {
-                                                self.codeFiles[ fileName ] = {
-                                                    code: codeFile.Code,
-                                                    timeStamp: codeFile.TimeStamp,
-                                                    project: codeFile.Project
-                                                }
-                                                sessionStorage[ fileName ] = JSON.stringify( self.codeFiles[ fileName ] );
-                                            }
+	                                self.buttonGroup.showSaving( "success", true );
+	                                self.buttonGroup.showFilename( self.currentCodeFile, self.codeFiles[ self.currentCodeFile ].project !== "" );
 
-                                            self.editor.reset( self.codeFiles[ self.currentCodeFile ].code );
-                                        } );
-                                    } );
-                                } else {
-                                    self.codeFiles[ fileName ] = { 
-                                        code: code,
-                                        timeStamp: message.SavedTimeStamps[ 0 ],
-                                        project: projectName
-                                    };
+		                        	self.isSaving = false;
+		                        }
+		                    } );                                    	                			
+			            } else {
+							self.isSaving = false;
+							return
+			            }
+		            } );
 
-                                    sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
-                                    self.buttonGroup.fillButtonControl( );
+		        } else {
+	                self.buttonGroup.showModalStringInput( window.CPG.ProjectBarModalProjectSave, window.CPG.ProjectBarModalProjectSave2, "", window.CPG.ProjectBarModalProjectSaveOk, function( commit ) {
+	                    if( commit ) {
+	                        self.buttonGroup.showSaving( "...", true );
 
-                                    self.buttonGroup.showSaving( "ok", true );
-                                }
-                            } );
-                        })();
-                    }
-                });
+	                        var projectName = self.codeFiles[ self.currentCodeFile ].project,
+	                            code = self.editor.moveResources( projectName );
 
-	            // Just save the project
-	        }
-	    });
+	                        (function sendWriteProject( ) {
+
+	                            // Save project
+	                            $WS.sendMessage( {
+	                                Command: "writeProject",
+	                                ProjectName: projectName,
+	                                FileType: self.fileType,
+	                                FileNames: [ fileName ],
+	                                CodeFiles: [ code ],
+	                                TimeStamps: self.codeFiles[ fileName ] && [ self.codeFiles[ fileName ].timeStamp ] || null,
+	                                ResourceFiles: self.editor.resources(),
+	                                Images : [ image ],
+	                                Commit: commit
+	                            }, function( message ) {
+	                                if( message.Error ) {
+		                        		self.isSaving = false;
+
+	                                    debugger;
+	                                
+	                                } else if( message.OutdatedTimeStamps.length > 0 ) {
+
+	                                    self.buttonGroup.showModalYesNo( fileName, window.CPG.ProjectBarModalFileOutdated, function( yes ) {
+	                                        if( yes ) {
+	                                            self.codeFiles[ fileName ].timeStamp = message.OutdatedTimeStamps[ 0 ] 
+	                                            sendWriteProject();
+	                                        } else {
+	                                            self.buttonGroup.showSaving( false, true );
+	                                        }
+	                                    } );
+	                                } else if( message.Conflicts ) {
+	                                    self.buttonGroup.showModalOk( window.CPG.ProjectBarModalConflicts, window.CPG.ProjectBarModalConflicts, function() {
+	                                        self.readSourceFiles( fileName, projectName, function() {
+	                                            self.buttonGroup.showSaving( "warning", true );
+		                        				self.isSaving = false;
+	                                        } );
+	                                    } );
+	                                } else {
+	                                    self.readSourceFiles( fileName, projectName, function() {
+	                                        self.buttonGroup.showSaving( "success", true );
+		                        			self.isSaving = false;
+	                                    } );
+	                                }
+	                            } );
+	                        })();
+	                    } else {
+		                    self.isSaving = false;
+	                    }
+	                });
+		        }
+		    });
+		}
+    },
+
+    readSourceFiles: function( fileName, projectName, cb ) {
+
+    	var self = this;
+
+        $WS.sendMessage( {
+            command: "readSourceFiles",
+            FileNames: [ fileName ],
+            ProjectNames: [ projectName ],
+            FileType: this.fileType,
+        }, function( message ) {
+            var codeFile = message.CodeFiles[ fileName ];
+            if( codeFile ) {
+                self.codeFiles[ fileName ] = {
+                    code: codeFile.Code,
+                    timeStamp: codeFile.TimeStamp,
+                    project: codeFile.Project
+                }
+                sessionStorage[ fileName ] = JSON.stringify( self.codeFiles[ fileName ] );
+            }
+
+            self.editor.reset( self.codeFiles[ self.currentCodeFile ].code );
+            if( cb ) cb();
+        } );
     },
 
     saveSourceFile: function( fileName, project, cb ) {
@@ -488,7 +514,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
                 sessionStorage[ fileName ] = JSON.stringify( self.codeFiles[ fileName ] );
                 self.buttonGroup.fillButtonControl( );
                 self.editor.setClean();
-				self.buttonGroup.showSaving( "ok" );
+				self.buttonGroup.showSaving( "success" );
                 self.buttonGroup.showFilename( self.currentCodeFile, self.codeFiles[ self.currentCodeFile ].project !== "" );
                 
                 if( cb ) cb( true );
@@ -889,14 +915,14 @@ var ButtonGroup = Backbone.View.extend( {
 
         input.val( value );
 
-        $( ".modal-action", modal ).one( "click", function( e ) {
+        $( ".modal-action", modal ).off( "click" ).one( "click", function( e ) {
             var lcb = cb;
             cb = null;
             modal.modal( 'hide' );
             if( lcb ) lcb( input.val() );
         } );
 
-        $( ".modal-cancel", modal ).one( "click", function( e ) {
+        $( ".modal-cancel", modal ).off( "click" ).one( "click", function( e ) {
             // cb is called on hide event
             modal.modal( 'hide' );
         } );
@@ -925,12 +951,12 @@ var ButtonGroup = Backbone.View.extend( {
 	        button.text( text );
 		} else if( show === "..." ) {
 	        button.text( "..." );
-		} else if( show === "ok" ) {
+		} else if( show === "success" || show === "warning" ) {
 	        button.text( window.CPG.ProjectBarSaved )
-	        		.removeClass( "btn-primary" ).addClass( "btn-success" );
+	        		.removeClass( "btn-primary" ).addClass( "btn-" + show );
             setTimeout( function( ) { 
                 button.text( text )
-                    .addClass( "btn-primary" ).removeClass( "btn-success" );
+                    .addClass( "btn-primary" ).removeClass( "btn-" + show );
             }, 2000 );
         }
  	},
