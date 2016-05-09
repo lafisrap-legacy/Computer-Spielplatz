@@ -27,6 +27,20 @@ type User struct {
 	Email  string
 }
 
+// Groups contain a list of groups
+type Groups struct {
+	Id   int
+	Name string
+	Code string
+}
+
+// GroupUser contains a list of User - Group relations
+type GroupUser struct {
+	Id    int
+	User  *User   `orm:"rel(fk)"`
+	Group *Groups `orm:"rel(fk)"`
+}
+
 // Project contains a list of user projects
 type Project struct {
 	Id         int
@@ -98,20 +112,22 @@ func init() {
 	orm.SetMaxIdleConns("default", 30)
 	orm.SetMaxOpenConns("default", 30)
 
-	orm.RegisterModel(new(User), new(Project), new(Message), new(Star))
+	orm.RegisterModel(new(User), new(Project), new(Message), new(Star), new(Groups), new(GroupUser))
 
 	// Drop all runtime tables
 	o := orm.NewOrm()
 	_, err := o.Raw("TRUNCATE TABLE user;").Exec()
 	if err != nil {
-		// If table can't be truncated, rebuild all tables (CAUTION: Star db is also lost!)
+		// If table can't be truncated, rebuild all tables (CAUTION: Star and Message db are lost!)
+		// This is only for absolute startup
 		err := orm.RunSyncdb("default", true, true)
 		if err != nil {
 			beego.Error(err)
 		}
 	}
 	o.Raw("TRUNCATE TABLE project;").Exec()
-	o.Raw("TRUNCATE TABLE message;").Exec()
+	o.Raw("TRUNCATE TABLE groups;").Exec()
+	o.Raw("TRUNCATE TABLE group_user;").Exec()
 
 	createAllUserDatabaseEntries()
 }
@@ -119,12 +135,25 @@ func init() {
 //////////////////////////////////////
 // CreateAllUserDatabaseEntries builds up the user table in the database
 func createAllUserDatabaseEntries() {
-	// First drop table
-	o := orm.NewOrm()
-	o.Raw("TRUNCATE TABLE user").Exec()
+
+	// Read groups from Admin ini file
+	dir := beego.AppConfig.String("userdata::location")
+	adminIdentityFile := dir + beego.AppConfig.String("userdata::admin") + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/identity"
+	cnf, err := config.NewConfig("ini", adminIdentityFile)
+	if err == nil {
+		groups, err := cnf.GetSection("groupsdef")
+		if err != nil {
+			beego.Error(err)
+		} else {
+			for group, value := range groups {
+				CreateGroupDatabaseEntry(group, value)
+			}
+		}
+	} else {
+		beego.Error("Couldn't open identity file of Admin." + err.Error())
+	}
 
 	// Walk the main user directory
-	dir := beego.AppConfig.String("userdata::location")
 	files, _ := ioutil.ReadDir(dir)
 	for _, f := range files {
 		var (
@@ -146,33 +175,43 @@ func createAllUserDatabaseEntries() {
 			} else {
 				beego.Error("Couldn't open identity file of user " + userName + "." + err.Error())
 			}
-		}
 
-		// Walk the projects directory
-		projectsDir := dir + userName + "/" + beego.AppConfig.String("userdata::projects") + "/"
-		files, _ := ioutil.ReadDir(projectsDir)
-		for _, f := range files {
-			if f.IsDir() == true {
+			// Create user group database entry
+			groups, err := cnf.GetSection("groups")
+			if err != nil {
+				beego.Error(err)
+			} else {
+				for group, _ := range groups {
+					CreateGroupUserDatabaseEntry(user, group)
+				}
+			}
 
-				var project *Project
-				projectName := f.Name()
-				projectFile := projectsDir + projectName + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/project"
-				cnf, err := config.NewConfig("ini", projectFile)
-				if err == nil {
-					project = new(Project)
-					project.Name = projectName
-					project.Playground = cnf.String("Playground")
-					project.User = user
-					project.ReadOnly, _ = cnf.Bool("ReadOnly")
-					project.Origin = cnf.String("Origin")
-					project.Gallery, _ = cnf.Bool("Gallery")
-					project.Forks = 0
-					project.Stars = 0
+			// Walk the projects directory
+			projectsDir := dir + userName + "/" + beego.AppConfig.String("userdata::projects") + "/"
+			files, _ := ioutil.ReadDir(projectsDir)
+			for _, f := range files {
+				if f.IsDir() == true {
 
-					CreateProjectDatabaseEntry(project)
-					MountResourceFiles(userName, projectName)
-				} else {
-					beego.Error("Couldn't open project file of user " + userName + " in project " + projectName + ". (" + err.Error() + ")")
+					var project *Project
+					projectName := f.Name()
+					projectFile := projectsDir + projectName + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/project"
+					cnf, err := config.NewConfig("ini", projectFile)
+					if err == nil {
+						project = new(Project)
+						project.Name = projectName
+						project.Playground = cnf.String("Playground")
+						project.User = user
+						project.ReadOnly, _ = cnf.Bool("ReadOnly")
+						project.Origin = cnf.String("Origin")
+						project.Gallery, _ = cnf.Bool("Gallery")
+						project.Forks = 0
+						project.Stars = 0
+
+						CreateProjectDatabaseEntry(project)
+						MountResourceFiles(userName, projectName)
+					} else {
+						beego.Error("Couldn't open project file of user " + userName + " in project " + projectName + ". (" + err.Error() + ")")
+					}
 				}
 			}
 		}
@@ -208,6 +247,56 @@ func MountResourceFiles(user string, project string) error {
 				beego.Error("Cannot mount --bind ", toDir, err.Error())
 			}
 		}
+	}
+
+	return nil
+}
+
+//////////////////////////////////////////////////
+// CreateGroupDatabaseEntry creates a user database entry
+func CreateGroupDatabaseEntry(name string, code string) error {
+
+	o := orm.NewOrm()
+	o.Using("default")
+	g := &Groups{
+		Name: name,
+		Code: code,
+	}
+
+	err := o.Read(g, "Name")
+	if err == orm.ErrNoRows {
+		_, err := o.Insert(g)
+		if err != nil {
+			beego.Error(err)
+		}
+	} else {
+		beego.Error(err)
+	}
+
+	return nil
+}
+
+//////////////////////////////////////////////////
+// CreateGroupUserDatabaseEntry creates a user database entry
+func CreateGroupUserDatabaseEntry(u *User, group string) error {
+
+	o := orm.NewOrm()
+	o.Using("default")
+	g := &Groups{
+		Name: group,
+	}
+	err := o.Read(g, "Name")
+	if err == nil {
+		gu := &GroupUser{
+			User:  u,
+			Group: g,
+		}
+		_, err := o.Insert(gu)
+		if err != nil {
+			beego.Error(err)
+		}
+	} else {
+		beego.Error(err)
 	}
 
 	return nil

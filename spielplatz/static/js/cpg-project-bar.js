@@ -494,7 +494,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
                     sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = fileName;
 
                     self.buttonGroup.showFilename( self.currentCodeFile, self.codeFiles[ self.currentCodeFile ].project !== "" ? 1 : 0 );
-                    
+
                 } else if( message.OutdatedTimeStamps.length > 0 ) {
 
                     self.buttonGroup.showModalYesNo( fileName, window.CPG.ProjectBarModalFileOutdated, function( yes ) {
@@ -603,9 +603,9 @@ var ButtonGroup = Backbone.View.extend( {
 						"<li id='project-bar-rename'>" + window.CPG.ProjectBarRename + "</li>" +
 						"<hr>" +
 						"<li id='project-bar-organize'>" + window.CPG.ProjectBarOrganize + "</li>" +
-						"<li id='project-bar-save-template'>" + window.CPG.ProjectBarSaveTemplate + "</li>" +
+                        "<li id='project-bar-save-template'>" + window.CPG.ProjectBarSaveTemplate + "</li>" +
+                        "<li id='project-bar-other-version'>" + window.CPG.ProjectBarOtherVersion + "</li>" +
 						"<hr>" +
-						"<li id='project-bar-message'>" + window.CPG.ProjectBarMessage + "</li>" +
 						"<li id='project-bar-invite'>" + window.CPG.ProjectBarInvite + "</li>" +
 						"<li id='project-bar-gallery'>" + window.CPG.ProjectBarGalleryOn + "</li>" +
 					"</ul>" +
