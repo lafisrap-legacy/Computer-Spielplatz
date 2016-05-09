@@ -294,7 +294,6 @@ func readSourceFiles(s session.Store, fileNames []string, fileProjects []string,
 	dir := beego.AppConfig.String("userdata::location") + name + "/"
 	codeFiles := make(map[string]SourceFile)
 
-	beego.Trace("fileNames", fileNames)
 	for i := 0; i < len(fileNames); i++ {
 		var (
 			file *os.File
@@ -310,7 +309,6 @@ func readSourceFiles(s session.Store, fileNames []string, fileProjects []string,
 		} else {
 			fileName = dir + fileType + "/" + fileNames[i]
 		}
-		beego.Trace(project, fileType, fileNames[i])
 
 		if file, err = os.Open(fileName); err != nil {
 			beego.Error("Cannot open file", fileName)
@@ -334,8 +332,6 @@ func readSourceFiles(s session.Store, fileNames []string, fileProjects []string,
 			Project:   project,
 		}
 	}
-
-	beego.Trace("Codefiles loaded:", codeFiles)
 
 	return Data{
 		"CodeFiles": codeFiles,

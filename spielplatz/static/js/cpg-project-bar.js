@@ -116,7 +116,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				            self.buttonGroup.showFilename( self.currentCodeFile, self.codeFiles[ self.currentCodeFile ].project !== "" ? 1 : 0 );
                         } );
                     } else {
-                        self.currentCodeFile =self.newFile;
+                        self.currentCodeFile = self.newFile;
                         self.codeFileList = [ ];
                         self.codeFiles[ self.currentCodeFile ] = { code: "", timeStamp: null };
 
@@ -218,6 +218,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 								self.buttonGroup.fillButtonControl( );
 
 								self.editor.reset( self.codeFiles[ self.currentCodeFile ].code );
+                                self.buttonGroup.showFilename( self.currentCodeFile, self.codeFiles[ self.currentCodeFile ].project !== "" ? 1 : 0 );
 							} );
 						}
 					}
@@ -374,8 +375,8 @@ window.ProjectControlBar = Backbone.Model.extend( {
 	                                if( message.Error ) {
 		                        		self.isSaving = false;
 
-	                                    debugger;
-	                                
+                                        console.log( "Error writing project: ", message.Error );
+
 	                                } else if( message.OutdatedTimeStamps.length > 0 ) {
 
 	                                    self.buttonGroup.showModalYesNo( fileName, window.CPG.ProjectBarModalFileOutdated, function( yes ) {
@@ -387,7 +388,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 	                                        }
 	                                    } );
 	                                } else if( message.Conflicts ) {
-	                                    self.buttonGroup.showModalOk( window.CPG.ProjectBarModalConflicts, window.CPG.ProjectBarModalConflicts, function() {
+	                                    self.buttonGroup.showModalOk( window.CPG.ProjectBarModalConflicts, window.CPG.ProjectBarModalConflicts2, function() {
 	                                        self.readSourceFiles( fileName, projectName, function() {
 	                                            self.buttonGroup.showSaving( "warning", true );
 		                        				self.isSaving = false;
@@ -492,6 +493,8 @@ window.ProjectControlBar = Backbone.Model.extend( {
                     sessionStorage[ self.fileType + "AllFilesList" ] = JSON.stringify( self.allFilesList );
                     sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = fileName;
 
+                    self.buttonGroup.showFilename( self.currentCodeFile, self.codeFiles[ self.currentCodeFile ].project !== "" ? 1 : 0 );
+                    
                 } else if( message.OutdatedTimeStamps.length > 0 ) {
 
                     self.buttonGroup.showModalYesNo( fileName, window.CPG.ProjectBarModalFileOutdated, function( yes ) {
@@ -590,7 +593,7 @@ var ButtonGroup = Backbone.View.extend( {
 				"<button id='project-bar-save' type='button' class='btn btn-primary'>" + window.CPG.ProjectBarSave + "</button>" +
 				"<button id='project-bar-save-project' type='button' class='btn btn-primary'>" + window.CPG.ProjectBarSaveProject + "</button>" +
 				"<div class='btn-group dropup'>" +
-					"<button type='button' class='btn btn-primary dropup-toggle' data-toggle='dropdown'>" +
+					"<button id='project-bar-admin' type='button' class='btn btn-primary dropup-toggle' data-toggle='dropdown' disabled>" +
 						"<span class='title'>" + window.CPG.ProjectBarAdministrate + " </span>" +
 						"<span class='caret'></span>" +
 					"</button>" +
@@ -967,10 +970,20 @@ var ButtonGroup = Backbone.View.extend( {
             for( var i = 0, points = "" ; i < projectMembers ; i++ ) points += ".";
             $( ".big-filename .project", this.el ).text( window.CPG.ProjectBarProject );
             $( ".big-filename .points", this.el ).text( points );
+
+            this.activateProject( true );
         } else {
             $( ".big-filename .project", this.el ).text( "" );
             $( ".big-filename .points", this.el ).text( "" );            
+
+            this.activateProject( false );
         }
+    },
+
+    activateProject: function( activate ) {
+
+        if( activate )  $( "#project-bar-admin").removeAttr( "disabled" );
+        else            $( "#project-bar-admin").attr( "disabled", "" );
     },
 });
 
