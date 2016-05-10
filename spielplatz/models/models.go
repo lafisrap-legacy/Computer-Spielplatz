@@ -57,12 +57,18 @@ type Project struct {
 	Id         int
 	Name       string
 	Playground string
-	User       *User `orm:"rel(fk)"`
-	ReadOnly   bool
 	Origin     string
 	Gallery    bool
 	Forks      int
 	Stars      int
+}
+
+// ProjectUser contains all project - user relations
+type ProjectUser struct {
+	Id       int
+	Project  *Project `orm:"rel(fk)"`
+	User     *User    `orm:"rel(fk)"`
+	ReadOnly bool
 }
 
 // Stars contains a list of all stars
@@ -112,6 +118,11 @@ const (
 var T map[string]string
 var TLanguages map[string]map[string]string
 
+const (
+	MaxRightsPerUser = 100
+	MaxGroupsPerUser = 20
+)
+
 //////////////////////////////////////////////////
 // init initializes the database and rebuilds the tables from file data
 func init() {
@@ -123,7 +134,7 @@ func init() {
 	orm.SetMaxIdleConns("default", 30)
 	orm.SetMaxOpenConns("default", 30)
 
-	orm.RegisterModel(new(User), new(Project), new(Message), new(Star), new(Groups), new(GroupUser), new(Rights))
+	orm.RegisterModel(new(User), new(Project), new(ProjectUser), new(Message), new(Star), new(Groups), new(GroupUser), new(Rights))
 
 	// Drop all runtime tables
 	o := orm.NewOrm()
@@ -216,14 +227,13 @@ func createAllUserDatabaseEntries() {
 						project = new(Project)
 						project.Name = projectName
 						project.Playground = cnf.String("Playground")
-						project.User = user
-						project.ReadOnly, _ = cnf.Bool("ReadOnly")
 						project.Origin = cnf.String("Origin")
 						project.Gallery, _ = cnf.Bool("Gallery")
 						project.Forks = 0
 						project.Stars = 0
 
-						CreateProjectDatabaseEntry(project)
+						readOnly, _ := cnf.Bool("ReadOnly")
+						CreateProjectDatabaseEntry(project, user, readOnly)
 						MountResourceFiles(userName, projectName)
 					} else {
 						beego.Error("Couldn't open project file of user " + userName + " in project " + projectName + ". (" + err.Error() + ")")
@@ -319,6 +329,34 @@ func CreateGroupUserDatabaseEntry(u *User, group string) error {
 }
 
 //////////////////////////////////////////////////
+// GetGroupsFromDatabase reads the groups of a specific user
+func GetGroupsFromDatabase(userName string) []string {
+	o := orm.NewOrm()
+	o.Using("default") // Using default, you can use other database
+
+	u := &User{
+		Name: userName,
+	}
+	var g []orm.Params
+
+	groups := []string{}
+
+	err := o.Read(u, "Name")
+	if err == nil {
+		o.QueryTable("group_user").Filter("user", u).Values(&g, "group_id__name")
+
+		for _, params := range g {
+			groups = append(groups, params["Group__Name"].(string))
+		}
+		beego.Warning(g)
+	} else {
+		beego.Error(err)
+	}
+
+	return groups
+}
+
+//////////////////////////////////////////////////
 // CreateRightsDatabaseEntry creates a user database entry
 func CreateRightsDatabaseEntry(u *User, right string, value string) error {
 
@@ -352,7 +390,7 @@ func GetRightsFromDatabase(userName string) *RightsMap {
 		Name: userName,
 	}
 	var r []*Rights
-	rm := make(RightsMap, 10)
+	rm := make(RightsMap, MaxRightsPerUser)
 
 	err := o.Read(u, "Name")
 	if err == nil {
@@ -390,12 +428,27 @@ func CreateUserDatabaseEntry(u *User) error {
 
 //////////////////////////////////////////////////
 // CreateProjectDatabaseEntry creates a project database entry
-func CreateProjectDatabaseEntry(p *Project) error {
+func CreateProjectDatabaseEntry(p *Project, u *User, readOnly bool) error {
 
 	o := orm.NewOrm()
 	o.Using("default")
 
-	_, err := o.Insert(p)
+	err := o.Read(p, "Name")
+	if err == orm.ErrNoRows {
+		_, err := o.Insert(p)
+		if err != nil {
+			beego.Error(err.Error())
+			return err
+		}
+	}
+
+	pu := &ProjectUser{
+		Project:  p,
+		User:     u,
+		ReadOnly: readOnly,
+	}
+
+	_, err = o.Insert(pu)
 	if err != nil {
 		beego.Error(err.Error())
 		return err

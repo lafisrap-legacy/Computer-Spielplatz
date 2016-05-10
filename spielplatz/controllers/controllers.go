@@ -238,6 +238,7 @@ func (c *LoginController) Post() {
 			s.Set("UserName", u.Name)
 			s.Set("Email", u.Email)
 			s.Set("Rights", models.GetRightsFromDatabase(u.Name))
+			s.Set("Groups", models.GetGroupsFromDatabase(u.Name))
 			s.Set("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
 			c.Ctx.Redirect(302, dest)
 			return
@@ -382,13 +383,14 @@ func (c *LiveEditorController) Get() {
 	s := c.StartSession()
 	userName := ""
 	userNameForImages := "Admin"
-	var rights models.RightsMap
+	var (
+		rights models.RightsMap
+	)
 
 	if s.Get("UserName") != nil {
 		userName = s.Get("UserName").(string)
 		userNameForImages = userName
 		rights = *s.Get("Rights").(*models.RightsMap)
-		beego.Warning(rights)
 	}
 
 	c.Data["AllImages"] = c.getImageInfo(userNameForImages)

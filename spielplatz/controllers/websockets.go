@@ -540,13 +540,11 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 	project := new(models.Project)
 	project.Name = projectName
 	project.Playground = projectName
-	project.User = user
-	project.ReadOnly = false
 	project.Origin = "none"
 	project.Gallery = false
 	project.Forks = 0
 	project.Stars = 0
-	models.CreateProjectDatabaseEntry(project)
+	models.CreateProjectDatabaseEntry(project, user, false)
 
 	// Add, commit and push
 	models.GitAddCommitPush(userName, projectDir, beego.AppConfig.String("userdata::firstcommit"), true)
