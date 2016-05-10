@@ -41,6 +41,17 @@ type GroupUser struct {
 	Group *Groups `orm:"rel(fk)"`
 }
 
+// Rights for users
+type Rights struct {
+	Id    int
+	Name  string
+	Value string
+	User  *User `orm:"rel(fk)"`
+}
+
+// RightsMap
+type RightsMap map[string]string
+
 // Project contains a list of user projects
 type Project struct {
 	Id         int
@@ -112,7 +123,7 @@ func init() {
 	orm.SetMaxIdleConns("default", 30)
 	orm.SetMaxOpenConns("default", 30)
 
-	orm.RegisterModel(new(User), new(Project), new(Message), new(Star), new(Groups), new(GroupUser))
+	orm.RegisterModel(new(User), new(Project), new(Message), new(Star), new(Groups), new(GroupUser), new(Rights))
 
 	// Drop all runtime tables
 	o := orm.NewOrm()
@@ -172,16 +183,21 @@ func createAllUserDatabaseEntries() {
 				user.Pwhash = cnf.String("auth::Pwhash")
 
 				CreateUserDatabaseEntry(user)
+
+				rights, err := cnf.GetSection("rights")
+				if err == nil {
+					for right, value := range rights {
+						CreateRightsDatabaseEntry(user, right, value)
+					}
+				}
 			} else {
 				beego.Error("Couldn't open identity file of user " + userName + "." + err.Error())
 			}
 
 			// Create user group database entry
-			groups, err := cnf.GetSection("groups")
-			if err != nil {
-				beego.Error(err)
-			} else {
-				for group, _ := range groups {
+			groups := cnf.Strings("groups::member")
+			for _, group := range groups {
+				if group != "" {
 					CreateGroupUserDatabaseEntry(user, group)
 				}
 			}
@@ -296,10 +312,60 @@ func CreateGroupUserDatabaseEntry(u *User, group string) error {
 			beego.Error(err)
 		}
 	} else {
+		beego.Error(err, group)
+	}
+
+	return nil
+}
+
+//////////////////////////////////////////////////
+// CreateRightsDatabaseEntry creates a user database entry
+func CreateRightsDatabaseEntry(u *User, right string, value string) error {
+
+	o := orm.NewOrm()
+	o.Using("default")
+	r := &Rights{
+		Name:  right,
+		Value: value,
+		User:  u,
+	}
+	err := o.Read(r, "Name")
+	if err == orm.ErrNoRows {
+		_, err := o.Insert(r)
+		if err != nil {
+			beego.Error(err)
+		}
+	} else {
 		beego.Error(err)
 	}
 
 	return nil
+}
+
+//////////////////////////////////////////////////
+// GetRightsFromDatabase reads the rights of a specific user
+func GetRightsFromDatabase(userName string) *RightsMap {
+	o := orm.NewOrm()
+	o.Using("default") // Using default, you can use other database
+
+	u := &User{
+		Name: userName,
+	}
+	var r []*Rights
+	rm := make(RightsMap, 10)
+
+	err := o.Read(u, "Name")
+	if err == nil {
+		o.QueryTable("rights").Filter("user", u).All(&r)
+
+		for _, value := range r {
+			rm[value.Name] = value.Value
+		}
+	} else {
+		beego.Error(err)
+	}
+
+	return &rm
 }
 
 //////////////////////////////////////////////////

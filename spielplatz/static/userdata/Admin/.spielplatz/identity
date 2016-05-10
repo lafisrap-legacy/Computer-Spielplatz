@@ -1,10 +1,13 @@
 [auth]
 Pwhash=4e7afebcfbae000b22c7c85e5560f89a2a0280b4
 
+[rights]
+AddGroups=true
+InviteToGroups=true
+
 [groupsdef]
 Klasse11="AllesWirdGut"
 Klasse9a="AllesIstGut"
 
 [groups]
-Klasse11=" "
-Klasse9a=" "
+member=Klasse11;Klasse9a;

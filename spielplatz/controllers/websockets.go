@@ -591,7 +591,6 @@ func writeProject(s session.Store, projectName string, fileType string, fileName
 		filename := resourceFiles[i][strings.LastIndex(resourceFiles[i], "/")+1:]
 		dir := "."
 
-		beego.Warning("resProject:", resProject, projectName)
 		if resProject == projectName {
 			continue
 		}

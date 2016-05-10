@@ -237,6 +237,7 @@ func (c *LoginController) Post() {
 		if u, err = models.AuthenticateUser(&uf); err == nil {
 			s.Set("UserName", u.Name)
 			s.Set("Email", u.Email)
+			s.Set("Rights", models.GetRightsFromDatabase(u.Name))
 			s.Set("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
 			c.Ctx.Redirect(302, dest)
 			return
@@ -381,10 +382,13 @@ func (c *LiveEditorController) Get() {
 	s := c.StartSession()
 	userName := ""
 	userNameForImages := "Admin"
+	var rights models.RightsMap
 
 	if s.Get("UserName") != nil {
 		userName = s.Get("UserName").(string)
 		userNameForImages = userName
+		rights = *s.Get("Rights").(*models.RightsMap)
+		beego.Warning(rights)
 	}
 
 	c.Data["AllImages"] = c.getImageInfo(userNameForImages)
@@ -397,6 +401,8 @@ func (c *LiveEditorController) Get() {
 	} else {
 		c.Data["UserName"] = userName
 		c.Data["LoginTime"] = s.Get("LoginTime")
+		c.Data["RightInviteToGroups"] = rights["invitetogroups"]
+		c.Data["RightAddGroups"] = rights["addgroups"]
 		c.Data["LiveEditorHeaderPjs"] = T["live_editor_header_pjs"]
 		c.Data["LiveEditorHeaderHTML"] = T["live_editor_header_html"]
 
