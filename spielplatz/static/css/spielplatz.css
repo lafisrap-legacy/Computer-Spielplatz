@@ -220,6 +220,21 @@ body {
   height: 28px;
 }
 
+#project-bar-invite-modal .invitees .group-name {
+  font-size: 2.5em;
+  color: grey;
+  margin-top: 10px;
+}
+
+#project-bar-invite-modal .invitees .user {
+  margin-right: 20px;
+  font-size: 1.2em;
+}
+
+#project-bar-invite-modal .invitees label {
+  margin-left: 10px;
+}
+
 #modal-codefiles .filename {
   font-size: 1.2em;
   display: inline-block;

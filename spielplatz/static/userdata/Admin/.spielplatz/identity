@@ -6,8 +6,8 @@ AddGroups=true
 InviteToGroups=true
 
 [groupsdef]
-Klasse11="AllesWirdGut"
-Klasse9a="AllesIstGut"
+Klasse11="Klasse 11;AllesWirdGut"
+Klasse9a="Klasse 9a;AllesIstGut"
 
 [groups]
-member=Klasse11;Klasse9a;
+member=Klasse 11;Klasse 9a;

@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/orm"
@@ -29,7 +30,7 @@ type User struct {
 
 // Groups contain a list of groups
 type Groups struct {
-	Id   int
+	Id   int64
 	Name string
 	Code string
 }
@@ -80,15 +81,19 @@ type Star struct {
 
 // Message contains all messages
 type Message struct {
-	Id      int
-	User    *User    `orm:"rel(fk)"`
-	Project *Project `orm:"rel(fk)"`
-	Text    string
-	Action  MsgAction
+	Id        int64
+	User      *User    `orm:"rel(fk)"`
+	Project   *Project `orm:"rel(fk)"`
+	Subject   string
+	Text      string
+	Action    MsgAction
+	TimeStamp time.Time `orm:"auto_now;type(datetime)"`
 }
 
+type MsgData map[string]interface{}
+
 // Message action type
-type MsgAction int
+type MsgAction int64
 
 // UserForm is a struct to collect input data from login and setup
 type UserForm struct {
@@ -119,8 +124,9 @@ var T map[string]string
 var TLanguages map[string]map[string]string
 
 const (
-	MaxRightsPerUser = 100
-	MaxGroupsPerUser = 20
+	MaxRightsPerUser   = 100
+	MaxMessagesPerUser = 100
+	MaxGroupsPerUser   = 20
 )
 
 //////////////////////////////////////////////////
@@ -147,6 +153,7 @@ func init() {
 			beego.Error(err)
 		}
 	}
+	o.Raw("TRUNCATE TABLE rights;").Exec()
 	o.Raw("TRUNCATE TABLE project;").Exec()
 	o.Raw("TRUNCATE TABLE groups;").Exec()
 	o.Raw("TRUNCATE TABLE group_user;").Exec()
@@ -167,8 +174,15 @@ func createAllUserDatabaseEntries() {
 		if err != nil {
 			beego.Error(err)
 		} else {
-			for group, value := range groups {
-				CreateGroupDatabaseEntry(group, value)
+			for _, value := range groups {
+				index := strings.Index(value, ";")
+				if index > 0 {
+					name := value[:index]
+					code := value[index+1:]
+					CreateGroupDatabaseEntry(name, code)
+				} else {
+					beego.Error("Invalid group definition", value)
+				}
 			}
 		}
 	} else {
@@ -357,6 +371,83 @@ func GetGroupsFromDatabase(userName string) []string {
 }
 
 //////////////////////////////////////////////////
+// GetPalsFromDatabase reads the users that are in the group of a user
+func GetPalsFromDatabase(userName string) map[string][]string {
+	o := orm.NewOrm()
+	o.Using("default") // Using default, you can use other database
+
+	u := &User{
+		Name: userName,
+	}
+	var g []orm.Params
+
+	pals := make(map[string][]string)
+
+	err := o.Read(u, "Name")
+	if err == nil {
+		o.QueryTable("group_user").Filter("user", u).Values(&g, "group_id", "group_id__name")
+
+		for _, params := range g {
+			var g1 []orm.Params
+			groupId := params["Group__Group"].(int64)
+			groupName := params["Group__Name"].(string)
+			pals[groupName] = []string{}
+
+			gr := &Groups{
+				Id: groupId,
+			}
+
+			o.QueryTable("group_user").Filter("group", gr).Values(&g1, "user_id__name")
+			for _, params := range g1 {
+				palName := params["User__Name"].(string)
+				if userName != palName {
+					pals[groupName] = append(pals[groupName], palName)
+				}
+			}
+		}
+	} else {
+		beego.Error(err)
+	}
+
+	return pals
+}
+
+//////////////////////////////////////////////////
+// GetMessagesFromDatabase reads the users that are in the group of a user
+func GetMessagesFromDatabase(userName string) []MsgData {
+	o := orm.NewOrm()
+	o.Using("default") // Using default, you can use other database
+
+	u := &User{
+		Name: userName,
+	}
+	var m []orm.Params
+
+	messages := make([]MsgData, 0, MaxMessagesPerUser)
+
+	err := o.Read(u, "Name")
+	if err == nil {
+		o.QueryTable("message").Filter("user", u).Values(&m, "id", "project_id__name", "subject", "text", "action", "time_stamp")
+
+		beego.Warning("Messages for", userName, m)
+		for _, params := range m {
+			messages = append(messages, MsgData{
+				"Id":          params["Id"].(int64),
+				"ProjectName": params["Project__Name"].(string),
+				"Subject":     params["Subject"].(string),
+				"Text":        params["Text"].(string),
+				"Action":      params["Action"].(int64),
+				"TimeStamp":   params["TimeStamp"].(time.Time).Unix(),
+			})
+		}
+	} else {
+		beego.Error(err)
+	}
+
+	return messages
+}
+
+//////////////////////////////////////////////////
 // CreateRightsDatabaseEntry creates a user database entry
 func CreateRightsDatabaseEntry(u *User, right string, value string) error {
 
@@ -452,6 +543,39 @@ func CreateProjectDatabaseEntry(p *Project, u *User, readOnly bool) error {
 	if err != nil {
 		beego.Error(err.Error())
 		return err
+	}
+
+	return nil
+}
+
+func CreateInvitationMessages(userName string, projectName string, userNames []string, subject string, message string) error {
+
+	subject = fmt.Sprintf(subject, projectName)
+	message = fmt.Sprintf(message, projectName, userName)
+	project, _ := GetProject(projectName)
+
+	o := orm.NewOrm()
+	o.Using("default")
+
+	for _, userName := range userNames {
+		user, _ := GetUser(userName)
+		m := &Message{
+			User:    user,
+			Project: project,
+			Subject: subject,
+			Text:    message,
+			Action:  MSG_INVITE,
+		}
+
+		err := o.Read(m, "User", "Project", "Action")
+		beego.Warning("Checking message:", projectName, userName, message, "Error", err)
+		if err == orm.ErrNoRows {
+			_, err := o.Insert(m)
+			if err != nil {
+				beego.Error(err)
+				return err
+			}
+		}
 	}
 
 	return nil
@@ -565,7 +689,7 @@ func CreateTextFile(name string, text string) (err error) {
 }
 
 //////////////////////////////////////////////////////////
-// GetUserName
+// GetUser
 func GetUser(userName string) (*User, error) {
 
 	o := orm.NewOrm()
@@ -574,6 +698,18 @@ func GetUser(userName string) (*User, error) {
 	err := o.Read(user, "Name")
 
 	return user, err
+}
+
+//////////////////////////////////////////////////////////
+// GetProject
+func GetProject(projectName string) (*Project, error) {
+
+	o := orm.NewOrm()
+	project := new(Project)
+	project.Name = projectName
+	err := o.Read(project, "Name")
+
+	return project, err
 }
 
 //////////////////////////////////////////////////////////

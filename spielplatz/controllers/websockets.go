@@ -50,33 +50,25 @@ type Message struct {
 	Command    string
 	returnChan chan Data
 
-	FileType      string
-	FileName      string
-	FileNames     []string
-	ProjectName   string
-	ProjectNames  []string
-	ResourceFiles []string
-	TimeStamps    []int64
 	CodeFiles     []string
 	Commit        string
+	FileNames     []string
+	FileName      string
+	FileType      string
 	Images        []string
-	SortedBy      string
-	Range         Range
-
-	Overwrite bool
+	MessageIds    []int64
+	Overwrite     bool
+	ProjectNames  []string
+	ProjectName   string
+	ResourceFiles []string
+	TimeStamps    []int64
+	UserNames     []string
 }
 
 type SourceFile struct {
 	TimeStamp int64
 	Code      string
 	Project   string
-}
-
-type Range struct {
-	IndexFrom int
-	IndexTo   int
-	DateFrom  time.Time
-	DateTo    time.Time
 }
 
 // Data is a map for command parameter to and from the controller
@@ -193,6 +185,12 @@ func serveMessages(messageChan chan Message) {
 			data = initProject(s, message.ProjectName, message.FileType, message.FileNames, message.CodeFiles, message.ResourceFiles, message.Images)
 		case "writeProject":
 			data = writeProject(s, message.ProjectName, message.FileType, message.FileNames, message.CodeFiles, message.TimeStamps, message.ResourceFiles, message.Images, message.Commit)
+		case "readPals":
+			data = readPals(s)
+		case "sendInvitations":
+			data = sendInvitations(s, message.ProjectName, message.UserNames)
+		case "readNewMessages":
+			data = readNewMessages(s, message.MessageIds)
 		default:
 			beego.Error("Unknown command:", message.Command)
 		}
@@ -559,7 +557,6 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 
 func writeProject(s session.Store, projectName string, fileType string, fileNames []string, codeFiles []string, timeStamps []int64, resourceFiles []string, images []string, commit string) Data {
 
-	beego.Trace("Entering writeProject", projectName, fileNames, resourceFiles)
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
 		beego.Error("No user name available.")
@@ -615,6 +612,59 @@ func writeProject(s session.Store, projectName string, fileType string, fileName
 	}
 
 	return data
+}
+
+func readPals(s session.Store) Data {
+	// Read own groups
+	userName := s.Get("UserName").(string)
+	if userName == "" {
+		beego.Error("No user name available.")
+		return Data{}
+	}
+
+	return Data{
+		"Pals": models.GetPalsFromDatabase(userName),
+	}
+}
+
+func sendInvitations(s session.Store, projectName string, userNames []string) Data {
+
+	T := models.T
+	userName := s.Get("UserName").(string)
+	if userName == "" {
+		beego.Error("No user name available.")
+		return Data{}
+	}
+
+	models.CreateInvitationMessages(userName, projectName, userNames, T["project_bar_modal_invite_subject"], T["project_bar_modal_invite_message"])
+
+	return Data{}
+}
+
+func readNewMessages(s session.Store, messageIds []int64) Data {
+
+	userName := s.Get("UserName").(string)
+	if userName == "" {
+		beego.Error("No user name available.")
+		return Data{}
+	}
+
+	messages := models.GetMessagesFromDatabase(userName)
+
+	for i := len(messages) - 1; i >= 0; i-- {
+		beego.Warning(len(messages), i)
+		for j := 0; j < len(messageIds); j++ {
+			beego.Warning(messages[i], j, messageIds[j])
+			if messages[i]["Id"] == messageIds[j] {
+				messages = append(messages[:i], messages[i+1:]...)
+				break
+			}
+		}
+	}
+
+	return Data{
+		"Messages": messages,
+	}
 }
 
 func copyFileContents(src, dst string) (err error) {
