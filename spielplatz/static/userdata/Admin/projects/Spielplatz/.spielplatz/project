@@ -1,4 +1,4 @@
-Playground = "Cypherpunk Computer-Spielplatz"
-Origin = none
-ReadOnly = true
-Gallery = false
+Origin=none
+Gallery=false
+Playground=Cypherpunk Computer-Spielplatz
+

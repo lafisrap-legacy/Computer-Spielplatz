@@ -63,6 +63,8 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 			} else if( !sessionStorage[ self.fileType + "CodeFileList" ] ) {
 
+				self.refreshMails();
+
 				$WS.sendMessage( {
 					Command: "readDir",
 					FileType: self.fileType
@@ -156,7 +158,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		};
 
 		if( this.editor.modified() && self.currentCodeFile !== self.newFile ) {
-		self.showModalYesNo( window.CPG.ProjectBarModalFileChanged, window.CPG.ProjectBarModalFileChanged2, function( yes ) {
+			self.buttonGroup.showModalYesNo( window.CPG.ProjectBarModalFileChanged, window.CPG.ProjectBarModalFileChanged2, false, function( yes ) {
 				if( yes ) {
 					self.saveCodeFile( this.projectBar.currentCodeFile, function( ) { newFile( ); } ); 
 				} else {
@@ -226,7 +228,10 @@ window.ProjectControlBar = Backbone.Model.extend( {
 					}
 
 					if( openFiles.length ) {
-						self.buttonGroup.showModalYesNo( openFiles.join( " " ), openFiles.length === 1? window.CPG.ProjectBarModalAlreadyOpenS : window.CPG.ProjectBarModalAlreadyOpenP, function( yes ) {
+						self.buttonGroup.showModalYesNo( 	openFiles.join( " " ),
+															openFiles.length === 1? window.CPG.ProjectBarModalAlreadyOpenS : window.CPG.ProjectBarModalAlreadyOpenP,
+															false,
+															function( yes ) {
 							if( !yes ) {
 								for( var i=openFiles.length-1 ; i>=0 ; i-- ) selFiles.splice( selFiles.indexOf( openFiles[ i ] ),1 );
 							}
@@ -381,7 +386,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 									} else if( message.OutdatedTimeStamps.length > 0 ) {
 
-										self.buttonGroup.showModalYesNo( fileName, window.CPG.ProjectBarModalFileOutdated, function( yes ) {
+										self.buttonGroup.showModalYesNo( fileName, window.CPG.ProjectBarModalFileOutdated, false, function( yes ) {
 											if( yes ) {
 												self.codeFiles[ fileName ].timeStamp = message.OutdatedTimeStamps[ 0 ] 
 												sendWriteProject();
@@ -483,7 +488,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 			}, function( message ) {
 
 				if( message.Error ) {
-					self.buttonGroup.showModalYesNo( window.CPG.ProjectBarModalFileExists, message.Error, function( yes ) {
+					self.buttonGroup.showModalYesNo( window.CPG.ProjectBarModalFileExists, message.Error, false, function( yes ) {
 						if( yes ) {
 							self.currentCodeFile = fileName;
 							self.saveSourceFile( fileName, project );
@@ -520,7 +525,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 				} else if( message.OutdatedTimeStamps.length > 0 ) {
 
-					self.buttonGroup.showModalYesNo( fileName, window.CPG.ProjectBarModalFileOutdated, function( yes ) {
+					self.buttonGroup.showModalYesNo( fileName, window.CPG.ProjectBarModalFileOutdated, false, function( yes ) {
 						if( yes ) {
 							self.codeFiles[ fileName ].timeStamp = message.OutdatedTimeStamps[ 0 ] 
 							self.saveSourceFile( fileName, project );
@@ -577,19 +582,55 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		} ); 
 	},
 
-	refreshMails: function() {
-		var self = this;
+	refreshMails: function refreshMails() {
+		var self = this,
+			messages = [];
+
+			_.each( this.messages, function( element, index, list ) { messages.push( element.Id ); } );
 
 		$WS.sendMessage( {
 			Command: "readNewMessages",
-			MessageIds: this.messages,
+			MessageIds: messages,
 		}, function( message ) {
 			var m = message.Messages;
 			for( var i=0 ; i<m.length ; i++ ) {
 	            self.buttonGroup.addMessage( m[i] );
 			}
+            self.messages = self.messages.concat( m );
 		});
+
+		if( this.refreshMailsTimeout ) clearTimeout( this.refreshMailsTimeout );
+
+		this.refreshMailsTimeout = setTimeout( function() {
+			refreshMails.call( self );
+		}, 30000 ); 
 	},
+
+	openMail: function( mail ) {
+		var self = this,
+			id = parseInt( mail.attr( "message-id" ) );
+
+		_.each( this.messages, function( element, index, list ) {
+			if( element.Id === id ) {
+				self.buttonGroup.showModalYesNo( element.Subject, element.Text, true, function( res ) {
+					if( !res ) return
+					else if( res === "yes" ) {
+
+					}
+
+					self.buttonGroup.removeMessage( id );
+					list.splice( index, 1 );
+
+					$WS.sendMessage( {
+						Command: "deleteMessage",
+						MessageId: id,
+					}, function( message ) {
+						// Maybe add error handling
+					} );
+				} );
+			}
+		} )
+	}
 } );
 
 
@@ -644,11 +685,11 @@ var ButtonGroup = Backbone.View.extend( {
 						"<li id='project-bar-save-template'>" + window.CPG.ProjectBarSaveTemplate + "</li>" +
 						"<li id='project-bar-other-version'>" + window.CPG.ProjectBarOtherVersion + "</li>" +
 						"<hr>" +
-						"<li id='project-bar-invite'>" + window.CPG.ProjectBarInvite + "</li>" +
 						"<li id='project-bar-gallery'>" + window.CPG.ProjectBarGalleryOn + "</li>" +
+						"<li id='project-bar-invite'>" + window.CPG.ProjectBarInvite + "</li>" +
 					"</ul>" +
 				"</div>" +
-				"<div class='btn-group dropup'>" +
+				"<div id='project-bar-mail-menu' class='btn-group dropup'>" +
 					"<button id='project-bar-mail' type='button' class='btn btn-primary dropup-toggle' data-toggle='dropdown'>" +
 						"<span class='title'>" + window.CPG.ProjectBarMail +
 						" <span class='badge'>0</span>" +
@@ -822,13 +863,25 @@ var ButtonGroup = Backbone.View.extend( {
 		} );
 	},
 
-
     /////////////////////////////////////////////
     // addMessage add one message to the messages list
     addMessage: function( message ) {
-        var button = $( "#project-bar-mail" ).parent();
-        $( ".dropdown-menu", button ).append( "<li message-id='" + message.Id + "'>" + message.Subject + "</li>" );
 
+        var self = this,
+        	button = $( "#project-bar-mail-menu" );
+        
+        $( ".dropdown-menu", button ).append( "<li message-id='" + message.Id + "'>" + message.Subject + "</li>" );
+		$( "ul li", button ).on( 'click', function() { self.projectBar.openMail( $( this ) ); } );
+        $( ".badge", button ).text( $( ".dropdown-menu li", button ).length );
+    },
+
+    /////////////////////////////////////////////
+    // removeMessage removes one message from the messages list
+    removeMessage: function( messageId ) {
+
+        var button = $( "#project-bar-mail-menu" );
+        
+        $( ".dropdown-menu [message-id='" + messageId + "']", button ).remove();
         $( ".badge", button ).text( $( ".dropdown-menu li", button ).length );
     },
 
@@ -992,8 +1045,16 @@ var ButtonGroup = Backbone.View.extend( {
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	// showModalYesNo displays a modal dialog with answers yes and no
-	showModalYesNo: function( title, body, cb ) {
+	showModalYesNo: function( title, body, primaryYes, cb ) {
 		var modal = this.yesNoModal;
+
+		if( primaryYes ) {
+			$( ".modal-yes", modal ).removeClass( "btn-default" ).addClass( "btn-primary" ).addClass( "pull-right" );
+			$( ".modal-no", modal ).removeClass( "btn-primary" ).addClass( "btn-default" ).removeClass( "pull-right" );
+		} else {
+			$( ".modal-no", modal ).removeClass( "btn-default" ).addClass( "btn-primary" ).addClass( "pull-right" );
+			$( ".modal-yes", modal ).removeClass( "btn-primary" ).addClass( "btn-default" ).removeClass( "pull-right" );			
+		}
 
 		$( ".modal-title", modal ).text( title );
 		$( ".modal-body p", modal ).text( body );
@@ -1001,11 +1062,13 @@ var ButtonGroup = Backbone.View.extend( {
 			var lcb = cb;
 			cb = null;
 			modal.modal( 'hide' );
-			if( lcb ) lcb( true );
+			if( lcb ) lcb( "yes" );
 		} );
 		$( ".modal-no", modal ).off( "click" ).one( "click", function( e ) {
-			// cb is called on hide event
+			var lcb = cb;
+			cb = null;
 			modal.modal( 'hide' );
+			if( lcb ) lcb( "no" );
 		} );
 
 		modal.modal( 'show' );

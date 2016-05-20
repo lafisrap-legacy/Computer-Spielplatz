@@ -56,6 +56,7 @@ type Message struct {
 	FileName      string
 	FileType      string
 	Images        []string
+	MessageId     int64
 	MessageIds    []int64
 	Overwrite     bool
 	ProjectNames  []string
@@ -69,6 +70,7 @@ type SourceFile struct {
 	TimeStamp int64
 	Code      string
 	Project   string
+	Rights    []string
 }
 
 // Data is a map for command parameter to and from the controller
@@ -152,6 +154,7 @@ func translateMessages(s socket) {
 
 		message.Xsrf = ""
 		message.Session = sx.Session
+		beego.Warning("Message from ", message.Session.Get("UserName"), message)
 		message.returnChan = make(chan Data)
 		go catchReturn(message.returnChan, encoder)
 
@@ -185,12 +188,16 @@ func serveMessages(messageChan chan Message) {
 			data = initProject(s, message.ProjectName, message.FileType, message.FileNames, message.CodeFiles, message.ResourceFiles, message.Images)
 		case "writeProject":
 			data = writeProject(s, message.ProjectName, message.FileType, message.FileNames, message.CodeFiles, message.TimeStamps, message.ResourceFiles, message.Images, message.Commit)
+		case "cloneProject":
+			data = writeProject(s, message.ProjectName, message.FileType, message.FileNames, message.CodeFiles, message.TimeStamps, message.ResourceFiles, message.Images, message.Commit)
 		case "readPals":
 			data = readPals(s)
 		case "sendInvitations":
 			data = sendInvitations(s, message.ProjectName, message.UserNames)
 		case "readNewMessages":
 			data = readNewMessages(s, message.MessageIds)
+		case "deleteMessage":
+			data = deleteMessage(s, message.MessageId)
 		default:
 			beego.Error("Unknown command:", message.Command)
 		}
@@ -324,10 +331,13 @@ func readSourceFiles(s session.Store, fileNames []string, fileProjects []string,
 			return Data{}
 		}
 
+		rights := models.GetProjectRightsFromDatabase(name, project)
+
 		codeFiles[fileNames[i]] = SourceFile{
 			TimeStamp: fileInfo.ModTime().UnixNano() / int64(time.Millisecond),
 			Code:      string(codeFile),
 			Project:   project,
+			Rights:    rights,
 		}
 	}
 
@@ -492,8 +502,8 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 	fileName := []string{projectName + "." + fileType}
 	data := writeSourceFiles(s, fileName, projectName, fileType, codeFiles, timeStamps, images, false)
 
-	// Create .gitignore file
-	models.CreateTextFile(projectDir+"/"+".gitignore", beego.AppConfig.String("userdata::spielplatzdir"))
+	// Create .gitignore file with .spielplatz/project in it
+	models.CreateTextFile(projectDir+"/"+".gitignore", beego.AppConfig.String("userdata::spielplatzdir")+"/project")
 
 	// Copy resource files
 	for i := 0; i < len(resourceFiles); i++ {
@@ -527,11 +537,26 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 	if err != nil {
 		beego.Error("Cannot create project file " + projectFile + " (" + err.Error() + ")")
 	}
-	cnf.Set("Playground", projectName)
+	cnf.Set("Playground", beego.AppConfig.String("userdata::name"))
 	cnf.Set("Origin", "none")
-	cnf.Set("ReadOnly", "false")
 	cnf.Set("Gallery", "false")
 	cnf.SaveConfigFile(projectFile)
+
+	// Create rights file
+	rightsFile := projectDir + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/rights"
+	file, err = os.Create(rightsFile)
+	if err != nil {
+		beego.Error(err)
+	}
+	file.Close()
+	cnf, err = config.NewConfig("ini", rightsFile)
+	if err != nil {
+		beego.Error("Cannot create rights file " + rightsFile + " (" + err.Error() + ")")
+	}
+	for _, right := range models.PRR_NAMES {
+		cnf.Set("rights::"+right, "true")
+	}
+	cnf.SaveConfigFile(rightsFile)
 
 	// Create database entry
 	user, _ := models.GetUser(userName)
@@ -542,7 +567,7 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 	project.Gallery = false
 	project.Forks = 0
 	project.Stars = 0
-	models.CreateProjectDatabaseEntry(project, user, false)
+	models.CreateProjectDatabaseEntry(project, user, int64(1<<uint(len(models.PRR_NAMES)))-1)
 
 	// Add, commit and push
 	models.GitAddCommitPush(userName, projectDir, beego.AppConfig.String("userdata::firstcommit"), true)
@@ -664,6 +689,25 @@ func readNewMessages(s session.Store, messageIds []int64) Data {
 
 	return Data{
 		"Messages": messages,
+	}
+}
+
+func deleteMessage(s session.Store, messageId int64) Data {
+
+	userName := s.Get("UserName").(string)
+	if userName == "" {
+		beego.Error("No user name available.")
+		return Data{}
+	}
+
+	err := models.DeleteMessageFromDatabase(userName, messageId)
+
+	if err == nil {
+		return Data{}
+	} else {
+		return Data{
+			"Error": err.Error(),
+		}
 	}
 }
 

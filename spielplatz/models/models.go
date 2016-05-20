@@ -66,10 +66,10 @@ type Project struct {
 
 // ProjectUser contains all project - user relations
 type ProjectUser struct {
-	Id       int
-	Project  *Project `orm:"rel(fk)"`
-	User     *User    `orm:"rel(fk)"`
-	ReadOnly bool
+	Id      int
+	Project *Project `orm:"rel(fk)"`
+	User    *User    `orm:"rel(fk)"`
+	Rights  int64
 }
 
 // Stars contains a list of all stars
@@ -94,6 +94,7 @@ type MsgData map[string]interface{}
 
 // Message action type
 type MsgAction int64
+type ProjectRight int64
 
 // UserForm is a struct to collect input data from login and setup
 type UserForm struct {
@@ -116,6 +117,31 @@ const (
 	MSG_ACCEPT
 	MSG_CHANGE
 )
+
+// Project rights
+const (
+	PRR_WRITE ProjectRight = iota
+	PRR_INVITE
+	PRR_PUBLISH
+	PRR_REVERSE
+	PRR_CLEANUP
+	PRR_RENAME
+	PRR_DISINVITE
+	PRR_ADMINISTER
+	PRR_DELETE
+)
+
+var PRR_NAMES []string = []string{
+	"Write",
+	"Invite",
+	"Publish",
+	"Reverse",
+	"Cleanup",
+	"Rename",
+	"Disinvite",
+	"Administer",
+	"Delete",
+}
 
 //////////////////////////////////////////////////
 // Global variables
@@ -155,6 +181,7 @@ func init() {
 	}
 	o.Raw("TRUNCATE TABLE rights;").Exec()
 	o.Raw("TRUNCATE TABLE project;").Exec()
+	o.Raw("TRUNCATE TABLE project_user;").Exec()
 	o.Raw("TRUNCATE TABLE groups;").Exec()
 	o.Raw("TRUNCATE TABLE group_user;").Exec()
 
@@ -245,12 +272,26 @@ func createAllUserDatabaseEntries() {
 						project.Gallery, _ = cnf.Bool("Gallery")
 						project.Forks = 0
 						project.Stars = 0
-
-						readOnly, _ := cnf.Bool("ReadOnly")
-						CreateProjectDatabaseEntry(project, user, readOnly)
-						MountResourceFiles(userName, projectName)
 					} else {
 						beego.Error("Couldn't open project file of user " + userName + " in project " + projectName + ". (" + err.Error() + ")")
+					}
+
+					rightsFile := projectsDir + projectName + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/rights"
+					cnf, err = config.NewConfig("ini", rightsFile)
+					if err == nil {
+						var rights int64
+						rightNames, _ := cnf.GetSection("rights")
+						for right, value := range rightNames {
+							for index, r := range PRR_NAMES {
+								if strings.ToLower(r) == right && value == "true" {
+									rights |= 1 << uint(index)
+								}
+							}
+						}
+						CreateProjectDatabaseEntry(project, user, rights)
+						MountResourceFiles(userName, projectName)
+					} else {
+						beego.Error("Couldn't open rights file of user " + userName + " in project " + projectName + ". (" + err.Error() + ")")
 					}
 				}
 			}
@@ -448,6 +489,53 @@ func GetMessagesFromDatabase(userName string) []MsgData {
 }
 
 //////////////////////////////////////////////////
+// GetProjectRightsFromDatabase reads the users that are in the group of a user
+func GetProjectRightsFromDatabase(userName string, projectName string) []string {
+	o := orm.NewOrm()
+	o.Using("default") // Using default, you can use other database
+
+	var r []orm.Params
+
+	rights := make([]string, 0, MaxRightsPerUser)
+
+	o.QueryTable("project_user").Filter("user__name", userName).Filter("project__name", projectName).Values(&r, "rights")
+
+	beego.Warning("Rights for", userName, projectName, r)
+	rightBits := r[0]["Rights"].(int64)
+	for index, right := range PRR_NAMES {
+		if rightBits&(1<<uint(index)) > 0 {
+			rights = append(rights, right)
+		}
+	}
+
+	return rights
+}
+
+//////////////////////////////////////////////////
+// DeleteMessageFromDatabase reads the users that are in the group of a user
+func DeleteMessageFromDatabase(userName string, messageId int64) error {
+	o := orm.NewOrm()
+	o.Using("default") // Using default, you can use other database
+
+	u := &User{
+		Name: userName,
+	}
+
+	var num int64
+	err := o.Read(u, "Name")
+	if err == nil {
+		num, err = o.QueryTable("message").Filter("user", u).Filter("id", messageId).Delete()
+
+		beego.Warning("Deleted", num, "entries. Id =", messageId)
+	}
+
+	if err != nil {
+		beego.Error(err)
+	}
+	return err
+}
+
+//////////////////////////////////////////////////
 // CreateRightsDatabaseEntry creates a user database entry
 func CreateRightsDatabaseEntry(u *User, right string, value string) error {
 
@@ -519,7 +607,7 @@ func CreateUserDatabaseEntry(u *User) error {
 
 //////////////////////////////////////////////////
 // CreateProjectDatabaseEntry creates a project database entry
-func CreateProjectDatabaseEntry(p *Project, u *User, readOnly bool) error {
+func CreateProjectDatabaseEntry(p *Project, u *User, rights int64) error {
 
 	o := orm.NewOrm()
 	o.Using("default")
@@ -534,9 +622,9 @@ func CreateProjectDatabaseEntry(p *Project, u *User, readOnly bool) error {
 	}
 
 	pu := &ProjectUser{
-		Project:  p,
-		User:     u,
-		ReadOnly: readOnly,
+		Project: p,
+		User:    u,
+		Rights:  rights,
 	}
 
 	_, err = o.Insert(pu)
@@ -641,7 +729,7 @@ func AuthenticateUser(uf *UserForm) (User, error) {
 }
 
 /////////////////////////////////////////////////////
-// CreateDirectories creates directories with one .gitignore file in it (to be added by git)
+// CreateDirectories creates directories with one .gitignore file in it (then they are added by git even if empty)
 func CreateDirectories(dir string, base bool) error {
 
 	dirs := strings.Split(beego.AppConfig.String("userdata::codefiles"), ",")
