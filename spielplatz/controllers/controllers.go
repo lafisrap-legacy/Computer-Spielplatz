@@ -348,13 +348,13 @@ func (c *SignupController) createUserDirectory(user models.User) {
 	cnf.SaveConfigFile(identityFile)
 
 	// Clone Admin Spielplatz project
-	err = cloneProject(user.Name, beego.AppConfig.String("userdata::commonproject"))
+	err = cloneProjectDir(user.Name, beego.AppConfig.String("userdata::commonproject"))
 	if err != nil {
 		beego.Error(err)
 	}
 }
 
-func cloneProject(toUser string, project string) error {
+func cloneProjectDir(toUser string, project string) error {
 	url := beego.AppConfig.String("userdata::location") + "/" +
 		beego.AppConfig.String("userdata::bareprojects") + "/" +
 		project
@@ -441,6 +441,8 @@ func (c *LiveEditorController) Get() {
 		c.Data["ProjectBarModalProjectInit"] = T["project_bar_modal_project_init"]
 		c.Data["ProjectBarModalProjectSave2"] = T["project_bar_modal_project_save_2"]
 		c.Data["ProjectBarModalProjectSaveOk"] = T["project_bar_modal_project_save_ok"]
+		c.Data["ProjectBarModalOpenNewProject"] = T["project_bar_modal_open_new_project"]
+		c.Data["ProjectBarModalOpenNewProject2"] = T["project_bar_modal_open_new_project_2"]
 		c.Data["ProjectBarModalProjectSave"] = T["project_bar_modal_project_save"]
 		c.Data["ProjectBarModalSaveFilename2"] = T["project_bar_modal_save_filename_2"]
 		c.Data["ProjectBarModalSaveFilename"] = T["project_bar_modal_save_filename"]

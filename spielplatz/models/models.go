@@ -132,7 +132,7 @@ const (
 )
 
 var PRR_NAMES []string = []string{
-	"Write",
+	"Write", // Has to be first
 	"Invite",
 	"Publish",
 	"Reverse",
@@ -508,7 +508,21 @@ func GetProjectRightsFromDatabase(userName string, projectName string) []string 
 		}
 	}
 
+	beego.Warning("Rights for", userName, rights)
 	return rights
+}
+
+func CheckRight(userName string, projectName string, right string) bool {
+	rights := GetProjectRightsFromDatabase(userName, projectName)
+	ok := false
+
+	for i := 0; i < len(rights); i++ {
+		if rights[i] == right {
+			ok = true
+		}
+	}
+
+	return ok
 }
 
 //////////////////////////////////////////////////

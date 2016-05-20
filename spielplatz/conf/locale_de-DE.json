@@ -76,6 +76,8 @@
 	"project_bar_project"				: "Projekt",
     "project_bar_restart"               : "Neu starten",
     "project_bar_saved"                 : "Gespeichert",
+	"project_bar_modal_open_new_project"	: "Neues Projekt öffnen",
+	"project_bar_modal_open_new_project_2"	: "Willst du das neue Projekt öffnen?",
 
 	"graphics_header_graphics"			: "Bild-Editor",
 	"graphics_header_animations"		: "Animations-Editor",

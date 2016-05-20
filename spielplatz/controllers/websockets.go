@@ -63,6 +63,7 @@ type Message struct {
 	ProjectName   string
 	ResourceFiles []string
 	TimeStamps    []int64
+	UserName      string
 	UserNames     []string
 }
 
@@ -189,7 +190,7 @@ func serveMessages(messageChan chan Message) {
 		case "writeProject":
 			data = writeProject(s, message.ProjectName, message.FileType, message.FileNames, message.CodeFiles, message.TimeStamps, message.ResourceFiles, message.Images, message.Commit)
 		case "cloneProject":
-			data = writeProject(s, message.ProjectName, message.FileType, message.FileNames, message.CodeFiles, message.TimeStamps, message.ResourceFiles, message.Images, message.Commit)
+			data = cloneProject(s, message.ProjectName)
 		case "readPals":
 			data = readPals(s)
 		case "sendInvitations":
@@ -331,7 +332,10 @@ func readSourceFiles(s session.Store, fileNames []string, fileProjects []string,
 			return Data{}
 		}
 
-		rights := models.GetProjectRightsFromDatabase(name, project)
+		rights := []string{}
+		if project != "" {
+			rights = models.GetProjectRightsFromDatabase(name, project)
+		}
 
 		codeFiles[fileNames[i]] = SourceFile{
 			TimeStamp: fileInfo.ModTime().UnixNano() / int64(time.Millisecond),
@@ -503,7 +507,7 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 	data := writeSourceFiles(s, fileName, projectName, fileType, codeFiles, timeStamps, images, false)
 
 	// Create .gitignore file with .spielplatz/project in it
-	models.CreateTextFile(projectDir+"/"+".gitignore", beego.AppConfig.String("userdata::spielplatzdir")+"/project")
+	models.CreateTextFile(projectDir+"/"+".gitignore", beego.AppConfig.String("userdata::spielplatzdir")+"/rights")
 
 	// Copy resource files
 	for i := 0; i < len(resourceFiles); i++ {
@@ -558,11 +562,14 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 	}
 	cnf.SaveConfigFile(rightsFile)
 
+	// Add all rights as return values
+	data["Rights"] = models.PRR_NAMES
+
 	// Create database entry
 	user, _ := models.GetUser(userName)
 	project := new(models.Project)
 	project.Name = projectName
-	project.Playground = projectName
+	project.Playground = beego.AppConfig.String("userdata::location")
 	project.Origin = "none"
 	project.Gallery = false
 	project.Forks = 0
@@ -583,7 +590,8 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 func writeProject(s session.Store, projectName string, fileType string, fileNames []string, codeFiles []string, timeStamps []int64, resourceFiles []string, images []string, commit string) Data {
 
 	// if user is not logged in return
-	if s.Get("UserName") == nil {
+	userName := s.Get("UserName").(string)
+	if userName == "" {
 		beego.Error("No user name available.")
 		return Data{}
 	}
@@ -592,7 +600,13 @@ func writeProject(s session.Store, projectName string, fileType string, fileName
 		return Data{}
 	}
 
-	userName := s.Get("UserName").(string)
+	// Check for rights
+	if ok := models.CheckRight(userName, projectName, "Write"); !ok {
+		return Data{
+			"Error": "Unsufficient rights for project " + projectName + ".",
+		}
+	}
+
 	userDir := beego.AppConfig.String("userdata::location") + userName
 	projectDir := userDir + "/" + beego.AppConfig.String("userdata::projects") + "/" + projectName
 
@@ -637,6 +651,71 @@ func writeProject(s session.Store, projectName string, fileType string, fileName
 	}
 
 	return data
+}
+
+func cloneProject(s session.Store, projectName string) Data {
+
+	// if user is not logged in return
+	userName := s.Get("UserName").(string)
+	if userName == "" {
+		beego.Error("No user name available.")
+		return Data{}
+	}
+	beego.Warning("Entering cloneProject with", userName, "and", projectName)
+	if projectName == "" {
+		beego.Error("No project name available.")
+		return Data{}
+	}
+
+	// Check for rights
+	// Maybe add a token check here, otherwise manipulated clients can open projects
+
+	userDir := beego.AppConfig.String("userdata::location") + userName
+	projectDir := userDir + "/" + beego.AppConfig.String("userdata::projects") + "/" + projectName
+	bareDir := beego.AppConfig.String("userdata::location") + beego.AppConfig.String("userdata::bareprojects") + "/" + projectName
+
+	beego.Warning("Doing git clone with", userDir, ",", projectDir, "and", bareDir)
+	// Clone it to own project directory
+	options := git.CloneOptions{
+		Bare: false,
+	}
+	_, err := git.Clone(bareDir, projectDir, &options)
+	if err != nil {
+		beego.Error("Cannot clone git directory", bareDir, "into", projectDir, "(", err.Error(), ")")
+	}
+
+	// Mount resource directories
+	models.MountResourceFiles(userName, projectName)
+
+	// Create rights file
+	rightsFile := projectDir + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/rights"
+	file, err := os.Create(rightsFile)
+	if err != nil {
+		beego.Error(err)
+	}
+	file.Close()
+	cnf, err := config.NewConfig("ini", rightsFile)
+	if err != nil {
+		beego.Error("Cannot create rights file " + rightsFile + " (" + err.Error() + ")")
+	}
+	for _, right := range models.PRR_NAMES {
+		if right == "Write" {
+			cnf.Set("rights::"+right, "true")
+		} else {
+			cnf.Set("rights::"+right, "false")
+		}
+	}
+	cnf.SaveConfigFile(rightsFile)
+
+	// Create database entry
+	user, _ := models.GetUser(userName)
+	project := new(models.Project)
+	project.Name = projectName
+	models.CreateProjectDatabaseEntry(project, user, 1)
+
+	return Data{
+		"ProjectName": projectName,
+	}
 }
 
 func readPals(s session.Store) Data {

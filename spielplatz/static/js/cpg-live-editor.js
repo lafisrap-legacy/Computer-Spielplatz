@@ -15,7 +15,18 @@ CPG_liveEditor =( CPG_page === "pjs" ) ? new window.LiveEditorFramePjs( CPG_opti
 
 				console.error ( "No valid CPG_page specified" );
 
-CPG_projectControlBar = new window.ProjectControlBar( {
+
+var projectControlBar = window.ProjectControlBar.extend( {
+
+	openNewProject: function( projectName ) {
+
+		this.readFiles( [ projectName + "." + self.fileType ], [ projectName ], function() {
+			console.log( "Finished reading files of new project." );
+		} );
+	},
+} );
+
+CPG_projectControlBar = new projectControlBar( {
 								el: $( "#project-button-group" ),
 								userName: window.CPG.UserName, 
 								fileType: CPG_page,
