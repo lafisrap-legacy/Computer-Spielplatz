@@ -97,34 +97,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 					}
 
 					if( codeFilesToRead.length ) {
-						$WS.sendMessage( {
-							command: "readSourceFiles",
-							FileNames: codeFilesToRead,
-							ProjectNames: projects,
-							FileType: self.fileType
-						}, function( message ) {
-							for( var i=0 ; i<codeFilesToRead.length ; i++ ) {
-								var fileName = codeFilesToRead[ i ],
-									codeFile = message.CodeFiles[ fileName ];
-								if( codeFile ) {
-									self.codeFiles[ fileName ] = {
-										code: codeFile.Code,
-										timeStamp: codeFile.TimeStamp,
-										project: codeFile.Project,
-										rights: codeFile.Rights,
-									}
-									sessionStorage[ fileName ] = JSON.stringify( self.codeFiles[ fileName ] );
-									self.codeFileList.push( fileName );						  
-								}
-							}
-							sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
-							sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = self.codeFileList[ 0 ];
-							self.buttonGroup.fillOpenControl( this );
-
-							self.editor.reset( self.codeFiles[ self.currentCodeFile ].code );
-
-							self.buttonGroup.showFilename( self.currentCodeFile );
-						} );
+						self.readSourceFiles( codeFilesToRead, projects );
 					} else {
 						self.currentCodeFile = self.newFile;
 						self.codeFileList = [ ];
@@ -206,15 +179,15 @@ window.ProjectControlBar = Backbone.Model.extend( {
 						self.buttonGroup.showModalYesNo( 	openFiles.join( " " ),
 															openFiles.length === 1? window.CPG.ProjectBarModalAlreadyOpenS : window.CPG.ProjectBarModalAlreadyOpenP,
 															false,
-															function( yes ) {
-							if( !yes ) {
+															function( res ) {
+							if( res === "no" ) {
 								for( var i=openFiles.length-1 ; i>=0 ; i-- ) selFiles.splice( selFiles.indexOf( openFiles[ i ] ),1 );
 							}
 
-							readFiles( selFiles, selProjects );
+							if( selFiles.length ) self.readSourceFiles( selFiles, selProjects );
 						} );
 					} else {
-						readFiles( selFiles, selProjects );
+						self.readSourceFiles( selFiles, selProjects );
 					}
 					break;
 
@@ -372,13 +345,13 @@ window.ProjectControlBar = Backbone.Model.extend( {
 										} );
 									} else if( message.Conflicts ) {
 										self.buttonGroup.showModalOk( window.CPG.ProjectBarModalConflicts, window.CPG.ProjectBarModalConflicts2, function() {
-											self.readSourceFiles( fileName, projectName, function() {
+											self.readSourceFiles( [ fileName ], [ projectName ], function() {
 												self.buttonGroup.showSaving( "warning", true );
 												self.isSaving = false;
 											} );
 										} );
 									} else {
-										self.readSourceFiles( fileName, projectName, function() {
+										self.readSourceFiles( [ fileName ], [ projectName ], function() {
 											self.buttonGroup.showSaving( "success", true );
 											self.isSaving = false;
 										} );
@@ -415,7 +388,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		} );
 	},
 
-	readFiles: function( fileNames, projectNames, cb ) {
+	readSourceFiles: function( fileNames, projectNames, cb ) {
 		var self = this;
 
 		if( fileNames.length ) {
@@ -450,32 +423,6 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		} else {
 			if( cb ) cb();
 		}
-	},
-
-	readSourceFiles: function( fileName, projectName, cb ) {
-
-		var self = this;
-
-		$WS.sendMessage( {
-			command: "readSourceFiles",
-			FileNames: [ fileName ],
-			ProjectNames: [ projectName ],
-			FileType: this.fileType,
-		}, function( message ) {
-			var codeFile = message.CodeFiles[ fileName ];
-			if( codeFile ) {
-				self.codeFiles[ fileName ] = {
-					code: codeFile.Code,
-					timeStamp: codeFile.TimeStamp,
-					project: codeFile.Project,
-					rights: codeFile.Rights
-				}
-				sessionStorage[ fileName ] = JSON.stringify( self.codeFiles[ fileName ] );
-			}
-
-			self.editor.reset( self.codeFiles[ self.currentCodeFile ].code );
-			if( cb ) cb();
-		} );
 	},
 
 	saveSourceFile: function( fileName, project, cb ) {
