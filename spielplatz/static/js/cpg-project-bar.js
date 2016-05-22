@@ -269,6 +269,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 									var newCodeFile = name + "." + self.fileType;
 
 									self.codeFiles[ newCodeFile ] = {
+										name: newCodeFile,
 										code: code,
 										project: name,
 										timeStamp: message.SavedTimeStamps[0],
@@ -403,6 +404,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 						codeFile = message.CodeFiles[ fileName ];
 					if( codeFile ) {
 						self.codeFiles[ fileName ] = {
+							name: fileName,
 							code: codeFile.Code,
 							timeStamp: codeFile.TimeStamp,
 							project: codeFile.Project,
@@ -474,6 +476,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 					if( !filenameExists ) self.allFilesList.push( {
 						name: fileName,
+						code: self.codeFiles[ self.currentCodeFile ].code,
 						timeStamp: self.codeFiles[ self.currentCodeFile ].timeStamp,
 						project: self.codeFiles[ self.currentCodeFile ].project,
 						rights: self.codeFiles[ self.currentCodeFile ].rights
@@ -499,7 +502,8 @@ window.ProjectControlBar = Backbone.Model.extend( {
 					return false;
 				} 
 
-				self.codeFiles[ fileName ] = { 
+				self.codeFiles[ fileName ] = {
+					name: fileName, 
 					code: code,
 					timeStamp: message.SavedTimeStamps[ 0 ],
 					project: project,
@@ -521,7 +525,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 	storeCurrentCodeFile: function( ) {
 		if( this.currentCodeFile ) {
 			this.codeFiles[ this.currentCodeFile ].code = this.editor.text( );
-			sessionStorage[ this.fileType + this.currentCodeFile ] = JSON.stringify( this.codeFiles[ this.currentCodeFile ] );		 
+			sessionStorage[ this.currentCodeFile ] = JSON.stringify( this.codeFiles[ this.currentCodeFile ] );		 
 		}
 	},
 

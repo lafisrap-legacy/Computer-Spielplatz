@@ -4,6 +4,7 @@ import (
 	"code.google.com/p/go.net/websocket"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	_ "errors"
 	"fmt"
 	"github.com/astaxie/beego"
@@ -155,7 +156,6 @@ func translateMessages(s socket) {
 
 		message.Xsrf = ""
 		message.Session = sx.Session
-		beego.Warning("Message from ", message.Session.Get("UserName"), message)
 		message.returnChan = make(chan Data)
 		go catchReturn(message.returnChan, encoder)
 
@@ -191,6 +191,8 @@ func serveMessages(messageChan chan Message) {
 			data = writeProject(s, message.ProjectName, message.FileType, message.FileNames, message.CodeFiles, message.TimeStamps, message.ResourceFiles, message.Images, message.Commit)
 		case "cloneProject":
 			data = cloneProject(s, message.ProjectName)
+		case "fetchProject":
+			data, _ = fetchProject(s, message.ProjectName)
 		case "readPals":
 			data = readPals(s)
 		case "sendInvitations":
@@ -307,9 +309,17 @@ func readSourceFiles(s session.Store, fileNames []string, fileProjects []string,
 		)
 
 		/////////////////////////////////////////
+		// Fetch project
+		project := fileProjects[i]
+		if project != "" {
+			_, err := fetchProject(s, project)
+
+			beego.Warning("Fetching result: ", err)
+		}
+
+		/////////////////////////////////////////
 		// Read file
 		var fileName string
-		project := fileProjects[i]
 		if project != "" {
 			fileName = dir + beego.AppConfig.String("userdata::projects") + "/" + project + "/" + fileType + "/" + fileNames[i]
 		} else {
@@ -577,7 +587,10 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 	models.CreateProjectDatabaseEntry(project, user, int64(1<<uint(len(models.PRR_NAMES)))-1)
 
 	// Add, commit and push
-	models.GitAddCommitPush(userName, projectDir, beego.AppConfig.String("userdata::firstcommit"), true)
+	err = models.GitAddCommitPush(userName, projectDir, beego.AppConfig.String("userdata::firstcommit"), true)
+	if err != nil {
+		beego.Error(err)
+	}
 
 	// Remove old files, if any
 	if fileNames[0] != "" {
@@ -716,6 +729,45 @@ func cloneProject(s session.Store, projectName string) Data {
 	return Data{
 		"ProjectName": projectName,
 	}
+}
+
+func fetchProject(s session.Store, projectName string) (Data, error) {
+
+	// if user is not logged in return
+	userName := s.Get("UserName").(string)
+	if userName == "" {
+		return Data{}, errors.New("No user name available.")
+	}
+	if projectName == "" {
+		return Data{}, errors.New("No project name available.")
+	}
+
+	userDir := beego.AppConfig.String("userdata::location") + userName
+	projectDir := userDir + "/" + beego.AppConfig.String("userdata::projects") + "/" + projectName
+
+	beego.Warning("Doing git fetch with", projectDir)
+
+	// 1 Open repository
+	repo, err := git.OpenRepository(projectDir)
+	if err != nil {
+		return Data{}, errors.New("OpenRepository - " + err.Error())
+	}
+
+	// 2 Create a signature
+	sig := &git.Signature{
+		Name:  userName,
+		Email: userName + "@" + beego.AppConfig.String("userdata::emailserver"),
+		When:  time.Now(),
+	}
+
+	err = models.AnnotatedPull(repo, sig)
+	if err != nil {
+		return Data{
+			"Error": err.Error(),
+		}, err
+	}
+
+	return Data{}, nil
 }
 
 func readPals(s session.Store) Data {

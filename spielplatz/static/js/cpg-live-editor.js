@@ -20,7 +20,7 @@ var projectControlBar = window.ProjectControlBar.extend( {
 
 	openNewProject: function( projectName ) {
 
-		this.readSourceFiles( [ projectName + "." + self.fileType ], [ projectName ], function() {
+		this.readSourceFiles( [ projectName + "." + this.fileType ], [ projectName ], function() {
 			console.log( "Finished reading files of new project." );
 		} );
 	},

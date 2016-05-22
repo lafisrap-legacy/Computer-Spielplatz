@@ -8,22 +8,30 @@ Image Editor (Grafik & Animation)
 Live-Editor (Programmieren)
 ###########################
 throbber.gif und ohnoes.png Pfade umleiten (wie fir throbber-full in integration)
-- Project init
+
 
 FEATURE:
-Projekt speichern anzeigen
-Projekt init abrunden
+- Shortcuts für alles!
+- Keine Leer- und Sonerzeichen im Namen / Filenamen
+- Notifications (evnt. erst mit socket.io)
+
 BUG:
-Editor muss neu gestartet werden, wenn die Resourcedatei verändert werden
-Sound-Auswahl lädt nicht
-Editor muss refreshed werden
+- Zeile 508++ Speichern von unbekannter Datei geht schief
+- Beim Projekt anlegen: Wenn Projektname schon vorhanden, bleibt Bildschirm stehen
+- Projekt speichern meldet Konflikte obwohl sie gelöst sind
+- Projekt unbekannt kann angelegt werden
+- sessionStorage mit unbekannter Datei untersuchen
+- Wenn Projekt gespeichert wird, wird Datei nicht in AllFilesList übernommen
+- Prüfen, ob neues Projekt schon existiert
+- Filename bei Project Init markieren
+- Editor muss neu gestartet werden, wenn die Resourcedatei verändert werden
 
 
 Beispiel-Programme für DLwmds
 #############################
 - Schlange
 - Planeten
-- ?
+- Musik
 
 
 
@@ -33,13 +41,12 @@ Testsystem
 
 Casper.js
 
+Ziel: Server crash sicher machen
+
 
 
 Sound Editor
 ############
-sic Hall
-cocos sound library
-Hall, Compression, eq-editor equalizer
 
 Programm veröffentlichen
 ########################
@@ -77,5 +84,4 @@ chai
 unit-coverage
 
 
-- Shortcuts für alles!
 
