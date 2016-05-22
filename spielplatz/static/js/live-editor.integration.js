@@ -50,8 +50,12 @@ $( window ).on("live-editor-late-integration", function( e ) {
 	///////////////////////////////////////////////////////////
 	// Replace blank image file
 	//
-	var src = $(".mediapicker .current-media img").attr("src").replace(/cute\/Blank.png/g, "Spielplatz/KeinBild.png");
-	$(".mediapicker .current-media img").attr( "src", src );
+	var src = $(".mediapicker .current-media img").attr("src");
+
+	if( src ) {
+		src.replace(/cute\/Blank.png/g, "Spielplatz/KeinBild.png");
+		$(".mediapicker .current-media img").attr( "src", src );
+	}
 
 	///////////////////////////////////////////////////////////
 	// Replace tipbar strings

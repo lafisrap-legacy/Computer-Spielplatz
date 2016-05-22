@@ -1,5 +1,5 @@
 // Weiter mit save file 
-//        var self = this;
+//		var self = this;
 
 ( function( ) {
 
@@ -16,7 +16,7 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 
 	initialize: function initialize ( options ) {
 
-        var self = this;
+		var self = this;
 		this.page = options.page || "pjs";
 
 		$( ".page" ).hide( );
@@ -29,102 +29,102 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 			location.reload( );
 		} );
  
-        ///////////////////////////////////////////
-        // Delete button
-        $( "#control-bar-delete" ).on( 'click', function( ) {
-            if( self.currentCodeFile !== window.CPG.ControlBarNewFile ) {
-                self.showModalYesNo( self.currentCodeFile, window.CPG.ControlBarModalFileDeleteS, function( yes ) {
-                    if( yes ) {
-                        $WS.sendMessage( {
-                            command: "deleteJSFiles",
-                            FileNames: [ self.currentCodeFile ],
-                        }, function( message ) {
+		///////////////////////////////////////////
+		// Delete button
+		$( "#control-bar-delete" ).on( 'click', function( ) {
+			if( self.currentCodeFile !== window.CPG.ControlBarNewFile ) {
+				self.showModalYesNo( self.currentCodeFile, window.CPG.ControlBarModalFileDeleteS, function( yes ) {
+					if( yes ) {
+						$WS.sendMessage( {
+							command: "deleteJSFiles",
+							FileNames: [ self.currentCodeFile ],
+						}, function( message ) {
 
-                            // weiter mit go command deleteJSFiles
-                            self.codeFileList.splice( self.codeFileList.indexOf( self.currentCodeFile ),1 );
-                            for( var i=0, afl=self.allFilesList ; i<afl.length ; i++ ) {
-                                if( afl[ i ].name === self.currentCodeFile ) afl.splice( i,1 );
-                                break;
-                            } 
-                            self.codeFiles[ self.currentCodeFile ] = null;
+							// weiter mit go command deleteJSFiles
+							self.codeFileList.splice( self.codeFileList.indexOf( self.currentCodeFile ),1 );
+							for( var i=0, afl=self.allFilesList ; i<afl.length ; i++ ) {
+								if( afl[ i ].name === self.currentCodeFile ) afl.splice( i,1 );
+								break;
+							} 
+							self.codeFiles[ self.currentCodeFile ] = null;
 
-                            sessionStorage[ self.page + "CurrentCodeFile" ] = self.currentCodeFile = self.codeFileList[ 0 ] || window.CPG.ControlBarNewFile
-                            sessionStorage[ self.page + "CodeFileList" ] = JSON.stringify( self.codeFileList );
-                            sessionStorage[ self.page + "AllFilesList" ] = JSON.stringify( self.allFilesList );
-                            sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] || { code: "" } );
+							sessionStorage[ self.page + "CurrentCodeFile" ] = self.currentCodeFile = self.codeFileList[ 0 ] || window.CPG.ControlBarNewFile
+							sessionStorage[ self.page + "CodeFileList" ] = JSON.stringify( self.codeFileList );
+							sessionStorage[ self.page + "AllFilesList" ] = JSON.stringify( self.allFilesList );
+							sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] || { code: "" } );
 
-                            self.fillButtonControl( );
-                            self.reset( self.codeFiles[ self.currentCodeFile ]? self.codeFiles[ self.currentCodeFile ].code : "" );
-                            self._dirty = false;
-                        } );
-                    }
-                } );
-                return;
-            }
-        } );
+							self.fillButtonControl( );
+							self.reset( self.codeFiles[ self.currentCodeFile ]? self.codeFiles[ self.currentCodeFile ].code : "" );
+							self._dirty = false;
+						} );
+					}
+				} );
+				return;
+			}
+		} );
 
-        $( "#control-bar-save" ).on( 'click', function( e ) {
-            var input = $( "#control-bar-input input" ),
-                filename = input.val( );
+		$( "#control-bar-save" ).on( 'click', function( e ) {
+			var input = $( "#control-bar-input input" ),
+				filename = input.val( );
 
-            if( filename === window.CPG.ControlBarNewFile ) {
-                self.selectFilename( input );
-            } else {
-                if( filename.slice( -4 ) != ".pjs" ) {
-                    filename += ".pjs";
-                    input.val( filename );
-                }
+			if( filename === window.CPG.ControlBarNewFile ) {
+				self.selectFilename( input );
+			} else {
+				if( filename.slice( -4 ) != ".pjs" ) {
+					filename += ".pjs";
+					input.val( filename );
+				}
 
-                self.saveCodeFile( filename );
-                input.fadeOut( );
-            }
+				self.saveCodeFile( filename );
+				input.fadeOut( );
+			}
 
-            return false;
-        } );
+			return false;
+		} );
 
-        $( "#control-bar-label" ).on( 'click', function( e ) {
-            $( "#control-bar-save" ).trigger( "click" );
-            e.stopPropagation( )
-        } );
+		$( "#control-bar-label" ).on( 'click', function( e ) {
+			$( "#control-bar-save" ).trigger( "click" );
+			e.stopPropagation( )
+		} );
 
-        $( "#control-bar-saveas" ).on( 'click', function( ) {
-            var input = $( "#control-bar-input input" );
-            self.selectFilename( input );
-        } );
+		$( "#control-bar-saveas" ).on( 'click', function( ) {
+			var input = $( "#control-bar-input input" );
+			self.selectFilename( input );
+		} );
 
-        $( "#control-bar-input" ).submit( function( e ) {
-            var input = $( "#control-bar-input input" ),
-                filename = input.val( );
+		$( "#control-bar-input" ).submit( function( e ) {
+			var input = $( "#control-bar-input input" ),
+				filename = input.val( );
 
-            if( filename === window.CPG.ControlBarNewFile ) {
-                self.selectFilename( input );
-            } else {
+			if( filename === window.CPG.ControlBarNewFile ) {
+				self.selectFilename( input );
+			} else {
 
-                if( filename.slice( -3 ) != ".pjs" ) {
-                    filename += ".pjs"
-                    input.val( filename );
-                }
+				if( filename.slice( -3 ) != ".pjs" ) {
+					filename += ".pjs"
+					input.val( filename );
+				}
 
-                self.saveCodeFile( filename );
-                input.fadeOut( );
-            }
+				self.saveCodeFile( filename );
+				input.fadeOut( );
+			}
 
-            return false;
-        } );
+			return false;
+		} );
 
 
-        $( "#control-bar-restart" ).on( "click", function( e ) {
-            self.restart( );
-        } );
+		$( "#control-bar-restart" ).on( "click", function( e ) {
+			self.restart( );
+		} );
 
-        $( "#logout-button" ).on( "click", function( e ) {
-            localStorage.ĈPG_loginTime = 0;
-        } );
+		$( "#logout-button" ).on( "click", function( e ) {
+			localStorage.ĈPG_loginTime = 0;
+		} );
 
-        $( ".kuenste a" ).on( "click tap", function( e ) {
-            self.storeCurrentCodeFile( );
-            self._dirty = false;
-        } );
+		$( ".kuenste a" ).on( "click tap", function( e ) {
+			self.storeCurrentCodeFile( );
+			self._dirty = false;
+		} );
 	},
 
 	////////////////////////////////////////////////////////////////////////
@@ -135,29 +135,29 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 		return "Each editor has to return it's own code.";
 	},
 
-    reset: function( code ) {        
-        return "Each editor has to reset in it's own way."
-    },
+	reset: function( code ) {		
+		return "Each editor has to reset in it's own way."
+	},
 
-    getScreenshot: function( cb ) {
-        cb( "Each editor has to reset in it's own way." );
-    },
+	getScreenshot: function( cb ) {
+		cb( "Each editor has to reset in it's own way." );
+	},
 
-    restart: function() {
-        return "Each editor has to restart in it's own way."        
-    },
+	restart: function() {
+		return "Each editor has to restart in it's own way."		
+	},
 
-    resources: function() {
-        return "Each editor has it's own way to return resources."        
-    },
+	resources: function() {
+		return "Each editor has it's own way to return resources."		
+	},
 
-    moveResources: function( projectName ) {
-        return "Each editor has it's own way to move resources into a project environment."        
-    },
+	moveResources: function( projectName ) {
+		return "Each editor has it's own way to move resources into a project environment."		
+	},
 
 
-    // End of interface methods
-    ////////////////////////////////////////////////////////////////////////
+	// End of interface methods
+	////////////////////////////////////////////////////////////////////////
 
 	modified: function( ) {
 		return this._dirty;
@@ -166,7 +166,6 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 	setClean: function( ) {
 		this._dirty = false;
 	},
-
 
 	///////////////////////////////////////////
 	// showModalSound displays a modal dialog to select sounds
@@ -223,31 +222,6 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 			if( cb ) cb( );
 		} );
 	},
-
-    /////////////////////////////////////////
-    // selectFilename displays a filename input and selects the js filename
-    selectFilename: function( input ) {
-
-        input.fadeIn( );
-        input.focus( );
-        var filename = input.val( );
-
-        if( filename.slice( -3 ) != ".pjs" ) {
-            filename += ".pjs";
-            input.val( filename );
-        }
-
-        var startPos = 0,
-            endPos = filename.length-3;
-
-        if ( typeof input[ 0 ].selectionStart != "undefined" ) {
-            input[ 0 ].selectionStart = startPos;
-            input[ 0 ].selectionEnd = endPos;
-        }
-    },
-
-
-
 } );
 
 //////////////////////////////////////////////////////////////////////////
@@ -255,9 +229,9 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 //
 window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
 
-    imagesRegex: /getImage\(\s*\"([^\"]+)/g,
-    soundsRegex: /getSound\(\s*\"([^\"]+)/g,
-    projectRegex: /\"\s*[^\/]+/g,
+	imagesRegex: /getImage\(\s*\"([^\"]+)/g,
+	soundsRegex: /getSound\(\s*\"([^\"]+)/g,
+	projectRegex: /\"\s*[^\/]+/g,
 
 	initialize: function( options ) {
 		window.LiveEditorFrame.prototype.initialize.call( this, options );
@@ -275,18 +249,18 @@ window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
 			imagesDir: "static/userdata/" + window.CPG.UserNameForImages + "/images/",
 			soundsDir: "../static/userdata/" + window.CPG.UserNameForImages + "/sounds/",
 			jshintFile: "../build/external/jshint/jshint.js",
-            newErrorExperience: true,
+			newErrorExperience: true,
 		} );
 
-        this.liveEditor.editor.on( "change", function ( ) {
-            this._dirty = true;
-        } );
+		this.liveEditor.editor.on( "change", function ( ) {
+			this._dirty = true;
+		} );
 
-        // Patch for changing the width, bug in live-editor as of April 2016
-        // Right and bottom border still missing ... 
-        $( "#output-frame" ).width( 320 );
+		// Patch for changing the width, bug in live-editor as of April 2016
+		// Right and bottom border still missing ... 
+		$( "#output-frame" ).width( 320 );
 
-        // We have an own toolbar ...
+		// We have an own toolbar ...
 		$( ".scratchpad-toolbar" ).hide( );
 
 		// Store sound modal address in global variable for editor integration
@@ -297,61 +271,57 @@ window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
 	// Following methods have to be implemented by every editor type
 	//
 	// text: Return the current code
-    text: function( ) {
-        return this.liveEditor.editor.text( );
-    },
+	text: function( ) {
+		return this.liveEditor.editor.text( );
+	},
 
-    // reset: Reset the editor with code
-    reset: function( code ) {
-        this.liveEditor.editor.reset( code );
-        this._dirty = false;
-    },
+	// reset: Reset the editor with code
+	reset: function( code ) {
+		this.liveEditor.editor.reset( code );
+		this._dirty = false;
+	},
 
-    // restart: Restarts the code
-    restart: function() {
-        this.liveEditor.restartCode( );
-    },
+	// restart: Restarts the code
+	restart: function() {
+		this.liveEditor.restartCode( );
+	},
 
-    // getScreenShot takes the current canvas and passes it as first parameter to a call back function
-    getScreenshot: function( cb ) {
-        this.liveEditor.getScreenshot( cb );
-    },
+	// getScreenShot takes the current canvas and passes it as first parameter to a call back function
+	getScreenshot: function( cb ) {
+		this.liveEditor.getScreenshot( cb );
+	},
 
-    // Hier geht's weiter ... resource mbraucht eine Option, um die Resourcen ins neue Projektverzeichnis zu verschieben
-    // Ungeschehen machen, wenn etwas schief geht :-( 
-    // Project cleanup erforderlich
+	// resouces returns a list of all images, sounds and other resources used in the code file
+	resources: function() {
+		var t = this.text(),
+			res = [];
 
-    // resouces returns a list of all images, sounds and other resources used in the code file
-    resources: function() {
-        var t = this.text(),
-            res = [];
+		while( match = this.imagesRegex.exec( t ) ) {
+			res.push( match[ 1 ] + ".png" );
+		};
 
-        while( match = this.imagesRegex.exec( t ) ) {
-            res.push( match[ 1 ] + ".png" );
-        };
+		while( match = this.soundsRegex.exec( t ) ) {
+			res.push( match[ 1 ] + ".mp3" );
+		};
 
-        while( match = this.soundsRegex.exec( t ) ) {
-            res.push( match[ 1 ] + ".mp3" );
-        };
+		return res;
+	},
 
-        return res;
-    },
+	// moveResouces moves all resources to the project directory and returns the code file 
+	// (doesn't change it in the editor though)
+	moveResources: function( projectName ) {
+		var self = this,
+			code = this.text();
 
-    // moveResouces moves all resources to the project directory and returns the code file 
-    // (doesn't change it in the editor though)
-    moveResources: function( projectName ) {
-        var self = this,
-            code = this.text();
+		code = code.replace( this.imagesRegex, function( match, group ) {
+			return match.replace( self.projectRegex, "\""+projectName );
+		} );
+		code = code.replace( this.soundsRegex, function( match, group ) {
+			return match.replace( self.projectRegex, "\""+projectName );
+		} );
 
-        code = code.replace( this.imagesRegex, function( match, group ) {
-            return match.replace( self.projectRegex, "\""+projectName );
-        } );
-        code = code.replace( this.soundsRegex, function( match, group ) {
-            return match.replace( self.projectRegex, "\""+projectName );
-        } );
-
-        return code;
-    },
+		return code;
+	},
 } );
 
 } )( );

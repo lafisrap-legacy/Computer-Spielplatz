@@ -140,7 +140,7 @@ func translateMessages(s socket) {
 		err = decoder.Decode(&message)
 
 		if err != nil {
-			beego.Error("Websockets error: ", err.Error())
+			beego.Error("Websockets error: ", err.Error(), message)
 			s.done <- true
 			return
 		}
@@ -607,7 +607,10 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 func writeProject(s session.Store, projectName string, fileType string, fileNames []string, codeFiles []string, timeStamps []int64, resourceFiles []string, images []string, commit string) Data {
 
 	// if user is not logged in return
-	userName := s.Get("UserName").(string)
+	userName := ""
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+	}
 	if userName == "" {
 		beego.Error("No user name available.")
 		return Data{}
@@ -673,7 +676,10 @@ func writeProject(s session.Store, projectName string, fileType string, fileName
 func cloneProject(s session.Store, projectName string) Data {
 
 	// if user is not logged in return
-	userName := s.Get("UserName").(string)
+	userName := ""
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+	}
 	if userName == "" {
 		beego.Error("No user name available.")
 		return Data{}
@@ -738,7 +744,10 @@ func cloneProject(s session.Store, projectName string) Data {
 func fetchProject(s session.Store, projectName string) (Data, error) {
 
 	// if user is not logged in return
-	userName := s.Get("UserName").(string)
+	userName := ""
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+	}
 	if userName == "" {
 		return Data{}, errors.New("No user name available.")
 	}
@@ -776,7 +785,10 @@ func fetchProject(s session.Store, projectName string) (Data, error) {
 
 func readPals(s session.Store) Data {
 	// Read own groups
-	userName := s.Get("UserName").(string)
+	userName := ""
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+	}
 	if userName == "" {
 		beego.Error("No user name available.")
 		return Data{}
@@ -790,7 +802,10 @@ func readPals(s session.Store) Data {
 func sendInvitations(s session.Store, projectName string, userNames []string) Data {
 
 	T := models.T
-	userName := s.Get("UserName").(string)
+	userName := ""
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+	}
 	if userName == "" {
 		beego.Error("No user name available.")
 		return Data{}
@@ -803,7 +818,11 @@ func sendInvitations(s session.Store, projectName string, userNames []string) Da
 
 func readNewMessages(s session.Store, messageIds []int64) Data {
 
-	userName := s.Get("UserName").(string)
+	userName := ""
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+	}
+
 	if userName == "" {
 		beego.Error("No user name available.")
 		return Data{}
@@ -829,7 +848,10 @@ func readNewMessages(s session.Store, messageIds []int64) Data {
 
 func deleteMessage(s session.Store, messageId int64) Data {
 
-	userName := s.Get("UserName").(string)
+	userName := ""
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+	}
 	if userName == "" {
 		beego.Error("No user name available.")
 		return Data{}

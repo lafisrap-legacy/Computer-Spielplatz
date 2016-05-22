@@ -626,16 +626,16 @@ window.ProjectControlBar = Backbone.Model.extend( {
 	},
 
 	checkRights: function( ) {
-		var rights = this.codeFiles[ this.currentCodeFile ].rights,
-			ok = false;
+		var rights = this.codeFiles[ this.currentCodeFile ] && this.codeFiles[ this.currentCodeFile ].rights,
+			res = false;
 
-		for( var i = 0; rights && i < arguments.length; i++ ) if( rights.indexOf( arguments[i] ) !== -1 ) ok = true;
+		for( var i = 0; rights && i < arguments.length; i++ ) if( rights.indexOf( arguments[i] ) !== -1 ) res = true;
 
-		return ok; 
+		return res; 
 	},
 
 	getProjectMembers: function( ) {
-		return this.codeFiles[ this.currentCodeFile ].users;
+		return this.codeFiles[ this.currentCodeFile ] && this.codeFiles[ this.currentCodeFile ].users || [];
 	},
 } );
 

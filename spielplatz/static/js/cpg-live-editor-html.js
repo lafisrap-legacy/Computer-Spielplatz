@@ -2,6 +2,10 @@
 
 window.LiveEditorFrameHTML = window.LiveEditorFrame.extend ( {
 
+    imagesRegex: /getImage\(\s*\"([^\"]+)/g,
+    soundsRegex: /getSound\(\s*\"([^\"]+)/g,
+    projectRegex: /\"\s*[^\/]+/g,
+
 	initialize: function( options ) {
 		window.LiveEditorFrame.prototype.initialize.call( this, options );
 
@@ -10,9 +14,9 @@ window.LiveEditorFrameHTML = window.LiveEditorFrame.extend ( {
 			outputType: "webpage",
 			el: $( "#cpg-live-editor-html" ),
 			code: "<!DOCTYPE html>\n<body>\n<strong>Hello</strong>, world!\n</body>",
-			width: 480,
-			height: 800,
-			editorHeight: "800px",
+			width: 400,
+			height: 568,
+			editorHeight: "568px",
 			autoFocus: true,
 			workersDir: "../build/workers/",
 			externalsDir: "../build/external/",
@@ -50,6 +54,38 @@ window.LiveEditorFrameHTML = window.LiveEditorFrame.extend ( {
     // getScreenShot takes the current canvas and passes it as first parameter to a call back function
     getScreenshot: function( cb ) {
         this.liveEditor.getScreenshot( cb );
+    },
+
+        // resouces returns a list of all images, sounds and other resources used in the code file
+    resources: function() {
+        var t = this.text(),
+            res = [];
+
+        while( match = this.imagesRegex.exec( t ) ) {
+            res.push( match[ 1 ] + ".png" );
+        };
+
+        while( match = this.soundsRegex.exec( t ) ) {
+            res.push( match[ 1 ] + ".mp3" );
+        };
+
+        return res;
+    },
+
+    // moveResouces moves all resources to the project directory and returns the code file 
+    // (doesn't change it in the editor though)
+    moveResources: function( projectName ) {
+        var self = this,
+            code = this.text();
+
+        code = code.replace( this.imagesRegex, function( match, group ) {
+            return match.replace( self.projectRegex, "\""+projectName );
+        } );
+        code = code.replace( this.soundsRegex, function( match, group ) {
+            return match.replace( self.projectRegex, "\""+projectName );
+        } );
+
+        return code;
     },
 } );
 
