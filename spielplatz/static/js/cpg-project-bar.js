@@ -105,6 +105,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 						sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
 						sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile;
+						console.log( "This should be not a string:", self.codeFiles[ self.currentCodeFile ] );
 						sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
 
 						self.buttonGroup.fillOpenControl( );
@@ -160,7 +161,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
  
 		if( codeFile !== "all" ) {
 
-			sessionStorage[ self.currentCodeFile ] = self.currentCodeFile = codeFile;
+			sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = codeFile;
 
 			self.editor.reset( self.codeFiles[ self.currentCodeFile ].code );
 			self.buttonGroup.showFilename( self.currentCodeFile );
