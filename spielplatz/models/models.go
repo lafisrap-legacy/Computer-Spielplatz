@@ -150,6 +150,7 @@ var T map[string]string
 var TLanguages map[string]map[string]string
 
 const (
+	MaxUserPerProject  = 100
 	MaxRightsPerUser   = 100
 	MaxMessagesPerUser = 100
 	MaxGroupsPerUser   = 20
@@ -510,6 +511,25 @@ func GetProjectRightsFromDatabase(userName string, projectName string) []string 
 
 	//	beego.Warning("Rights for", userName, rights)
 	return rights
+}
+
+//////////////////////////////////////////////////
+// GetProjectUsersFromDatabase reads the users that are in the group of a user
+func GetProjectUsersFromDatabase(projectName string) []string {
+	o := orm.NewOrm()
+	o.Using("default") // Using default, you can use other database
+
+	var u []orm.Params
+
+	users := make([]string, 0, MaxUserPerProject)
+
+	o.QueryTable("project_user").Filter("project__name", projectName).Values(&u, "user__name")
+
+	for _, params := range u {
+		users = append(users, params["User__Name"].(string))
+	}
+
+	return users
 }
 
 func CheckRight(userName string, projectName string, right string) bool {

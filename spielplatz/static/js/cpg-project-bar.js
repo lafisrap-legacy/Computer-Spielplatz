@@ -274,7 +274,8 @@ window.ProjectControlBar = Backbone.Model.extend( {
 										code: code,
 										project: name,
 										timeStamp: message.SavedTimeStamps[0],
-										rights: message.Rights
+										rights: message.Rights,
+										users: message.Users
 									};
 
 									if( newCodeFile !== self.currentCodeFile ) {
@@ -410,6 +411,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 							timeStamp: codeFile.TimeStamp,
 							project: codeFile.Project,
 							rights: codeFile.Rights,
+							users: codeFile.Users
 						}
 						sessionStorage[ fileName ] = JSON.stringify( self.codeFiles[ fileName ] );
 						if( self.codeFileList.indexOf( fileName ) === -1 ) self.codeFileList.push( fileName );
@@ -475,12 +477,14 @@ window.ProjectControlBar = Backbone.Model.extend( {
 						}
 					}
 
+					var codeFile = self.codeFiles[ self.currentCodeFile ];
 					if( !filenameExists ) self.allFilesList.push( {
 						name: fileName,
-						code: self.codeFiles[ self.currentCodeFile ].code,
-						timeStamp: self.codeFiles[ self.currentCodeFile ].timeStamp,
-						project: self.codeFiles[ self.currentCodeFile ].project,
-						rights: self.codeFiles[ self.currentCodeFile ].rights
+						code: codeFile.code,
+						timeStamp: codeFile.timeStamp,
+						project: codeFile.project,
+						rights: codeFile.rights,
+						users: codeFile.Users
 					} );
 					sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
 					sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
@@ -508,7 +512,8 @@ window.ProjectControlBar = Backbone.Model.extend( {
 					code: code,
 					timeStamp: message.SavedTimeStamps[ 0 ],
 					project: project,
-					rights: message.Rights
+					rights: message.Rights,
+					users: message.Users
 				};
 				sessionStorage[ fileName ] = JSON.stringify( self.codeFiles[ fileName ] );
 				self.buttonGroup.fillOpenControl( );
@@ -630,8 +635,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 	},
 
 	getProjectMembers: function( ) {
-		if( this.codeFiles[ this.currentCodeFile ].project !== "" ) return [""];
-		else return [];
+		return this.codeFiles[ this.currentCodeFile ].users;
 	},
 } );
 

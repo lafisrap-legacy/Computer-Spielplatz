@@ -73,6 +73,7 @@ type SourceFile struct {
 	Code      string
 	Project   string
 	Rights    []string
+	Users     []string
 }
 
 // Data is a map for command parameter to and from the controller
@@ -343,8 +344,10 @@ func readSourceFiles(s session.Store, fileNames []string, fileProjects []string,
 		}
 
 		rights := []string{}
+		users := []string{}
 		if project != "" {
 			rights = models.GetProjectRightsFromDatabase(name, project)
+			users = models.GetProjectUsersFromDatabase(project)
 		}
 
 		codeFiles[fileNames[i]] = SourceFile{
@@ -352,6 +355,7 @@ func readSourceFiles(s session.Store, fileNames []string, fileProjects []string,
 			Code:      string(codeFile),
 			Project:   project,
 			Rights:    rights,
+			Users:     users,
 		}
 	}
 
