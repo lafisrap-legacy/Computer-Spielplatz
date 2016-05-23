@@ -234,6 +234,8 @@ window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
 	projectRegex: /\"\s*[^\/]+/g,
 
 	initialize: function( options ) {
+        var self = this;
+
 		window.LiveEditorFrame.prototype.initialize.call( this, options );
 
 		this.liveEditor = new LiveEditor ( {
@@ -253,7 +255,7 @@ window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
 		} );
 
 		this.liveEditor.editor.on( "change", function ( ) {
-			this._dirty = true;
+			self._dirty = true;
 		} );
 
 		// Patch for changing the width, bug in live-editor as of April 2016

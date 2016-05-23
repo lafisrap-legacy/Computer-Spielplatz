@@ -18,7 +18,7 @@
                                         
 	"live_editor_header_pjs"			: "Processing / JavaScript",
 	"live_editor_header_html"			: "HTML / CSS",
-	
+
 	"project_bar_new"					: "Neu",
 	"project_bar_open"					: "Öffnen",
 	"project_bar_save"					: "Speichern",
@@ -42,7 +42,7 @@
 	"project_bar_modal_already_open_s"	: "Die Datei ist schon geöffnet. Willst du sie trotzdem laden?",
 	"project_bar_modal_cancel"		    : "Abbrechen",
 	"project_bar_modal_codefile_title"  : "Deine Quell-Dateien und -Projekte",
-	"project_bar_modal_conflicts_2"     : "Es gibt Konflikte im Quelltext, die du auflösen musst, bevor du das Projekt speichern kannst.",
+	"project_bar_modal_conflicts_2"     : "Jemand im Projekt hat etwas geändert, das nicht automatisch übernommen werden kann. Eventuell werden Konflikte angezeigt.<br><br>Auf jeden Fall musst du das Projekt speichern, wenn du geändert hast, was du ändern willst.",
 	"project_bar_modal_conflicts"       : "Quelltext-Konflikt",
 	"project_bar_modal_delete"		    : "Löschen",
 	"project_bar_modal_file_changed_2"	: "Willst du ihn speichern?",

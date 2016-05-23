@@ -74,7 +74,15 @@ type SourceFile struct {
 	Project   string
 	Rights    []string
 	Users     []string
+	Status    SourceStatus
 }
+
+type SourceStatus int
+
+const (
+	STATUS_OK SourceStatus = iota
+	STATUS_UNCOMMITTED
+)
 
 // Data is a map for command parameter to and from the controller
 type Data map[string]interface{}
@@ -312,8 +320,18 @@ func readSourceFiles(s session.Store, fileNames []string, fileProjects []string,
 		/////////////////////////////////////////
 		// Fetch project
 		project := fileProjects[i]
+		status := STATUS_OK
 		if project != "" {
 			_, err := fetchProject(s, project)
+
+			if err != nil {
+				beego.Warning("Error message:", err.Error())
+				switch err.Error() {
+				case "uncommitted changes":
+					beego.Warning("Uncommitted changes detected!", err)
+					status = STATUS_UNCOMMITTED
+				}
+			}
 
 			beego.Warning("Fetching result: ", err)
 		}
@@ -356,6 +374,7 @@ func readSourceFiles(s session.Store, fileNames []string, fileProjects []string,
 			Project:   project,
 			Rights:    rights,
 			Users:     users,
+			Status:    status,
 		}
 	}
 
@@ -775,6 +794,13 @@ func fetchProject(s session.Store, projectName string) (Data, error) {
 
 	err = models.AnnotatedPull(repo, sig)
 	if err != nil {
+		if strings.Index(err.Error(), "uncommitted change") != -1 {
+			e := errors.New("uncommitted changes")
+			return Data{
+				"Error": e.Error(),
+			}, e
+		}
+
 		return Data{
 			"Error": err.Error(),
 		}, err

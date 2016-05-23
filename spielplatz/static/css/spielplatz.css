@@ -158,6 +158,10 @@ body {
   color: #bbb;
 }
 
+#project-button-group .big-filename.uncommitted {
+  color: #bbf;
+}
+
 #project-button-group .big-filename .project {
   position: absolute;
   font-size: 0.9em;

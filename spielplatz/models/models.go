@@ -1133,7 +1133,7 @@ func AnnotatedPull(repo *git.Repository, sig *git.Signature) error {
 
 		// 5 Yes! First just merge changes
 		if err := repo.Merge([]*git.AnnotatedCommit{annotatedCommit}, nil, nil); err != nil {
-			beego.Error("Fetch 5 - ", err)
+			return err
 		}
 		beego.Trace("5")
 
