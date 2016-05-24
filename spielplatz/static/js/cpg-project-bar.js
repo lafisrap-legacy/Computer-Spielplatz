@@ -255,7 +255,9 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 					self.buttonGroup.showModalStringInput( window.CPG.ProjectBarModalProjectInit , window.CPG.ProjectBarModalProjectInit2, projectName, window.CPG.ProjectBarModalProjectInitOk, function( name ) {
 
-						var code = self.editor.moveResources( name );
+						var res = self.editor.moveResources( name ),
+							code = res.code;
+
 						if( name && name !== self.newFile.substr( 0, self.newFile.length - self.fileType.length - 1 ) ) {
 
 							self.buttonGroup.showSaving( "...", true );
@@ -288,6 +290,8 @@ window.ProjectControlBar = Backbone.Model.extend( {
 										status: message.Status
 									};
 
+									self.editor.reset( code );
+
 									if( newCodeFile !== self.currentCodeFile ) {
 										self.codeFileList.unshift( newCodeFile );
 										self.allFilesList.unshift( self.codeFiles[ newCodeFile ] );
@@ -310,6 +314,11 @@ window.ProjectControlBar = Backbone.Model.extend( {
 									self.buttonGroup.showSaving( "success", true );
 									self.buttonGroup.showFilename();
 
+									if( res.changed ) {
+										self.buttonGroup.showModalOk( window.CPG.ProjectBarModalRestartEditor, window.CPG.ProjectBarModalRestartEditor2, function() {
+											location.reload( );
+										} );
+									}
 									self.isSaving = false;
 								}
 							} );																	
@@ -325,7 +334,8 @@ window.ProjectControlBar = Backbone.Model.extend( {
 							self.buttonGroup.showSaving( "...", true );
 
 							var projectName = self.codeFiles[ self.currentCodeFile ].project,
-								code = self.editor.moveResources( projectName );
+								res = self.editor.moveResources( projectName ),
+								code = res.code;
 
 							(function sendWriteProject( ) {
 
@@ -367,6 +377,11 @@ window.ProjectControlBar = Backbone.Model.extend( {
 										self.readSourceFiles( [ fileName ], [ projectName ], function() {
 											self.buttonGroup.showSaving( "success", true );
 											self.isSaving = false;
+											if( res.changed ) {
+												self.buttonGroup.showModalOk( window.CPG.ProjectBarModalRestartEditor, window.CPG.ProjectBarModalRestartEditor2, function() {
+													location.reload( );
+												} );
+											}
 										} );
 									}
 								} );
@@ -473,7 +488,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 							self.saveSourceFile( fileName, project );
 						} else {
 							self.buttonGroup.showSaving( false );
-							cb( false );
+							if( cb ) cb( false );
 						}
 					} );
 					return false;
@@ -791,7 +806,7 @@ var ButtonGroup = Backbone.View.extend( {
 						"<p>You forgot to set the body text&hellip,</p>" +
 						"<div class='form-group'>" +
 						  "<label class='input-label' for='project-bar-input'></label>" +
-						  "<input type='text' class='form-control' id='project-bar-input'>" +
+						  "<input type='text' class='form-control' id='project-bar-input' name='string-input'>" +
 						"</div>" +
 					"</div>" +
 					"<div class='modal-footer'>" +
@@ -1118,11 +1133,21 @@ var ButtonGroup = Backbone.View.extend( {
 
 		input.val( value );
 
-		$( ".modal-action", modal ).off( "click" ).one( "click", function( e ) {
+		$( ".modal-action", modal ).off( "click" ).on( "click", function( e ) {
+
+			var value = input.val(),
+				filteredValue = value.replace(/[^a-z0-9\ \.\,\!\+\-\(\)]/gi, "");
+
+			if( value !== filteredValue ) {
+				input.val( filteredValue ).focus();
+				e.stopPropagation();
+				return
+			}
+
 			var lcb = cb;
 			cb = null;
 			modal.modal( 'hide' );
-			if( lcb ) lcb( input.val() );
+			if( lcb ) lcb( filteredValue );
 		} );
 
 		$( ".modal-cancel", modal ).off( "click" ).one( "click", function( e ) {
@@ -1137,6 +1162,7 @@ var ButtonGroup = Backbone.View.extend( {
 		modal.keypress( function( e ) {
 			if(e.which == 13) {
 				$( ".modal-action", modal ).trigger( "click" );
+				e.stopPropagation();
 			}
 		})
 

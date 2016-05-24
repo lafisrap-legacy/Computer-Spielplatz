@@ -24,7 +24,7 @@
             <input id="inputPassword2" class="form-control" placeholder="{{ .SignupInputPassword2 }}" required="" type="password" name="password2" value="{{ .Pwd }}">
             <button class="btn btn-lg btn-primary btn-block" type="submit">{{ .SignupSignupGo }}</button>
             {{ if .Error }}
-            <span>{{ .Error }}</span>
+            <div class="error-message">{{ .Error }}</div>
             {{ end }}
         </form>
     </div>

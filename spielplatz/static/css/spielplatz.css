@@ -104,15 +104,23 @@ body {
 }
 
 
-.form-signin, .form-signup {
+.form-login, .form-signup {
 	width: 480px;
 	margin: 0 auto;
 	margin-top: 100px;
 }
 
-.form-signin input,
+.form-login input,
 .form-signup input {
   margin: 5px;
+}
+
+.form-login .error-message,
+.form-signup .error-message {
+  padding: 5px;
+  margin: 10px;
+  border-top: 1px solid lightgrey;
+  color: darkred;
 }
 
 .login-area .btn {

@@ -78,6 +78,8 @@
     "project_bar_saved"                 : "Gespeichert",
 	"project_bar_modal_open_new_project"	: "Neues Projekt öffnen",
 	"project_bar_modal_open_new_project_2"	: "Willst du das neue Projekt öffnen?",
+	"project_bar_modal_restart_editor"	: "Live-Editor neu starten",
+	"project_bar_modal_restart_editor_2": "Es sind neue Bilder oder Sounds hinzugekommen. Der Live-Editor muss neu gestartet werden.",
 
 	"graphics_header_graphics"			: "Bild-Editor",
 	"graphics_header_animations"		: "Animations-Editor",

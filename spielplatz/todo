@@ -16,15 +16,22 @@ FEATURE:
 - Notifications (evnt. erst mit socket.io)
 
 BUG:
-- Zeile 508++ Speichern von unbekannter Datei geht schief
+# KRITISCH
+
+- Sounds werden für neue Projekte nicht direkt geladen / erst nach Neuanmeldungs 
 - Beim Projekt anlegen: Wenn Projektname schon vorhanden, bleibt Bildschirm stehen
-- Projekt speichern meldet Konflikte obwohl sie gelöst sind
+	- Prüfen, ob neues Projekt schon existiert
 - Projekt unbekannt kann angelegt werden
-- sessionStorage mit unbekannter Datei untersuchen
+- Commit-Message darf nicht leer sein.
+
+# WICHTIG
 - Wenn Projekt gespeichert wird, wird Datei nicht in AllFilesList übernommen
-- Prüfen, ob neues Projekt schon existiert
 - Filename bei Project Init markieren
+- "Projekt anlegen" und "Projekt speichern" unterscheiden
 - Editor muss neu gestartet werden, wenn die Resourcedatei verändert werden
+
+# NETT
+- Hover über Punkte: Mitglieder-Namen
 
 
 Beispiel-Programme für DLwmds

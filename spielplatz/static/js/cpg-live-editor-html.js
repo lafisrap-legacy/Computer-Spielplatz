@@ -76,16 +76,20 @@ window.LiveEditorFrameHTML = window.LiveEditorFrame.extend ( {
     // (doesn't change it in the editor though)
     moveResources: function( projectName ) {
         var self = this,
-            code = this.text();
+            code = this.text(),
+            newCode;
 
-        code = code.replace( this.imagesRegex, function( match, group ) {
+        newCode = code.replace( this.imagesRegex, function( match, group ) {
             return match.replace( self.projectRegex, "\""+projectName );
         } );
-        code = code.replace( this.soundsRegex, function( match, group ) {
+        newCode = newCode.replace( this.soundsRegex, function( match, group ) {
             return match.replace( self.projectRegex, "\""+projectName );
         } );
 
-        return code;
+        return { 
+            code: newCode,
+            changed: code !== newCode
+        };
     },
 } );
 

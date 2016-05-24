@@ -29,90 +29,6 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 			location.reload( );
 		} );
  
-		///////////////////////////////////////////
-		// Delete button
-		$( "#control-bar-delete" ).on( 'click', function( ) {
-			if( self.currentCodeFile !== window.CPG.ControlBarNewFile ) {
-				self.showModalYesNo( self.currentCodeFile, window.CPG.ControlBarModalFileDeleteS, function( yes ) {
-					if( yes ) {
-						$WS.sendMessage( {
-							command: "deleteJSFiles",
-							FileNames: [ self.currentCodeFile ],
-						}, function( message ) {
-
-							// weiter mit go command deleteJSFiles
-							self.codeFileList.splice( self.codeFileList.indexOf( self.currentCodeFile ),1 );
-							for( var i=0, afl=self.allFilesList ; i<afl.length ; i++ ) {
-								if( afl[ i ].name === self.currentCodeFile ) afl.splice( i,1 );
-								break;
-							} 
-							self.codeFiles[ self.currentCodeFile ] = null;
-
-							sessionStorage[ self.page + "CurrentCodeFile" ] = self.currentCodeFile = self.codeFileList[ 0 ] || window.CPG.ControlBarNewFile
-							sessionStorage[ self.page + "CodeFileList" ] = JSON.stringify( self.codeFileList );
-							sessionStorage[ self.page + "AllFilesList" ] = JSON.stringify( self.allFilesList );
-							sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] || { code: "" } );
-
-							self.fillButtonControl( );
-							self.reset( self.codeFiles[ self.currentCodeFile ]? self.codeFiles[ self.currentCodeFile ].code : "" );
-							self._dirty = false;
-						} );
-					}
-				} );
-				return;
-			}
-		} );
-
-		$( "#control-bar-save" ).on( 'click', function( e ) {
-			var input = $( "#control-bar-input input" ),
-				filename = input.val( );
-
-			if( filename === window.CPG.ControlBarNewFile ) {
-				self.selectFilename( input );
-			} else {
-				if( filename.slice( -4 ) != ".pjs" ) {
-					filename += ".pjs";
-					input.val( filename );
-				}
-
-				self.saveCodeFile( filename );
-				input.fadeOut( );
-			}
-
-			return false;
-		} );
-
-		$( "#control-bar-label" ).on( 'click', function( e ) {
-			$( "#control-bar-save" ).trigger( "click" );
-			e.stopPropagation( )
-		} );
-
-		$( "#control-bar-saveas" ).on( 'click', function( ) {
-			var input = $( "#control-bar-input input" );
-			self.selectFilename( input );
-		} );
-
-		$( "#control-bar-input" ).submit( function( e ) {
-			var input = $( "#control-bar-input input" ),
-				filename = input.val( );
-
-			if( filename === window.CPG.ControlBarNewFile ) {
-				self.selectFilename( input );
-			} else {
-
-				if( filename.slice( -3 ) != ".pjs" ) {
-					filename += ".pjs"
-					input.val( filename );
-				}
-
-				self.saveCodeFile( filename );
-				input.fadeOut( );
-			}
-
-			return false;
-		} );
-
-
 		$( "#control-bar-restart" ).on( "click", function( e ) {
 			self.restart( );
 		} );
@@ -294,7 +210,7 @@ window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
 	},
 
 	// resouces returns a list of all images, sounds and other resources used in the code file
-	resources: function() {
+	resources: function( ) {
 		var t = this.text(),
 			res = [];
 
@@ -313,16 +229,20 @@ window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
 	// (doesn't change it in the editor though)
 	moveResources: function( projectName ) {
 		var self = this,
-			code = this.text();
+			code = this.text(),
+            newCode;
 
-		code = code.replace( this.imagesRegex, function( match, group ) {
+		newCode = code.replace( this.imagesRegex, function( match, group ) {
 			return match.replace( self.projectRegex, "\""+projectName );
 		} );
-		code = code.replace( this.soundsRegex, function( match, group ) {
+		newCode = newCode.replace( this.soundsRegex, function( match, group ) {
 			return match.replace( self.projectRegex, "\""+projectName );
 		} );
 
-		return code;
+		return { 
+            code: newCode,
+            changed: code !== newCode
+        };
 	},
 } );
 

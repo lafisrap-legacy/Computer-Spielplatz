@@ -208,7 +208,6 @@ func (c *LoginController) Get() {
 
 	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 	c.Data["Destination"] = "/" + c.Ctx.Input.Param(":dest")
-	beego.Trace("c.Data LoginInvitation = ", T["login_invitation"])
 	c.Data["LoginInvitation"] = T["login_invitation"]
 	c.Data["LoginInputName"] = T["login_input_name"]
 	c.Data["LoginPassword"] = T["login_input_password"]
@@ -223,6 +222,7 @@ func (c *LoginController) Post() {
 	///////////////////////////////////
 	// Session prefix
 	s := c.StartSession()
+	T := models.T
 
 	var (
 		u   models.User
@@ -246,6 +246,10 @@ func (c *LoginController) Post() {
 	}
 
 	c.Data["Error"] = err.Error()
+	c.Data["LoginInvitation"] = T["login_invitation"]
+	c.Data["LoginInputName"] = T["login_input_name"]
+	c.Data["LoginPassword"] = T["login_input_password"]
+	c.Data["LoginLoginGo"] = T["login_login_go"]
 	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 	c.Data["Destination"] = dest
 	c.TplName = "login.html"
@@ -449,6 +453,8 @@ func (c *LiveEditorController) Get() {
 		c.Data["ProjectBarModalSave"] = T["project_bar_modal_save"]
 		c.Data["ProjectBarModalSoundTitle"] = T["project_bar_modal_sound_title"]
 		c.Data["ProjectBarModalYes"] = T["project_bar_modal_yes"]
+		c.Data["ProjectBarModalRestartEditor"] = T["project_bar_modal_restart_editor"]
+		c.Data["ProjectBarModalRestartEditor2"] = T["project_bar_modal_restart_editor_2"]
 		c.Data["ProjectBarNewFile"] = T["project_bar_new_file"]
 		c.Data["ProjectBarNew"] = T["project_bar_new"]
 		c.Data["ProjectBarNoUser"] = T["project_bar_no_user"]
