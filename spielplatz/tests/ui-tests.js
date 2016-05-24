@@ -4,6 +4,7 @@ var name = "Tester",
     tester = 3,
     url = "http://localhost:8080";
 
+
 casper.test.begin('Home page', 4, function suite(test) {
     casper.start(url, function() {
         test.assertTitle("CYPHERPUNK Computer-Spielplatz", "CPG title.");
@@ -25,7 +26,7 @@ casper.test.begin('Signup', 15, function suite(test) {
     (function signup() {
 
         casper.start(url, function() {
-            test.assertExists(".login-area a[href='/signup/']", "Signup Button " + i + " for " + name + i );
+            test.assertExists(".login-area a[href='/signup/']", "Signup Button for " + name + i );
         });
 
         /////////////////////////////////////////////////////////////////77
@@ -85,6 +86,9 @@ casper.test.begin('Signup', 15, function suite(test) {
     });
 });
 
+/////////////////////////////////////////////////////////////////77///////////////////////////////////////
+// Login Test
+//
 casper.test.begin('Login', 15, function suite(test) {
 
     var i = 0;
@@ -92,7 +96,7 @@ casper.test.begin('Login', 15, function suite(test) {
     (function login() {
 
         casper.start(url, function() {
-            test.assertExists(".login-area a[href='/login/']", "Login Button " + " for " + name + i );
+            test.assertExists(".login-area a[href='/login/']", "Login Button for " + name + i );
         });
 
         /////////////////////////////////////////////////////////////////77
@@ -129,6 +133,114 @@ casper.test.begin('Login', 15, function suite(test) {
             } );
         } );
     })();
+
+    casper.run(function() {
+        test.done();
+    });
+});
+
+/////////////////////////////////////////////////////////////////77///////////////////////////////////////
+// Live-Editor Test
+//
+casper.test.begin('Live-Editor', 16, function suite(test) {
+
+    var i = 0;
+
+    casper.start(url, function() {
+        test.assertExists(".login-area a[href='/login/']", "Login Button " + " for " + name + i );
+    });
+
+    /////////////////////////////////////////////////////////////////77
+    // User 0 Login
+    casper.thenClick( ".login-area a[href='/login/']", function() {
+
+        casper.fill('form', { name: name + "0" }, false);
+        casper.fill('form', { password: name + "0" }, false);
+    });
+
+    /////////////////////////////////////////////////////////////////77
+    // Go to Live-Editor
+    casper.thenClick( "form button", function() {
+
+        test.assertExists( "ul.kuenste a[href='live-editor']", "Button to Live-Editor" );
+    });
+
+
+    /////////////////////////////////////////////////////////////////77
+    // Login 3: Login ok
+    casper.thenClick( "ul.kuenste a.btn-0", function() {
+
+        test.assertExists( ".scratchpad-ace-editor .ace_text-input", "Text input for Ace-Editor (JavaScript)." );
+        casper.fill(".scratchpad-ace-editor", { "text-input": "ellipse( 100, 100, 100, 101 );\n\n" }, false);
+
+        test.assertExists( "#project-bar-save", "Save button of project bar" );
+    } );
+
+    casper.thenClick( "#project-bar-save", function() {
+
+        this.wait(500, function() {
+            this.echo("I've waited for a half second.");
+            test.assertExists( "#project-bar-string-input-modal.in input", "Input modal of filename input modal" );
+            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Input modal of filename input modal" );
+            casper.fill("#project-bar-string-input-modal.in", { "string-input": "testing01" }, false);
+        });
+    } );
+
+    casper.thenClick( "#project-bar-string-input-modal.in [type='submit']", function() {
+
+        test.assertExists( "#project-bar-new", "Input modal of filename input modal" );
+    } );
+
+    casper.thenClick( "#project-bar-new", function() {
+
+        this.wait(500, function() {
+            test.assertExists( "#project-bar-save", "Save button of project bar" );
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-save", function() {
+
+        this.wait(500, function() {
+            this.echo("I've waited for a half second.");
+            test.assertExists( "#project-bar-string-input-modal.in input", "Input modal of filename input modal" );
+            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Input modal of filename input modal" );
+            casper.fill("#project-bar-string-input-modal.in", { "string-input": "testing01" }, false);
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-string-input-modal.in [type='submit']", function() {
+        this.wait(500, function() {
+            this.echo("I've waited for a half second.");
+            test.assertExists( "#project-bar-yes-no-modal.in", "Yes-No-Modal" );
+
+            test.assertExists( "#project-bar-yes-no-modal.in button.modal-no", "Yes-No-Modal: No-Button" );
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-yes-no-modal.in button.modal-no", function() { 
+        casper.fill(".scratchpad-ace-editor", { "text-input": "rect( 100, 100, 100, 101 );\n\n" }, false);
+    } );
+    casper.thenClick( "#project-bar-save", function() {
+
+        this.wait(500, function() {
+            this.echo("I've waited for a half second.");
+            test.assertExists( "#project-bar-string-input-modal.in input", "Input modal of filename input modal" );
+            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Input modal of filename input modal" );
+            casper.fill("#project-bar-string-input-modal.in", { "string-input": "testing01" }, false);
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-string-input-modal.in [type='submit']", function() {
+        this.wait(500, function() {
+            this.echo("I've waited for a half second.");
+            test.assertExists( "#project-bar-yes-no-modal.in", "Yes-No-Modal" );
+            test.assertExists( "#project-bar-yes-no-modal.in button.modal-yes", "Yes-No-Modal: No-Button" );
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-yes-no-modal.in button.modal-no", function() { 
+    } );
+
 
     casper.run(function() {
         test.done();
