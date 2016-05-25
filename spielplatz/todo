@@ -7,23 +7,58 @@ Image Editor (Grafik & Animation)
 
 Live-Editor (Programmieren)
 ###########################
+throbber.gif und ohnoes.png Pfade umleiten (wie fir throbber-full in integration)
 
-- Umstellung auf 640/720 x 400
-- Verschiedene Plugins vorbereiten (neuer Live-Editor (HTML, SQL), Paper.js, go, ruby)
+
+FEATURE:
+- Shortcuts für alles!
+- Keine Leer- und Sonerzeichen im Namen / Filenamen
+- Notifications (evnt. erst mit socket.io)
+
+BUG:
+# KRITISCH
+
+- Sounds werden für neue Projekte nicht direkt geladen / erst nach Neuanmeldungs 
+- Beim Projekt anlegen: Wenn Projektname schon vorhanden, bleibt Bildschirm stehen
+	- Prüfen, ob neues Projekt schon existiert
+- Projekt unbekannt kann angelegt werden
+- Commit-Message darf nicht leer sein.
+
+# WICHTIG
+- Wenn Projekt gespeichert wird, wird Datei nicht in AllFilesList übernommen
+- Filename bei Project Init markieren
+- "Projekt anlegen" und "Projekt speichern" unterscheiden
+- Editor muss neu gestartet werden, wenn die Resourcedatei verändert werden
+
+# NETT
+- Hover über Punkte: Mitglieder-Namen
+
+
+Beispiel-Programme für DLwmds
+#############################
+- Schlange
+- Planeten
+- Musik
+
+
+
+
+Testsystem
+##########
+
+Casper.js
+
+Ziel: Server crash sicher machen
+
 
 
 Sound Editor
 ############
-sic Hall
-cocos sound library
-Hall, Compression, eq-editor equalizer
 
 Programm veröffentlichen
 ########################
 
-Häckchen: Programm veröffentlichen
-
--> Kommt in die Übersicht (Name / Programm, wird allen gezeigt, die in einer der Autor-Gruppen sind)
+-> Kommt in die Übersicht 
 -> Von der Hauptseite aus, wird die Programmübersicht angezeigt.
 -> Admin der Seite kann einzelne Programm allen anzeigen
 -> Kann einzeln aufgerufen werden
@@ -49,21 +84,11 @@ Login/Signup
 
 Testen
 ######
+casper.js !
+
 mocha Structure
-karma
 chai
 unit-coverage
 
 
-Dateimanager für Live-Editor:
-#############################
-
-- setup a git server
-- during signup ...
-    - create GIT account
-	- create symlinks to default images
-
-
-- Locale-Strings für login, logout und signup
-- Shortcuts für alles!
 

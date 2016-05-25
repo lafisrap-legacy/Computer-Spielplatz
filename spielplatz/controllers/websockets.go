@@ -4,18 +4,20 @@ import (
 	"code.google.com/p/go.net/websocket"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	_ "errors"
 	"fmt"
 	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/orm"
+	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/session"
 	"github.com/lafisrap/Computer-Spielplatz/spielplatz/models"
+	"gopkg.in/libgit2/git2go.v22"
 	"image"
 	"image/png"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 )
@@ -49,28 +51,38 @@ type Message struct {
 	Command    string
 	returnChan chan Data
 
-	FileName   string
-	FileNames  []string
-	TimeStamps []int64
-	CodeFiles  []string
-	Images     []string
-	SortedBy   string
-	Range      Range
-
-	Overwrite bool
+	CodeFiles     []string
+	Commit        string
+	FileNames     []string
+	FileName      string
+	FileType      string
+	Images        []string
+	MessageId     int64
+	MessageIds    []int64
+	Overwrite     bool
+	ProjectNames  []string
+	ProjectName   string
+	ResourceFiles []string
+	TimeStamps    []int64
+	UserName      string
+	UserNames     []string
 }
 
-type JSFile struct {
+type SourceFile struct {
 	TimeStamp int64
 	Code      string
+	Project   string
+	Rights    []string
+	Users     []string
+	Status    SourceStatus
 }
 
-type Range struct {
-	IndexFrom int
-	IndexTo   int
-	DateFrom  time.Time
-	DateTo    time.Time
-}
+type SourceStatus int
+
+const (
+	STATUS_OK SourceStatus = iota
+	STATUS_UNCOMMITTED
+)
 
 // Data is a map for command parameter to and from the controller
 type Data map[string]interface{}
@@ -108,7 +120,7 @@ func StartWebsockets(doneChan chan bool) {
 		fmt.Println("Socket connection gone ...")
 	}))
 
-	fmt.Println("Spielplatz connector started on ", address+":"+port, ". Listening ...")
+	fmt.Println("--- Spielplatz connector started on ", address+":"+port, ". Listening ...")
 
 	err := http.ListenAndServe(address+":"+port, nil)
 	if err != nil {
@@ -135,9 +147,8 @@ func translateMessages(s socket) {
 		)
 		err = decoder.Decode(&message)
 
-		beego.Trace("Incoming message ...", message)
 		if err != nil {
-			beego.Error("Websockets error: ", err.Error())
+			beego.Error("Websockets error: ", err.Error(), message)
 			s.done <- true
 			return
 		}
@@ -175,18 +186,32 @@ func serveMessages(messageChan chan Message) {
 		data := make(Data)
 		s := message.Session
 		switch message.Command {
-		case "readJSFiles":
-			data = readJSFiles(s, message.FileNames)
-		case "readJSDir":
-			data = readJSDir(s)
-		case "writeJSFiles":
-			data = writeJSFiles(s, message.FileNames, message.CodeFiles, message.TimeStamps, message.Images, message.Overwrite)
-		case "deleteJSFiles":
-			data = deleteJSFiles(s, message.FileNames)
-		case "commitJSFiles":
-			//data = commitJSFiles(s, message.FileNames)
-		case "getPrevJSFiles":
-			//data = getArchivedJSFiles(s, message.FileName, message.Range)
+		case "readDir":
+			data = readDir(s, message.FileType)
+		case "readSourceFiles":
+			data = readSourceFiles(s, message.FileNames, message.ProjectNames, message.FileType)
+		case "writeSourceFiles":
+			data = writeSourceFiles(s, message.FileNames, message.ProjectName, message.FileType, message.CodeFiles, message.TimeStamps, message.Images, message.Overwrite)
+		case "renameSourceFile":
+			data = renameSourceFile(s, message.FileNames, message.FileType)
+		case "deleteSourceFiles":
+			data = deleteSourceFiles(s, message.FileNames, message.ProjectNames)
+		case "initProject":
+			data = initProject(s, message.ProjectName, message.FileType, message.FileNames, message.CodeFiles, message.ResourceFiles, message.Images)
+		case "writeProject":
+			data = writeProject(s, message.ProjectName, message.FileType, message.FileNames, message.CodeFiles, message.TimeStamps, message.ResourceFiles, message.Images, message.Commit)
+		case "cloneProject":
+			data = cloneProject(s, message.ProjectName)
+		case "fetchProject":
+			data, _ = fetchProject(s, message.ProjectName)
+		case "readPals":
+			data = readPals(s)
+		case "sendInvitations":
+			data = sendInvitations(s, message.ProjectName, message.UserNames)
+		case "readNewMessages":
+			data = readNewMessages(s, message.MessageIds)
+		case "deleteMessage":
+			data = deleteMessage(s, message.MessageId)
 		default:
 			beego.Error("Unknown command:", message.Command)
 		}
@@ -197,7 +222,7 @@ func serveMessages(messageChan chan Message) {
 	}
 }
 
-func writeJSFiles(s session.Store, fileNames []string, codeFiles []string, timeStamps []int64, Images []string, overwrite bool) Data {
+func writeSourceFiles(s session.Store, fileNames []string, project string, fileType string, codeFiles []string, timeStamps []int64, Images []string, overwrite bool) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -206,7 +231,12 @@ func writeJSFiles(s session.Store, fileNames []string, codeFiles []string, timeS
 
 	T := models.T
 	name := s.Get("UserName").(string)
-	dir := beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::jsfiles")
+	var dir string
+	if project != "" {
+		dir = beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::projects") + "/" + project + "/" + fileType + "/"
+	} else {
+		dir = beego.AppConfig.String("userdata::location") + name + "/" + fileType + "/"
+	}
 	savedFiles := []string{}
 	savedTimeStamps := []int64{}
 	outdatedFiles := []string{}
@@ -214,17 +244,9 @@ func writeJSFiles(s session.Store, fileNames []string, codeFiles []string, timeS
 
 	for i := 0; i < len(fileNames); i++ {
 		var (
-			file    *os.File
-			imgFile *os.File
-			err     error
+			file *os.File
+			err  error
 		)
-		/////////////////////////////////////////
-		// Make sure the filename has an *.js-Ending
-		if fileNames[i][len(fileNames[i])-3:] != ".js" {
-			beego.Warning("Codefile should have a *.js suffix (" + fileNames[i] + ")")
-			fileNames[i] += ".js"
-		}
-
 		fileName := dir + fileNames[i]
 
 		/////////////////////////////////////////
@@ -239,6 +261,7 @@ func writeJSFiles(s session.Store, fileNames []string, codeFiles []string, timeS
 			}
 		} else if err == nil {
 			time := fileStat.ModTime().UnixNano() / int64(time.Millisecond)
+			// Look if the file changed on disk since last writing
 			if i < len(timeStamps) && time > timeStamps[i] {
 				outdatedFiles = append(outdatedFiles, fileNames[i])
 				outdatedTimeStamps = append(outdatedTimeStamps, time)
@@ -267,41 +290,8 @@ func writeJSFiles(s session.Store, fileNames []string, codeFiles []string, timeS
 		}
 
 		////////////////////////////////////////
-		// Write image file
-		imageReader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(Images[i]))
-		pngImage, _, err := image.Decode(imageReader)
-		if err != nil {
-			beego.Error(err)
-		}
-		if imgFile, err = os.Create(fileName[0:len(fileName)-3] + ".png"); err != nil {
-			beego.Error("Cannot create or overwrite file (", err, ")")
-			return Data{}
-		}
-		defer imgFile.Close()
-		png.Encode(imgFile, pngImage)
-		beego.Trace("PNG file written to harddrive.")
-
-		////////////////////////////////////////
-		// Write to database if not already there
-		u := models.User{Name: name}
-		f := models.File{}
-		o := orm.NewOrm()
-
-		err = o.Read(&u, "Name")
-		if err == nil {
-			err = o.QueryTable(f).Filter("filename", fileNames[i]).Filter("user_id", u.Id).One(&f)
-			if err == orm.ErrMultiRows {
-				beego.Error("Returned Multi Rows Not One")
-			}
-			if err == orm.ErrNoRows {
-				beego.Trace("File", fileNames[i], "not found in database. Inserting new.")
-				f := models.File{Filename: fileNames[i], User: &u}
-				_, err = o.Insert(&f)
-				if err != nil {
-					beego.Error("Couldn't insert file.")
-				}
-			}
-		}
+		// Create image file
+		createImageFile(Images[i], fileName)
 	}
 
 	return Data{
@@ -312,7 +302,7 @@ func writeJSFiles(s session.Store, fileNames []string, codeFiles []string, timeS
 	}
 }
 
-func readJSFiles(s session.Store, fileNames []string) Data {
+func renameSourceFile(s session.Store, fileNames []string, fileType string) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -320,20 +310,72 @@ func readJSFiles(s session.Store, fileNames []string) Data {
 	}
 
 	name := s.Get("UserName").(string)
-	dir := beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::jsfiles")
-	codeFiles := make(map[string]JSFile)
+	dir := beego.AppConfig.String("userdata::location") + name + "/" + fileType + "/"
+
+	_, err := os.Stat(dir + "/" + fileNames[1])
+	if !os.IsNotExist(err) {
+		return Data{
+			"Error": "file exists",
+		}
+	}
+
+	err = os.Rename(dir+"/"+fileNames[0], dir+"/"+fileNames[1])
+	if err != nil {
+		return Data{
+			"Error": "cannot rename file",
+		}
+	}
+
+	return Data{}
+}
+
+func readSourceFiles(s session.Store, fileNames []string, fileProjects []string, fileType string) Data {
+
+	// if user is not logged in return
+	if s.Get("UserName") == nil {
+		return Data{}
+	}
+
+	name := s.Get("UserName").(string)
+	dir := beego.AppConfig.String("userdata::location") + name + "/"
+	codeFiles := make(map[string]SourceFile)
 
 	for i := 0; i < len(fileNames); i++ {
 		var (
 			file *os.File
 			err  error
 		)
+
+		/////////////////////////////////////////
+		// Fetch project
+		project := fileProjects[i]
+		status := STATUS_OK
+		if project != "" {
+			_, err := fetchProject(s, project)
+
+			if err != nil {
+				beego.Warning("Error message:", err.Error())
+				switch err.Error() {
+				case "uncommitted changes":
+					beego.Warning("Uncommitted changes detected!", err)
+					status = STATUS_UNCOMMITTED
+				}
+			}
+
+			beego.Warning("Fetching result: ", err)
+		}
+
 		/////////////////////////////////////////
 		// Read file
-		fileName := dir + fileNames[i]
+		var fileName string
+		if project != "" {
+			fileName = dir + beego.AppConfig.String("userdata::projects") + "/" + project + "/" + fileType + "/" + fileNames[i]
+		} else {
+			fileName = dir + fileType + "/" + fileNames[i]
+		}
 
 		if file, err = os.Open(fileName); err != nil {
-			beego.Error("Cannot open file")
+			beego.Error("Cannot open file", fileName)
 			return Data{}
 		}
 		defer file.Close()
@@ -348,47 +390,93 @@ func readJSFiles(s session.Store, fileNames []string) Data {
 			return Data{}
 		}
 
-		codeFiles[fileNames[i]] = JSFile{
+		rights := []string{}
+		users := []string{}
+		if project != "" {
+			rights = models.GetProjectRightsFromDatabase(name, project)
+			users = models.GetProjectUsersFromDatabase(project)
+		}
+
+		codeFiles[fileNames[i]] = SourceFile{
 			TimeStamp: fileInfo.ModTime().UnixNano() / int64(time.Millisecond),
 			Code:      string(codeFile),
+			Project:   project,
+			Rights:    rights,
+			Users:     users,
+			Status:    status,
 		}
 	}
+
 	return Data{
 		"CodeFiles": codeFiles,
 	}
 }
 
-func readJSDir(s session.Store) Data {
+func readDir(s session.Store, fileType string) Data {
 
 	data := Data{}
-	files := make(map[string]JSFile)
+	sourceFiles := make(map[string]SourceFile)
+	userName := s.Get("UserName")
 
 	// if user is not logged in return
-	if s.Get("UserName") == nil {
+	if userName == nil {
 		return data
 	}
 
-	name := s.Get("UserName").(string)
-	dir := beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::jsfiles")
+	// First search in the main directory
+	name := userName.(string)
+	dir := beego.AppConfig.String("userdata::location") + name + "/" + fileType
 
-	filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		beego.Error(err)
+		return data
+	}
 
+	for _, f := range files {
 		name := f.Name()
-		if len(name) > 3 && name[len(name)-3:] == ".js" {
-			files[name] = JSFile{
+		if name[len(name)-len(fileType):] == fileType {
+			sourceFiles[name] = SourceFile{
 				TimeStamp: f.ModTime().UnixNano() / int64(time.Millisecond),
+				Project:   "",
 			}
 		}
+	}
 
-		return nil
-	})
+	// Then read all projects and look into the dir of the specified filetype (e.g. pjs)
+	dir = beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::projects")
+	projects, err := ioutil.ReadDir(dir)
+	if err != nil {
+		beego.Error(err)
+		return data
+	}
 
-	data["Files"] = files
+	for _, p := range projects {
+
+		var dir2 string
+		if p.IsDir() == true {
+			project := p.Name()
+			dir2 = dir + "/" + p.Name() + "/" + fileType
+			files, _ := ioutil.ReadDir(dir2)
+
+			for _, f := range files {
+				name := f.Name()
+				if name[len(name)-len(fileType):] == fileType {
+					sourceFiles[name] = SourceFile{
+						TimeStamp: f.ModTime().UnixNano() / int64(time.Millisecond),
+						Project:   project,
+					}
+				}
+			}
+		}
+	}
+
+	data["Files"] = sourceFiles
 
 	return data
 }
 
-func deleteJSFiles(s session.Store, fileNames []string) Data {
+func deleteSourceFiles(s session.Store, fileNames []string, projectNames []string) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -396,39 +484,481 @@ func deleteJSFiles(s session.Store, fileNames []string) Data {
 	}
 
 	name := s.Get("UserName").(string)
-	dir := beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::jsfiles")
+	dir := beego.AppConfig.String("userdata::location") + name
 
 	for i := 0; i < len(fileNames); i++ {
 		/////////////////////////////////////////
 		// Remove js and png file
-		fileName := dir + fileNames[i]
-
+		fileType := fileNames[i][strings.LastIndex(fileNames[i], ".")+1:]
+		var fileName string
+		if projectNames != nil && projectNames[i] != "" {
+			fileName = dir + "/" + beego.AppConfig.String("userdata::projects") + "/" + projectNames[i] + "/" + fileType + "/" + fileNames[i]
+		} else {
+			fileName = dir + "/" + fileType + "/" + fileNames[i]
+		}
 		if err := os.Remove(fileName); err != nil {
-			beego.Error("Cannot remove file")
-			return Data{
-				"Error": "I cannot remove " + fileName + ".",
-			}
+			beego.Error("Cannot remove file", fileName, "(", err.Error(), ")")
 		}
-		if err := os.Remove(fileName[0:len(fileName)-3] + ".png"); err != nil {
-			beego.Error("Cannot remove file")
-			return Data{
-				"Error": "I cannot remove " + fileName[0:len(fileName)-3] + ".png.",
-			}
+		fileName = fileName[:strings.LastIndex(fileName, ".")] + ".png"
+		if err := os.Remove(fileName); err != nil {
+			beego.Error("Cannot remove file", fileName, "(", err.Error(), ")")
 		}
 
-		////////////////////////////////////////
-		// Clear from database if not already there
-		u := models.User{Name: name}
-		f := models.File{}
-		o := orm.NewOrm()
+		beego.Warning("Removing file", fileName)
+	}
+	return Data{}
+}
 
-		err := o.Read(&u, "Name")
-		if err == nil {
-			num, _ := o.QueryTable(f).Filter("filename", fileNames[i]).Filter("user_id", u.Id).Delete()
-			if num != 1 {
-				beego.Error("I deleted", num, "occurences of", fileNames[i], "instead of 1.")
+func initProject(s session.Store, projectName string, fileType string, fileNames []string, codeFiles []string, resourceFiles []string, images []string) Data {
+
+	beego.Trace("Entering initProject", projectName, fileNames, resourceFiles)
+	// if user is not logged in return
+	if s.Get("UserName") == nil {
+		beego.Error("No user name available.")
+		return Data{}
+	}
+	if projectName == "" {
+		beego.Error("No project name available.")
+		return Data{}
+	}
+
+	userName := s.Get("UserName").(string)
+	userDir := beego.AppConfig.String("userdata::location") + userName
+	projectDir := userDir + "/" + beego.AppConfig.String("userdata::projects") + "/" + projectName
+	bareDir := beego.AppConfig.String("userdata::location") + beego.AppConfig.String("userdata::bareprojects") + "/" + projectName
+
+	////////////////////////////////////////////////////////////////////7
+	// Everything, that has to be done for init a project
+	_, err := os.Stat(bareDir)
+	if !os.IsNotExist(err) {
+		return Data{
+			"Error": "project exists",
+		}
+	}
+
+	// Create new directory
+	if err := os.MkdirAll(bareDir, os.ModePerm); err != nil {
+		beego.Error("Cannot create directory", bareDir)
+	}
+
+	// Initialize as bare git directory
+	_, err = git.InitRepository(bareDir, true)
+	if err != nil {
+		beego.Error("Cannot init git directory", bareDir, "(", err.Error(), ")")
+	}
+
+	// Clone it to own project directory
+	options := git.CloneOptions{
+		Bare: false,
+	}
+	_, err = git.Clone(bareDir, projectDir, &options)
+	if err != nil {
+		beego.Error("Cannot clone git directory", bareDir, "into", projectDir, "(", err.Error(), ")")
+	}
+
+	// err = models.GitSetName(userName, userName+"@"+beego.AppConfig.String("userdata::emailserver"))
+
+	// Create project directories
+	models.CreateDirectories(projectDir, false)
+
+	// Write source files to new project directory
+	timeStamps := []int64{0}
+	fileName := []string{projectName + "." + fileType}
+	data := writeSourceFiles(s, fileName, projectName, fileType, codeFiles, timeStamps, images, false)
+
+	// Create .gitignore file with .spielplatz/project in it
+	models.CreateTextFile(projectDir+"/"+".gitignore", beego.AppConfig.String("userdata::spielplatzdir")+"/rights")
+
+	// Copy resource files
+	for i := 0; i < len(resourceFiles); i++ {
+		resType := resourceFiles[i][strings.LastIndex(resourceFiles[i], ".")+1:]
+		filename := resourceFiles[i][strings.LastIndex(resourceFiles[i], "/")+1:]
+		dir := "."
+
+		switch resType {
+		case "png":
+			dir = beego.AppConfig.String("userdata::imagefiles")
+		case "mp3":
+			dir = beego.AppConfig.String("userdata::soundfiles")
+		}
+		err = copyFileContents(userDir+"/"+dir+"/"+resourceFiles[i], projectDir+"/"+dir+"/"+filename)
+		if err != nil {
+			beego.Error("Cannot copy resource file", resourceFiles[i], "from", userDir, "to", projectDir, "(", err.Error(), ")")
+		}
+	}
+
+	// Mount resource directories
+	models.MountResourceFiles(userName, projectName)
+
+	// Create project config file
+	projectFile := projectDir + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/project"
+	file, err := os.Create(projectFile)
+	if err != nil {
+		beego.Error(err)
+	}
+	file.Close()
+	cnf, err := config.NewConfig("ini", projectFile)
+	if err != nil {
+		beego.Error("Cannot create project file " + projectFile + " (" + err.Error() + ")")
+	}
+	cnf.Set("Playground", beego.AppConfig.String("userdata::name"))
+	cnf.Set("Origin", "none")
+	cnf.Set("Gallery", "false")
+	cnf.SaveConfigFile(projectFile)
+
+	// Create rights file
+	rightsFile := projectDir + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/rights"
+	file, err = os.Create(rightsFile)
+	if err != nil {
+		beego.Error(err)
+	}
+	file.Close()
+	cnf, err = config.NewConfig("ini", rightsFile)
+	if err != nil {
+		beego.Error("Cannot create rights file " + rightsFile + " (" + err.Error() + ")")
+	}
+	for _, right := range models.PRR_NAMES {
+		cnf.Set("rights::"+right, "true")
+	}
+	cnf.SaveConfigFile(rightsFile)
+
+	// Add all rights as return values
+	data["Rights"] = models.PRR_NAMES
+
+	// Create database entry
+	user, _ := models.GetUser(userName)
+	project := new(models.Project)
+	project.Name = projectName
+	project.Playground = beego.AppConfig.String("userdata::location")
+	project.Origin = "none"
+	project.Gallery = false
+	project.Forks = 0
+	project.Stars = 0
+	models.CreateProjectDatabaseEntry(project, user, int64(1<<uint(len(models.PRR_NAMES)))-1)
+
+	// Add, commit and push
+	err = models.GitAddCommitPush(userName, projectDir, beego.AppConfig.String("userdata::firstcommit"), true)
+	if err != nil {
+		beego.Error(err)
+	}
+
+	// Remove old files, if any
+	if fileNames[0] != "" {
+		deleteSourceFiles(s, fileNames, nil)
+	}
+
+	return data
+}
+
+func writeProject(s session.Store, projectName string, fileType string, fileNames []string, codeFiles []string, timeStamps []int64, resourceFiles []string, images []string, commit string) Data {
+
+	// if user is not logged in return
+	userName := ""
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+	}
+	if userName == "" {
+		beego.Error("No user name available.")
+		return Data{}
+	}
+	if projectName == "" {
+		beego.Error("No project name available.")
+		return Data{}
+	}
+
+	// Check for rights
+	if ok := models.CheckRight(userName, projectName, "Write"); !ok {
+		return Data{
+			"Error": "Unsufficient rights for project " + projectName + ".",
+		}
+	}
+
+	userDir := beego.AppConfig.String("userdata::location") + userName
+	projectDir := userDir + "/" + beego.AppConfig.String("userdata::projects") + "/" + projectName
+
+	// Write source files to new project directory
+	fileName := []string{projectName + "." + fileType}
+	data := writeSourceFiles(s, fileName, projectName, fileType, codeFiles, timeStamps, images, true)
+
+	if len(data["OutdatedFiles"].([]string)) > 0 {
+		return data
+	}
+
+	// Copy resource files
+	for i := 0; i < len(resourceFiles); i++ {
+		resProject := resourceFiles[i][:strings.Index(resourceFiles[i], "/")]
+		resType := resourceFiles[i][strings.LastIndex(resourceFiles[i], ".")+1:]
+		filename := resourceFiles[i][strings.LastIndex(resourceFiles[i], "/")+1:]
+		dir := "."
+
+		if resProject == projectName {
+			continue
+		}
+
+		switch resType {
+		case "png":
+			dir = beego.AppConfig.String("userdata::imagefiles")
+		case "mp3":
+			dir = beego.AppConfig.String("userdata::soundfiles")
+		}
+		err := copyFileContents(userDir+"/"+dir+"/"+resourceFiles[i], projectDir+"/"+dir+"/"+filename)
+		if err != nil {
+			beego.Error("Cannot copy resource file", resourceFiles[i], "from", userDir, "to", projectDir, "(", err.Error(), ")")
+		}
+	}
+
+	// Add, commit and push
+	if err := models.GitAddCommitPush(userName, projectDir, commit, false); err != nil {
+		if err.Error() == "Conflicts" {
+			data["Conflicts"] = "Solve conflicts."
+		} else {
+			beego.Error("Add, commit, push: ", err.Error())
+		}
+	}
+
+	return data
+}
+
+func cloneProject(s session.Store, projectName string) Data {
+
+	// if user is not logged in return
+	userName := ""
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+	}
+	if userName == "" {
+		beego.Error("No user name available.")
+		return Data{}
+	}
+	beego.Warning("Entering cloneProject with", userName, "and", projectName)
+	if projectName == "" {
+		beego.Error("No project name available.")
+		return Data{}
+	}
+
+	// Check for rights
+	// Maybe add a token check here, otherwise manipulated clients can open projects
+
+	userDir := beego.AppConfig.String("userdata::location") + userName
+	projectDir := userDir + "/" + beego.AppConfig.String("userdata::projects") + "/" + projectName
+	bareDir := beego.AppConfig.String("userdata::location") + beego.AppConfig.String("userdata::bareprojects") + "/" + projectName
+
+	beego.Warning("Doing git clone with", userDir, ",", projectDir, "and", bareDir)
+	// Clone it to own project directory
+	options := git.CloneOptions{
+		Bare: false,
+	}
+	_, err := git.Clone(bareDir, projectDir, &options)
+	if err != nil {
+		beego.Error("Cannot clone git directory", bareDir, "into", projectDir, "(", err.Error(), ")")
+	}
+
+	// Mount resource directories
+	models.MountResourceFiles(userName, projectName)
+
+	// Create rights file
+	rightsFile := projectDir + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/rights"
+	file, err := os.Create(rightsFile)
+	if err != nil {
+		beego.Error(err)
+	}
+	file.Close()
+	cnf, err := config.NewConfig("ini", rightsFile)
+	if err != nil {
+		beego.Error("Cannot create rights file " + rightsFile + " (" + err.Error() + ")")
+	}
+	for _, right := range models.PRR_NAMES {
+		if right == "Write" {
+			cnf.Set("rights::"+right, "true")
+		} else {
+			cnf.Set("rights::"+right, "false")
+		}
+	}
+	cnf.SaveConfigFile(rightsFile)
+
+	// Create database entry
+	user, _ := models.GetUser(userName)
+	project := new(models.Project)
+	project.Name = projectName
+	models.CreateProjectDatabaseEntry(project, user, 1)
+
+	return Data{
+		"ProjectName": projectName,
+	}
+}
+
+func fetchProject(s session.Store, projectName string) (Data, error) {
+
+	// if user is not logged in return
+	userName := ""
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+	}
+	if userName == "" {
+		return Data{}, errors.New("No user name available.")
+	}
+	if projectName == "" {
+		return Data{}, errors.New("No project name available.")
+	}
+
+	userDir := beego.AppConfig.String("userdata::location") + userName
+	projectDir := userDir + "/" + beego.AppConfig.String("userdata::projects") + "/" + projectName
+
+	beego.Warning("Doing git fetch with", projectDir)
+
+	// 1 Open repository
+	repo, err := git.OpenRepository(projectDir)
+	if err != nil {
+		return Data{}, errors.New("OpenRepository - " + err.Error())
+	}
+
+	// 2 Create a signature
+	sig := &git.Signature{
+		Name:  userName,
+		Email: userName + "@" + beego.AppConfig.String("userdata::emailserver"),
+		When:  time.Now(),
+	}
+
+	err = models.AnnotatedPull(repo, sig)
+	if err != nil {
+		if strings.Index(err.Error(), "uncommitted change") != -1 {
+			e := errors.New("uncommitted changes")
+			return Data{
+				"Error": e.Error(),
+			}, e
+		}
+
+		return Data{
+			"Error": err.Error(),
+		}, err
+	}
+
+	return Data{}, nil
+}
+
+func readPals(s session.Store) Data {
+	// Read own groups
+	userName := ""
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+	}
+	if userName == "" {
+		beego.Error("No user name available.")
+		return Data{}
+	}
+
+	return Data{
+		"Pals": models.GetPalsFromDatabase(userName),
+	}
+}
+
+func sendInvitations(s session.Store, projectName string, userNames []string) Data {
+
+	T := models.T
+	userName := ""
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+	}
+	if userName == "" {
+		beego.Error("No user name available.")
+		return Data{}
+	}
+
+	models.CreateInvitationMessages(userName, projectName, userNames, T["project_bar_modal_invite_subject"], T["project_bar_modal_invite_message"])
+
+	return Data{}
+}
+
+func readNewMessages(s session.Store, messageIds []int64) Data {
+
+	userName := ""
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+	}
+
+	if userName == "" {
+		beego.Error("No user name available.")
+		return Data{}
+	}
+
+	messages := models.GetMessagesFromDatabase(userName)
+
+	for i := len(messages) - 1; i >= 0; i-- {
+		beego.Warning(len(messages), i)
+		for j := 0; j < len(messageIds); j++ {
+			beego.Warning(messages[i], j, messageIds[j])
+			if messages[i]["Id"] == messageIds[j] {
+				messages = append(messages[:i], messages[i+1:]...)
+				break
 			}
 		}
 	}
-	return Data{}
+
+	return Data{
+		"Messages": messages,
+	}
+}
+
+func deleteMessage(s session.Store, messageId int64) Data {
+
+	userName := ""
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+	}
+	if userName == "" {
+		beego.Error("No user name available.")
+		return Data{}
+	}
+
+	err := models.DeleteMessageFromDatabase(userName, messageId)
+
+	if err == nil {
+		return Data{}
+	} else {
+		return Data{
+			"Error": err.Error(),
+		}
+	}
+}
+
+func copyFileContents(src, dst string) (err error) {
+	in, err := os.Open(src)
+	if err != nil {
+		return
+	}
+	defer in.Close()
+	out, err := os.Create(dst)
+	if err != nil {
+		return
+	}
+	defer func() {
+		cerr := out.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+	if _, err = io.Copy(out, in); err != nil {
+		return
+	}
+	err = out.Sync()
+	return
+}
+
+func createImageFile(img string, fileName string) error {
+
+	////////////////////////////////////////
+	// Write image file
+	var imgFile *os.File
+	imageReader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(img))
+	pngImage, _, err := image.Decode(imageReader)
+	if err != nil {
+		beego.Error(err)
+	}
+	if imgFile, err = os.Create(fileName[0:strings.LastIndex(fileName, ".")] + ".png"); err != nil {
+		beego.Error("Cannot create or overwrite file (", err, ")")
+	}
+	defer imgFile.Close()
+	png.Encode(imgFile, pngImage)
+
+	return err
 }

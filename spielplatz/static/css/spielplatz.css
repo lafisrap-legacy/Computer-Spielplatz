@@ -104,99 +104,147 @@ body {
 }
 
 
-.form-signin, .form-signup {
+.form-login, .form-signup {
 	width: 480px;
 	margin: 0 auto;
 	margin-top: 100px;
 }
 
-.form-signin input,
+.form-login input,
 .form-signup input {
   margin: 5px;
+}
+
+.form-login .error-message,
+.form-signup .error-message {
+  padding: 5px;
+  margin: 10px;
+  border-top: 1px solid lightgrey;
+  color: darkred;
 }
 
 .login-area .btn {
   margin: 5px;
 }
 
-.login-area .kuenste 
-
-#top-control-bar button,
-#bottom-control-bar button,
- {
-  margin: 5px;
+#project-button-group {
+  position: relative;
+  margin: 5px 0px;
 }
 
-#bottom-control-bar {
+#project-button-group button {
+  height: 40px;
 }
 
-.control-bar-file {
+#project-button-group ul {
   padding: 5px;
 }
 
-.control-bar-file span {
+#project-button-group ul span {
   padding: 0px 5px;
   display: inline-block;
   overflow: hidden;
   width: 86%;
 }
 
-.control-bar-file .timestamp {
+#project-button-group ul li {
+  padding: 3px 0px;
+}
+
+#project-button-group ul li:hover {
+  background-color: lightgrey;
+}
+
+#project-button-group .big-filename {
+  position: absolute;
+  width: 568px;
+  height: 50px;
+  left: -319px;
+  top: -319px;
+  transform: rotate(270deg);
+  font-size: 3em;
+  color: #bbb;
+}
+
+#project-button-group .big-filename.uncommitted {
+  color: #bbf;
+}
+
+#project-button-group .big-filename .project {
+  position: absolute;
+  font-size: 0.9em;
+  right:  0px;
+  bottom: -10px;
+  float: right;
+  color: #ddd;
+}
+
+#project-button-group .big-filename .points {
+  position: absolute;
+  font-size: 0.8em;
+  right: 0px;
+  bottom: -20px;
+  color: #999;
+}
+
+#project-bar-open-files {
+  width: 222px;
+}
+
+.project-bar-open-file .timestamp {
   position: absolute;
   text-align: right;
   right: 3px;
   font-size: 0.7em;
 }
 
-#control-bar-files {
-  width: 222px;
-}
-
-#control-bar-files li {
-  padding: 3px 0px;
-}
-
-#control-bar-files li:hover {
-  background-color: lightgrey;
-}
-
-#control-bar-files .border-top {
-  border-top: 1px solid grey;
-  margin-top: 5px;
-}
-
-#control-bar-codefile-modal .file {
+#project-bar-codefile-modal .file {
   margin: 5px;
 }
 
-#control-bar-codefile-modal .filename {
+#project-bar-codefile-modal .filename {
   font-size: 1.2em;
 }
 
-#control-bar-codefile-modal .timestamp {
+#project-bar-codefile-modal .timestamp {
   font-size: 0.7em;
   margin: 5px;
 }
 
-#control-bar-codefile-modal .checkbox {
+#project-bar-codefile-modal .checkbox {
   width: 20px;
   height: 20px;
 }
 
-#control-bar-codefile-modal .modal-dialog {
+#project-bar-codefile-modal .modal-dialog {
   overflow-y: initial !important
 }
 
-#control-bar-codefile-modal .modal-body {
+#project-bar-codefile-modal .modal-body {
   height: 550px;
   overflow-y: auto;
   background-color: #f8f8f8;
 }
 
-#control-bar-codefile-modal .modal-body .bottom {
+#project-bar-codefile-modal .modal-body .bottom {
   background-color: #e8e8e8;
   border-top: 1px solid #c8c8c8;
   height: 28px;
+}
+
+#project-bar-invite-modal .invitees .group-name {
+  font-size: 2.5em;
+  color: grey;
+  margin-top: 10px;
+}
+
+#project-bar-invite-modal .invitees .user {
+  margin-right: 20px;
+  font-size: 1.2em;
+}
+
+#project-bar-invite-modal .invitees label {
+  margin-left: 10px;
 }
 
 #modal-codefiles .filename {

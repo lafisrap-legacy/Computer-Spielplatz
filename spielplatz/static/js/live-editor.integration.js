@@ -42,17 +42,6 @@ if( !TooltipEngine.classes.imagePicker.prototype.defaultImage )
 TooltipEngine.classes.imagePicker.prototype.defaultImage = "Spielplatz/Leer";
 
 ///////////////////////////////////////////////////////////
-// Deactivate maybeShowErrors
-//
-//if( !window.LiveEditor.prototype.maybeShowErrors ) 
-//	console.error( errMsg + "maybeShowErrors method is not available." );
-//window.LiveEditor.prototype.maybeShowErrors = function maybeShowErrors() {
-//
-//	return;
-//};
-
-
-///////////////////////////////////////////////////////////
 // Late integration functions
 //
 $( window ).on("live-editor-late-integration", function( e ) {
@@ -60,8 +49,12 @@ $( window ).on("live-editor-late-integration", function( e ) {
 	///////////////////////////////////////////////////////////
 	// Replace blank image file
 	//
-	var src = $(".mediapicker .current-media img").attr("src").replace(/cute\/Blank.png/g, "Spielplatz/KeinBild.png");
-	$(".mediapicker .current-media img").attr( "src", src );
+	var src = $(".mediapicker .current-media img").attr("src");
+
+	if( src ) {
+		src.replace(/cute\/Blank.png/g, "Spielplatz/KeinBild.png");
+		$(".mediapicker .current-media img").attr( "src", src );
+	}
 
 	///////////////////////////////////////////////////////////
 	// Replace tipbar strings
@@ -71,6 +64,14 @@ $( window ).on("live-editor-late-integration", function( e ) {
 	$( ".tipbar .tipnav .prev" ).html( "<span>&#8592;</span>" );
 	$( ".tipbar .tipnav .next" ).html( "<span>&#8594;</span>" );
 
+	///////////////////////////////////////////////////////////
+	// Replace throbber
+	var elem = [ ".scratchpad-editor-bigplay-loading img", ".scratchpad-canvas-loading img" ];
+	for( e in elem ) {
+		var src = $( elem[ e ] ).attr( "src" );
+		src = src.substr( 0, src.search( "/static/userdata") ) + "/static/img/live-editor-throbber-full.gif";
+		$( elem[ e ] ).attr( "src", src ); 		
+	}
 });
 	
 })();

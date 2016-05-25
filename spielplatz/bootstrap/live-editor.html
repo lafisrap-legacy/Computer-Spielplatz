@@ -32,506 +32,453 @@
 <!-- RIDDLE: Modal dialogs won't work if live-editor file are called after bootstrap.js -->
 <script src="static/js/bootstrap.min.js"></script>
 <script src="static/js/websockets.js"></script>
-<script src="static/js/cpg-sessions.js"></script>
 </head>
 <body>
 <div class="container">
-    <div id="control-bar-yes-no-modal" class="modal fade">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title">You forgot to set the title!</h4>
-          </div>
-          <div class="modal-body">
-            <p>You forgot to set the body text&hellip;</p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="modal-yes btn btn-default" data-dismiss="modal">{{ .ControlBarModalYes }}</button>
-            <button type="button" class="modal-no btn btn-primary" data-dismiss="modal">{{ .ControlBarModalNo }}</button>
-          </div>
-        </div><!-- /.modal-content -->
-      </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->    
+	<div id="control-bar-sound-modal" class="modal fade">
+		<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times,</span></button>
+			<h4 class="modal-title">{{ .ProjectBarModalSoundTitle }}</h4>
+			</div>
+			<div class="modal-body">
+			</div>
+			<div class="modal-footer">
+			<button type="button" class="modal-cancel btn btn-default" data-dismiss="modal">{{ .ProjectBarModalCancel }}</button>
+			<button type="button" class="modal-open btn btn-primary" data-dismiss="modal">{{ .ProjectBarModalOpen }}</button>
+			</div>
+		</div><!-- /.modal-content -->
+		</div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->	
 
-    <div id="control-bar-sound-modal" class="modal fade">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title">{{ .ControlBarModalSoundTitle }}</h4>
-          </div>
-          <div class="modal-body">
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="modal-cancel btn btn-default" data-dismiss="modal">{{ .ControlBarModalCancel }}</button>
-            <button type="button" class="modal-open btn btn-primary" data-dismiss="modal">{{ .ControlBarModalOpen }}</button>
-          </div>
-        </div><!-- /.modal-content -->
-      </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->    
 
-    <div id="control-bar-codefile-modal" class="modal fade">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title">{{ .ControlBarModalCodefileTitle }}</h4>
-          </div>
-          <div class="modal-body">
-          </div>
-            <div class="clearfix"></div>
-          <div class="modal-footer">
-            <button type="button" class="modal-delete pull-left btn btn-default" data-dismiss="modal">{{ .ControlBarModalDelete }}</button>
-            <button type="button" class="modal-open pull-right btn btn-primary" data-dismiss="modal">{{ .ControlBarModalOpen }}</button>
-            <button type="button" class="modal-cancel pull-right btn btn-default" data-dismiss="modal">{{ .ControlBarModalCancel }}</button>
-          </div>
-        </div><!-- /.modal-content -->
-      </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->    
-
-    <div class="login-area">
-        {{if not .UserName }}
-            <a href="/login/live-editor" class="btn btn-info btn-sm pull-right">{{ .LoginLogin }} <span class="glyphicon glyphicon-share-alt"></span></a>
-            <a href="/signup/live-editor" class="btn btn-info btn-sm pull-right">{{ .LoginSignup }} <span class="glyphicon glyphicon-book"></span></a>
-        {{else}}
-            <a href="/logout" id="logout-button" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>        
-        {{end}}
-        <ul class="nav nav-tabs kuenste" style="display:none;">
-        {{range $i, $art := .Arts}}
-            <li><a href="{{$art.Page}}" class="btn btn-default btn-sm btn-{{ $i }}">{{$art.Name}}</a></li>
-        {{end}}                       
-        </ul>
-    </div>
-    <div class="clearfix"></div>
-    <div id="top-control-bar">
-    </div>
-    <div id="cpg-live-editor" class="span12"></div>
-    {{ if .UserName }}
-    <div id="bottom-control-bar">
-        <button id="control-bar-new" class="btn btn-primary btn-sm">{{ .ControlBarNew }}</button>
-        <span class="dropup">
-            <button class="btn btn-primary dropdown-toggle btn-md" type="button" data-toggle="dropdown">
-                <span id= "control-bar-current-file"></span>
-                <span class="caret"></span></button>
-                <ul id= "control-bar-files" class="dropdown-menu">
-                </ul>
-        </span>
-        <button id="control-bar-delete" class="btn btn-primary btn-sm">{{ .ControlBarDelete }}</button>
-        <button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ControlBarRestart }}</button>
-        <span class="dropdown" style="float: right">
-            <button class="btn btn-primary dropdown-toggle btn-md" type="button" data-toggle="dropdown">
-                <span id="control-bar-label">{{ .ControlBarLabel }}</span> 
-                <span id="control-bar-caret" class="caret"></span></button>
-                <ul class="dropdown-menu">
-                    <li><a id="control-bar-save">{{ .ControlBarSave }}</a></li>
-                    <li><a id="control-bar-saveas">{{ .ControlBarSaveAs }}</a></li>
-                    <li><a id="control-bar-version">{{ .ControlBarVersion }}</a></li>
-                    <li><a id="control-bar-history">{{ .ControlBarHistory }}</a></li>
-                </ul>
-        </span>
-        <form id="control-bar-input" class="form-inline" role="form" action="" style="float:right">  
-             <div class="form-group col-sm-3">
-                 <input class="form-control" type="text" name="filename" value="{{ .ControlBarNewFile }}" placeholder="Description" style="display:none"/>
-             </div>
-        </form>
-    </div>
-  {{ else }}
-    <div id="bottom-control-bar">
-        <span class="label label-info">{{ .ControlBarNoUser }}</span>
-    </div>  
-  {{ end }}
-  <ul>
+	<div class="login-area">
+		{{if not .UserName }}
+			<a href="/login/live-editor" class="btn btn-info btn-sm pull-right">{{ .LoginLogin }} <span class="glyphicon glyphicon-share-alt"></span></a>
+			<a href="/signup/live-editor" class="btn btn-info btn-sm pull-right">{{ .LoginSignup }} <span class="glyphicon glyphicon-book"></span></a>
+		{{else}}
+			<a href="/logout" id="logout-button" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>		
+		{{end}}
+		<ul class="nav nav-tabs kuenste" style="display:none,">
+		{{range $i, $art := .Arts}}
+			<li><a href="{{$art.Page}}" class="btn btn-default btn-sm btn-{{ $i }}">{{$art.Name}}</a></li>
+		{{end}}						 
+		</ul>
+	</div>
+	<ul class="nav nav-tabs">
+		<li id="nav-bar-page-pjs" rel="pjs" class="nav-bar-page"><a href="#">{{ .LiveEditorHeaderPjs }}</a></li>
+		<li id="nav-bar-page-html" rel="html" class="nav-bar-page"><a href="#">{{ .LiveEditorHeaderHTML }}</a></li>
+	</ul>
+	<div class="clearfix"></div>
+	<div class="cpg-live-editor-pages">
+		<div id="page-pjs" class="page active">
+			<div id="cpg-live-editor-pjs" class="span12"></div>
+		</div>
+		<div id="page-html" class="page">
+			<div id="cpg-live-editor-html" class="span12"></div>
+		</div>
+	</div>
+	{{ if .UserName }}
+	<div id="project-button-group"></div>
+	<button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ProjectBarRestart }}</button>
+	{{ else }}
+	<div id="bottom-control-bar">
+		<span class="label label-info">{{ .ProjectBarNoUser }}</span>
+		<button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ProjectBarRestart }}</button>
+	</div>	
+	{{ end }}
+	<ul>
 <li>
-    <h4>rect(x, y, Breite, Höhe, Radius*)</h4>
-    <p>Zeichnet ein Rechteck, wobei die ersten beiden Koordinaten die linke obere Ecke bezeichnen und die beiden anderen die Breite und die Höhe. Um die Position zu ändern, siehe rectMode()</p>
+	<h4>rect(x, y, Breite, Höhe, Radius*)</h4>
+	<p>Zeichnet ein Rechteck, wobei die ersten beiden Koordinaten die linke obere Ecke bezeichnen und die beiden anderen die Breite und die Höhe. Um die Position zu ändern, siehe rectMode()</p>
 </li>
 <li>
-    <h4>ellipse(x, y, w, h)</h4>
-    <p>Zeichnet eine Ellipse, wobei die ersten beiden Koordinaten die Mitte der ellipse bezeichnen und die beiden anderen die Breite und die Höhe. Um die Position zu ändern, siehe rectMode().</p>
+	<h4>ellipse(x, y, w, h)</h4>
+	<p>Zeichnet eine Ellipse, wobei die ersten beiden Koordinaten die Mitte der ellipse bezeichnen und die beiden anderen die Breite und die Höhe. Um die Position zu ändern, siehe rectMode().</p>
 </li>
 <li style="display:none">
-    <h4>triangle(x1, y1, x2, y2, x3, y3)</h4>
-    <p>Zeichnet ein Dreieck.</p>
-</li>
-<li>
-    <h4>line(x1, y1, x2, y2)</h4>
-    <p>Zeichnet eine Linie von Punkt x1/y1 zu Punkt x2/y2. Die Farbe der Linie wird durch den letzten vorangehenden stroke()-Aufruf bestimmt, die Dicke durch strokeWeight() und die Rundungen der Enden durch strokeCap().</p>
+	<h4>triangle(x1, y1, x2, y2, x3, y3)</h4>
+	<p>Zeichnet ein Dreieck.</p>
 </li>
 <li>
-    <h4>point(x, y)</h4>
-    <p>Zeichnet einen Punkt. Farbe der Linie wird durch den letzten vorangehenden stroke()-Aufruf bestimmt, die Dicke durch strokeWeight().</p>
-</li>
-<li style="display:none">
-    <h4>arc(x, y, w, h, start, stop)</h4>
-    <p>Zeichnet einen Ellipsenabschnitt. Der Befehl ist sehr ähnlich wie ellipse(), fügt nur zwei Parameter für den Start- und den Endwinkel hinzu (0-360).</p>
-</li>
-<li style="display:none">
-    <h4>bezier(x1, y1, cx1, cy1, cx2, cy2, x2, y2)</h4>
-    <p>Draws a bezier curve. To extract points and tangents after drawing the curve, use bezierPoint() and bezierTangent.</p>
-</li>
-<li style="display:none">
-    <h4>quad(x1, y1, x2, y2, x3, y3, x4, y4)</h4>
-    <p>Draws any quadrilateral, with the points listed as parameters in a clockwise or counter-clockwise direction.</p>
-</li>
-<li style="display:none">
-    <h4>image(image, x, y, width*, height*)</h4>
-    <p>Draw an image on the canvas. The only allowed images are those that popup in the image picker when you use the getImage() method. The image is positioned using the x/y as the upper left corner. For alternate ways to position images, see imageMode.</p>
-</li>
-<li style="display:none">
-    <h4>playSound(sound)</h4>
-    <p>Plays a short sound. The only allowed sounds are those that popup in the picker when you use the getSound() method.</p>
-</li>
-<li style="display:none">
-    <h4>rectMode(MODE)</h4>
-    <p>Modifies the location from which rectangles draw.</p>
-</li>
-<li style="display:none">
-    <h4>ellipseMode(MODE)</h4>
-    <p>Changes how ellipses are drawn.</p>
-</li>
-<li style="display:none">
-    <h4>imageMode(MODE)</h4>
-    <p>Ändert den Bezugspunkt der Position eines Bildes. Mögliche Werte: CENTER, CORNERS, oder CORNER (Voreinstellung).</p>
-</li>
-<li style="display:none">
-    <h4>bezierPoint(a, b, c, d, t)</h4>
-    <p>Evaluates the Bezier at point t for points a, b, c, d. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the location of a bezier curve at t.</p>
-</li>
-<li style="display:none">
-    <h4>bezierTangent(a,b, c, d, t)</h4>
-    <p>Calculates the tangent of a point on a bezier curve. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the tangent of a bezier curve at t.</p>
-</li>
-<li style="display:none">
-    <h4>bezierVertex(cx1, cy1, cx2, cy2, x, y)</h4>
-    <p>Used in conjunction with beginShape() and endShape() to draw shapes with bezier curves for sides. Each call to bezierVertex() defines the position of two control points and one anchor point of a Bezier curve, adding a new segment to a line or shape. The first time bezierVertex() is used within a beginShape() call, it must be prefaced with a call to vertex() to set the first anchor point. When using this function, do *not* specify a mode in beginShape().</p>
-</li>
-<li style="display:none">
-    <h4>curve(x1, y1, x2, y2, x3, y3, x4, y4)</h4>
-    <p>Draws a curved line on the screen. The first and second parameters specify the first anchor point and the last two parameters specify the second anchor. The middle parameters specify the points for defining the shape of the curve. Longer curves can be created by putting a series of curve() functions together. An additional function called curveTightness() provides control for the visual quality of the curve. The curve() function is an implementation of Catmull-Rom splines.</p>
-</li>
-<li style="display:none">
-    <h4>curvePoint(a, b, c, d, t)</h4>
-    <p>Evalutes the curve at point t for points a, b, c, d. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the location of a curve at t.</p>
-</li>
-<li style="display:none">
-    <h4>curveTangent(a, b, c, d, t)</h4>
-    <p>Calculates the tangent at a point the curve. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the tangent of a curve at t.</p>
-</li>
-<li style="display:none">
-    <h4>curveTightness(tightness)</h4>
-    <p>Modifies the quality of forms created with curve() and curveVertex(). The tightness parameter determines how the curve fits to the vertex points.</p>
-</li>
-<li style="display:none">
-    <h4>curveVertex(x,y)</h4>
-    <p>Used in conjunction with beginShape() and endShape() to draw shapes with bezier curves for sides. The first and last points in a series of curveVertex() lines will be used to guide the beginning and end of a the curve.</p>
-</li>
-<li style="display:none">
-    <h4>beginShape(MODE*)</h4>
-    <p>Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().  Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().</p>
-</li>
-<li style="display:none">
-    <h4>endShape(MODE*)</h4>
-    <p>Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().  Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().</p>
-</li>
-<li style="display:none">
-    <h4>vertex(x, y)</h4>
-    <p>Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().  Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().</p>
+	<h4>line(x1, y1, x2, y2)</h4>
+	<p>Zeichnet eine Linie von Punkt x1/y1 zu Punkt x2/y2. Die Farbe der Linie wird durch den letzten vorangehenden stroke()-Aufruf bestimmt, die Dicke durch strokeWeight() und die Rundungen der Enden durch strokeCap().</p>
 </li>
 <li>
-    <h4>background(r, g, b, a*)</h4>
-    <p>Setzt die Hintergrundfarbe (= zeichnet ein bildschirmfüllendes Rechteck in der aktuellen Füllfarbe).</p>
+	<h4>point(x, y)</h4>
+	<p>Zeichnet einen Punkt. Farbe der Linie wird durch den letzten vorangehenden stroke()-Aufruf bestimmt, die Dicke durch strokeWeight().</p>
+</li>
+<li style="display:none">
+	<h4>arc(x, y, w, h, start, stop)</h4>
+	<p>Zeichnet einen Ellipsenabschnitt. Der Befehl ist sehr ähnlich wie ellipse(), fügt nur zwei Parameter für den Start- und den Endwinkel hinzu (0-360).</p>
+</li>
+<li style="display:none">
+	<h4>bezier(x1, y1, cx1, cy1, cx2, cy2, x2, y2)</h4>
+	<p>Draws a bezier curve. To extract points and tangents after drawing the curve, use bezierPoint() and bezierTangent.</p>
+</li>
+<li style="display:none">
+	<h4>quad(x1, y1, x2, y2, x3, y3, x4, y4)</h4>
+	<p>Draws any quadrilateral, with the points listed as parameters in a clockwise or counter-clockwise direction.</p>
+</li>
+<li style="display:none">
+	<h4>image(image, x, y, width*, height*)</h4>
+	<p>Draw an image on the canvas. The only allowed images are those that popup in the image picker when you use the getImage() method. The image is positioned using the x/y as the upper left corner. For alternate ways to position images, see imageMode.</p>
+</li>
+<li style="display:none">
+	<h4>playSound(sound)</h4>
+	<p>Plays a short sound. The only allowed sounds are those that popup in the picker when you use the getSound() method.</p>
+</li>
+<li style="display:none">
+	<h4>rectMode(MODE)</h4>
+	<p>Modifies the location from which rectangles draw.</p>
+</li>
+<li style="display:none">
+	<h4>ellipseMode(MODE)</h4>
+	<p>Changes how ellipses are drawn.</p>
+</li>
+<li style="display:none">
+	<h4>imageMode(MODE)</h4>
+	<p>Ändert den Bezugspunkt der Position eines Bildes. Mögliche Werte: CENTER, CORNERS, oder CORNER (Voreinstellung).</p>
+</li>
+<li style="display:none">
+	<h4>bezierPoint(a, b, c, d, t)</h4>
+	<p>Evaluates the Bezier at point t for points a, b, c, d. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the location of a bezier curve at t.</p>
+</li>
+<li style="display:none">
+	<h4>bezierTangent(a,b, c, d, t)</h4>
+	<p>Calculates the tangent of a point on a bezier curve. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the tangent of a bezier curve at t.</p>
+</li>
+<li style="display:none">
+	<h4>bezierVertex(cx1, cy1, cx2, cy2, x, y)</h4>
+	<p>Used in conjunction with beginShape() and endShape() to draw shapes with bezier curves for sides. Each call to bezierVertex() defines the position of two control points and one anchor point of a Bezier curve, adding a new segment to a line or shape. The first time bezierVertex() is used within a beginShape() call, it must be prefaced with a call to vertex() to set the first anchor point. When using this function, do *not* specify a mode in beginShape().</p>
+</li>
+<li style="display:none">
+	<h4>curve(x1, y1, x2, y2, x3, y3, x4, y4)</h4>
+	<p>Draws a curved line on the screen. The first and second parameters specify the first anchor point and the last two parameters specify the second anchor. The middle parameters specify the points for defining the shape of the curve. Longer curves can be created by putting a series of curve() functions together. An additional function called curveTightness() provides control for the visual quality of the curve. The curve() function is an implementation of Catmull-Rom splines.</p>
+</li>
+<li style="display:none">
+	<h4>curvePoint(a, b, c, d, t)</h4>
+	<p>Evalutes the curve at point t for points a, b, c, d. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the location of a curve at t.</p>
+</li>
+<li style="display:none">
+	<h4>curveTangent(a, b, c, d, t)</h4>
+	<p>Calculates the tangent at a point the curve. The parameter t varies between 0 and 1, a and d are points on the curve, and b and c are the control points. This can be done once with the x coordinates and a second time with the y coordinates to get the tangent of a curve at t.</p>
+</li>
+<li style="display:none">
+	<h4>curveTightness(tightness)</h4>
+	<p>Modifies the quality of forms created with curve() and curveVertex(). The tightness parameter determines how the curve fits to the vertex points.</p>
+</li>
+<li style="display:none">
+	<h4>curveVertex(x,y)</h4>
+	<p>Used in conjunction with beginShape() and endShape() to draw shapes with bezier curves for sides. The first and last points in a series of curveVertex() lines will be used to guide the beginning and end of a the curve.</p>
+</li>
+<li style="display:none">
+	<h4>beginShape(MODE*)</h4>
+	<p>Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().	Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().</p>
+</li>
+<li style="display:none">
+	<h4>endShape(MODE*)</h4>
+	<p>Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().	Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().</p>
+</li>
+<li style="display:none">
+	<h4>vertex(x, y)</h4>
+	<p>Using the beginShape() and endShape() functions allow creating more complex forms. To start a form, call beginShape(), then use the vertex() command, then call endShape() to stop. By default, it creates an irregular polygon, but you can control that by sending a mode to beginShape().	Transformations such as translate(), rotate(), and scale() do not work within beginShape(). It is also not possible to use other shapes, such as ellipse() or rect() within beginShape().</p>
 </li>
 <li>
-    <h4>fill(r, g, b, a*)</h4>
-    <p>Setzt die Füllfarbe, Rot, Grün, Blau und die Deckkraft (0 = transparent, 255 = undurchsichtig).</p>
+	<h4>background(r, g, b, a*)</h4>
+	<p>Setzt die Hintergrundfarbe (= zeichnet ein bildschirmfüllendes Rechteck in der aktuellen Füllfarbe).</p>
 </li>
 <li>
-    <h4>stroke(r, g, b, a*)</h4>
-    <p>Setzt die Linienfarbe, Rot, Grün, Blau und die Deckkraft (0 = transparent, 255 = undurchsichtig).</p></li>
-<li style="display:none">
-    <h4>color(r, g, b, a*)</h4>
-    <p>This function lets you store all three color components in a single variable. You can then pass that one variable to functions like background(), stroke(), and fill().</p>
+	<h4>fill(r, g, b, a*)</h4>
+	<p>Setzt die Füllfarbe, Rot, Grün, Blau und die Deckkraft (0 = transparent, 255 = undurchsichtig).</p>
 </li>
 <li>
-    <h4>noFill()</h4>
-    <p>Setzt die Füllfarbe auf transparent.</p>
+	<h4>stroke(r, g, b, a*)</h4>
+	<p>Setzt die Linienfarbe, Rot, Grün, Blau und die Deckkraft (0 = transparent, 255 = undurchsichtig).</p></li>
+<li style="display:none">
+	<h4>color(r, g, b, a*)</h4>
+	<p>This function lets you store all three color components in a single variable. You can then pass that one variable to functions like background(), stroke(), and fill().</p>
 </li>
 <li>
-    <h4>noStroke()</h4>
-    <p>Setzt die Linienfarbe auf transparent.</p>
+	<h4>noFill()</h4>
+	<p>Setzt die Füllfarbe auf transparent.</p>
 </li>
 <li>
-    <h4>strokeWeight(thickness)</h4>
-    <p>Sets the thickness of all lines and outlines drawn after the function call.</p>
-</li>
-<li style="display:none">
-    <h4>strokeJoin(MODE)</h4>
-    <p>Sets the style of the joints which connect line segments drawn with vertex(). These joints are either mitered, beveled, or rounded and specified with the corresponding parameters MITER, BEVEL, and ROUND.</p>
-</li>
-<li style="display:none">
-    <h4>strokeCap(MODE)</h4>
-    <p>Sets the style for rendering line endings. These ends are either squared, extended, or rounded and specified with the corresponding parameters SQUARE, PROJECT, and ROUND.</p>
-</li>
-<li style="display:none">
-    <h4>blendColor(c1, c2, MODE)</h4>
-    <p>Blends two color values together based on the blending mode given as the MODE parameter.</p>
-</li>
-<li style="display:none">
-    <h4>lerpColor(c1, c2, amount)</h4>
-    <p>Calculates a color or colors between two color at a specific increment. The amount parameter is the amount to interpolate between the two values where 0.0 equal to the first point, 0.1 is very near the first point, 0.5 is half-way in between, etc.</p>
-</li>
-<li style="display:none">
-    <h4>colorMode(MODE)</h4>
-    <p>Changes the way that color values are interpreted when set by fill()/stroke()/background().</p>
-</li>
-<li style="display:none">
-    <h4>red(color)</h4>
-    <p>Extracts the red value from a color, scaled to match current colorMode().</p>
-</li>
-<li style="display:none">
-    <h4>green(color)</h4>
-    <p>Extracts the green value from a color, scaled to match current colorMode().</p>
-</li>
-<li style="display:none">
-    <h4>blue(color)</h4>
-    <p>Extracts the blue value from a color, scaled to match current colorMode().</p>
-</li>
-<li style="display:none">
-    <h4>alpha(color)</h4>
-    <p>Extracts the alpha value from a color.</p>
-</li>
-<li style="display:none">
-    <h4>hue(color)</h4>
-    <p>Extracts the hue value from a color.</p>
-</li>
-<li style="display:none">
-    <h4>saturation(color)</h4>
-    <p>Extracts the saturation value from a color.</p>
-</li>
-<li style="display:none">
-    <h4>brightness(color)</h4>
-    <p>Extracts the brightness value from a color.</p>
+	<h4>noStroke()</h4>
+	<p>Setzt die Linienfarbe auf transparent.</p>
 </li>
 <li>
-    <h4>text(message, x, y, width*, height*)</h4>
-    <p>Schreibt einen Text auf den Bildschirm.</p>
+	<h4>strokeWeight(thickness)</h4>
+	<p>Sets the thickness of all lines and outlines drawn after the function call.</p>
 </li>
 <li style="display:none">
-    <h4>textFont(font, size*)</h4>
-    <p>Using textFont() with createFont(), it's possible to change the font of text drawn.</p>
+	<h4>strokeJoin(MODE)</h4>
+	<p>Sets the style of the joints which connect line segments drawn with vertex(). These joints are either mitered, beveled, or rounded and specified with the corresponding parameters MITER, BEVEL, and ROUND.</p>
 </li>
 <li style="display:none">
-    <h4>createFont(name, size*)</h4>
-    <p>Using textFont() with createFont(), it's possible to change the font of text drawn.</p>
+	<h4>strokeCap(MODE)</h4>
+	<p>Sets the style for rendering line endings. These ends are either squared, extended, or rounded and specified with the corresponding parameters SQUARE, PROJECT, and ROUND.</p>
 </li>
 <li style="display:none">
-    <h4>textWidth(str)</h4>
-    <p>Calculates and returns the width of any string.</p>
+	<h4>blendColor(c1, c2, MODE)</h4>
+	<p>Blends two color values together based on the blending mode given as the MODE parameter.</p>
 </li>
 <li style="display:none">
-    <h4>textAscent()</h4>
-    <p>Returns the ascent of the current font at its current size. This information is useful for determining the height of the font above the baseline. For example, adding the textAscent() and textDescent() values will give you the total height of the line</p>
+	<h4>lerpColor(c1, c2, amount)</h4>
+	<p>Calculates a color or colors between two color at a specific increment. The amount parameter is the amount to interpolate between the two values where 0.0 equal to the first point, 0.1 is very near the first point, 0.5 is half-way in between, etc.</p>
 </li>
 <li style="display:none">
-    <h4>textDescent()</h4>
-    <p>Returns descent of the current font at its current size. This information is useful for determining the height of the font below the baseline. For example, adding the textAscent() and textDescent() values will give you the total height of the line</p>
+	<h4>colorMode(MODE)</h4>
+	<p>Changes the way that color values are interpreted when set by fill()/stroke()/background().</p>
 </li>
 <li style="display:none">
-    <h4>textLeading(dist)</h4>
-    <p>Sets the spacing between lines of text in units of pixels. This setting will be used in all subsequent calls to the text() function.</p>
+	<h4>red(color)</h4>
+	<p>Extracts the red value from a color, scaled to match current colorMode().</p>
 </li>
 <li style="display:none">
-    <h4>textAlign(ALIGN, YALIGN)</h4>
-    <p>Setzt den Bezugspunkt für die Textposition, horizontal und vertikal. Mögliche Werte horizontal: LEFT (Voreinstellung), CENTER, oder RIGHT, vertikal: TOP (Voreinstellung), BOTTOM, CENTER, oder BASELINE.</p>
+	<h4>green(color)</h4>
+	<p>Extracts the green value from a color, scaled to match current colorMode().</p>
 </li>
 <li style="display:none">
-    <h4>rotate(angle)</h4>
-    <p>Sets the rotation angle for any shapes drawn after the command. If called multiple times, the angle will be added to the previous angle (accumulative effect). To stop rotation, use pushMatrix()/popMatrix().</p>
+	<h4>blue(color)</h4>
+	<p>Extracts the blue value from a color, scaled to match current colorMode().</p>
 </li>
 <li style="display:none">
-    <h4>scale(amount, amountY*)</h4>
-    <p>Increases the size of shapes drawn after the command, by expanding and contracting vertices. For example, scale(2) makes it increase in size by 200%. If called multiple times, the sizes will multiply (accumulative effect). It can be called with one parameter to resize the same in both dimensions, or with two parameters to size differently in each dimension.  To stop resizing shapes, use pushMatrix()/popMatrix().</p>
+	<h4>alpha(color)</h4>
+	<p>Extracts the alpha value from a color.</p>
 </li>
 <li style="display:none">
-    <h4>translate(x, y)</h4>
-    <p>Displaces the drawn shapes by a given amount in the x/y directions. If called multiple times, the offsets will be added to each other (accumulative effect). To stop translating shapes, use pushMatrix()/popMatrix().</p>
+	<h4>hue(color)</h4>
+	<p>Extracts the hue value from a color.</p>
 </li>
 <li style="display:none">
-    <h4>pushMatrix()</h4>
-    <p>Remembers the current coordinate system (in the \"matrix stack\")</p>
+	<h4>saturation(color)</h4>
+	<p>Extracts the saturation value from a color.</p>
 </li>
 <li style="display:none">
-    <h4>popMatrix()</h4>
-    <p>Restores the previous coordinate system (from the \"matrix stack\") - whatever was most recently pushed</p>
+	<h4>brightness(color)</h4>
+	<p>Extracts the brightness value from a color.</p>
+</li>
+<li>
+	<h4>text(message, x, y, width*, height*)</h4>
+	<p>Schreibt einen Text auf den Bildschirm.</p>
 </li>
 <li style="display:none">
-    <h4>resetMatrix()</h4>
-    <p>Replaces the current transformation matrix with the identity matrix. This effectively clears all transformation functions set before it</p>
+	<h4>textFont(font, size*)</h4>
+	<p>Using textFont() with createFont(), it's possible to change the font of text drawn.</p>
 </li>
 <li style="display:none">
-    <h4>printMatrix()</h4>
-    <p>Prints the current transformation matrix to the console</p>
+	<h4>createFont(name, size*)</h4>
+	<p>Using textFont() with createFont(), it's possible to change the font of text drawn.</p>
 </li>
 <li style="display:none">
-    <h4>frameRate(fps)</h4>
-    <p>Specifies the number of frames to be displayed every second. If the processor is not fast enough to maintain the specified rate, it will not be achieved. For fluid animation, at least 24 frames per second is recommended.</p>
+	<h4>textWidth(str)</h4>
+	<p>Calculates and returns the width of any string.</p>
 </li>
 <li style="display:none">
-    <h4>loop()</h4>
-    <p>Causes the program to continuously execute the code within draw(). If noLoop() is called, the code in draw() stops executing</p>
+	<h4>textAscent()</h4>
+	<p>Returns the ascent of the current font at its current size. This information is useful for determining the height of the font above the baseline. For example, adding the textAscent() and textDescent() values will give you the total height of the line</p>
 </li>
 <li style="display:none">
-    <h4>noLoop()</h4>
-    <p>Stops the program from continuously executing the code within draw(). If loop() is called, the code in draw() begin to run continuously again</p>
+	<h4>textDescent()</h4>
+	<p>Returns descent of the current font at its current size. This information is useful for determining the height of the font below the baseline. For example, adding the textAscent() and textDescent() values will give you the total height of the line</p>
 </li>
 <li style="display:none">
-    <h4>random(min, max)</h4>
-    <p>Gibt eine Zufallszahl zwischen min und max zurück.</p>
+	<h4>textLeading(dist)</h4>
+	<p>Sets the spacing between lines of text in units of pixels. This setting will be used in all subsequent calls to the text() function.</p>
 </li>
 <li style="display:none">
-    <h4>dist(x1, y1, x2, y2)</h4>
-    <p>Calculates the distance between two points, (x1, y1) and (x2, y2).</p>
+	<h4>textAlign(ALIGN, YALIGN)</h4>
+	<p>Setzt den Bezugspunkt für die Textposition, horizontal und vertikal. Mögliche Werte horizontal: LEFT (Voreinstellung), CENTER, oder RIGHT, vertikal: TOP (Voreinstellung), BOTTOM, CENTER, oder BASELINE.</p>
 </li>
 <li style="display:none">
-    <h4>constrain(value, min, max)</h4>
-    <p>Constrains a value to not exceed a maximum and minimum value.</p>
+	<h4>rotate(angle)</h4>
+	<p>Sets the rotation angle for any shapes drawn after the command. If called multiple times, the angle will be added to the previous angle (accumulative effect). To stop rotation, use pushMatrix()/popMatrix().</p>
 </li>
 <li style="display:none">
-    <h4>min(num1, num2)</h4>
-    <p>Returns the smallest value of all values passed in.</p>
+	<h4>scale(amount, amountY*)</h4>
+	<p>Increases the size of shapes drawn after the command, by expanding and contracting vertices. For example, scale(2) makes it increase in size by 200%. If called multiple times, the sizes will multiply (accumulative effect). It can be called with one parameter to resize the same in both dimensions, or with two parameters to size differently in each dimension.	To stop resizing shapes, use pushMatrix()/popMatrix().</p>
 </li>
 <li style="display:none">
-    <h4>max(num1, num2)</h4>
-    <p>Returns the greatest value of all values passed in.</p>
+	<h4>translate(x, y)</h4>
+	<p>Displaces the drawn shapes by a given amount in the x/y directions. If called multiple times, the offsets will be added to each other (accumulative effect). To stop translating shapes, use pushMatrix()/popMatrix().</p>
 </li>
 <li style="display:none">
-    <h4>abs(num)</h4>
-    <p>Returns the absolute value of a number</p>
+	<h4>pushMatrix()</h4>
+	<p>Remembers the current coordinate system (in the \"matrix stack\")</p>
 </li>
 <li style="display:none">
-    <h4>log(num)</h4>
-    <p>Returns the the natural logarithm (base-e) of a number.</p>
+	<h4>popMatrix()</h4>
+	<p>Restores the previous coordinate system (from the \"matrix stack\") - whatever was most recently pushed</p>
 </li>
 <li style="display:none">
-    <h4>pow(num, exponent)</h4>
-    <p>Returns a number raised to an exponential power.</p>
+	<h4>resetMatrix()</h4>
+	<p>Replaces the current transformation matrix with the identity matrix. This effectively clears all transformation functions set before it</p>
 </li>
 <li style="display:none">
-    <h4>sq(num)</h4>
-    <p>Squares a number (multiplies a number by itself). The result is always a positive number, as multiplying two negative numbers always yields a positive result. For example, -1 * -1 = 1</p>
+	<h4>printMatrix()</h4>
+	<p>Prints the current transformation matrix to the console</p>
 </li>
 <li style="display:none">
-    <h4>sqrt(num)</h4>
-    <p>Calculates the square root of a number. The square root of a number is always positive, even though there may be a valid negative root. The square root s of number a is such that s*s = a. It is the opposite of squaring.</p>
+	<h4>frameRate(fps)</h4>
+	<p>Specifies the number of frames to be displayed every second. If the processor is not fast enough to maintain the specified rate, it will not be achieved. For fluid animation, at least 24 frames per second is recommended.</p>
 </li>
 <li style="display:none">
-    <h4>round(num)</h4>
-    <p>Calculates the closest whole number that is closest to the value of the parameter.</p>
+	<h4>loop()</h4>
+	<p>Causes the program to continuously execute the code within draw(). If noLoop() is called, the code in draw() stops executing</p>
 </li>
 <li style="display:none">
-    <h4>ceil(num)</h4>
-    <p>Calculates the closest whole number that is greater than or equal to the value of the parameter.</p>
+	<h4>noLoop()</h4>
+	<p>Stops the program from continuously executing the code within draw(). If loop() is called, the code in draw() begin to run continuously again</p>
 </li>
 <li style="display:none">
-    <h4>floor(num)</h4>
-    <p>Calculates the closest whole number that is less than or equal to the value of the parameter.</p>
+	<h4>random(min, max)</h4>
+	<p>Gibt eine Zufallszahl zwischen min und max zurück.</p>
 </li>
 <li style="display:none">
-    <h4>mag(x1, y1)</h4>
-    <p>Calculates the magnitude (or length) of a vector. A vector is a direction in space commonly used in computer graphics and linear algebra. Because it has no \"start\" position, the magnitude of a vector can be thought of as the distance from coordinate (0,0) to its (x,y) value. Therefore, mag() is a shortcut for writing dist(0, 0, x, y).</p>
+	<h4>dist(x1, y1, x2, y2)</h4>
+	<p>Calculates the distance between two points, (x1, y1) and (x2, y2).</p>
 </li>
 <li style="display:none">
-    <h4>exp(num)</h4>
-    <p>Returns Euler's number e (2.71828...) raised to the power of the value parameter.</p>
+	<h4>constrain(value, min, max)</h4>
+	<p>Constrains a value to not exceed a maximum and minimum value.</p>
 </li>
 <li style="display:none">
-    <h4>map(num, low1, high1, low2, high2)</h4>
-    <p>Re-maps a number from one range to another. Numbers outside the range are not clamped to 0 and 1, because out-of-range values are often intentional and useful.</p>
+	<h4>min(num1, num2)</h4>
+	<p>Returns the smallest value of all values passed in.</p>
 </li>
 <li style="display:none">
-    <h4>norm(num, low, high)</h4>
-    <p>Normalizes a number from another range into a value between 0 and 1. This is the same as using the map function with the last two parameters set to 0 and 1, i.e: map(value, low, high, 0, 1); Numbers outside the range are not clamped to 0 and 1, because out-of-range values are often intentional and useful.</p>
+	<h4>max(num1, num2)</h4>
+	<p>Returns the greatest value of all values passed in.</p>
 </li>
 <li style="display:none">
-    <h4>lerp(num1, num2, amount)</h4>
-    <p>Calculates a number between two numbers at a specific increment.</p>
+	<h4>abs(num)</h4>
+	<p>Returns the absolute value of a number</p>
 </li>
 <li style="display:none">
-    <h4>noise(x, y)</h4>
-    <p>Returns the Perlin noise value at specified coordinates. The resulting value will always be between 0.0 and 1.0</p>
+	<h4>log(num)</h4>
+	<p>Returns the the natural logarithm (base-e) of a number.</p>
 </li>
 <li style="display:none">
-    <h4>noiseDetail(octaves, falloff)</h4>
-    <p>Adjusts the character and level of detail produced by the Perlin noise function.</p>
+	<h4>pow(num, exponent)</h4>
+	<p>Returns a number raised to an exponential power.</p>
 </li>
 <li style="display:none">
-    <h4>sin(degrees)</h4>
-    <p>Return the sine of an angle.</p>
+	<h4>sq(num)</h4>
+	<p>Squares a number (multiplies a number by itself). The result is always a positive number, as multiplying two negative numbers always yields a positive result. For example, -1 * -1 = 1</p>
 </li>
 <li style="display:none">
-    <h4>cos(degrees)</h4>
-    <p>Return the cosine of an angle.</p>
+	<h4>sqrt(num)</h4>
+	<p>Calculates the square root of a number. The square root of a number is always positive, even though there may be a valid negative root. The square root s of number a is such that s*s = a. It is the opposite of squaring.</p>
 </li>
 <li style="display:none">
-    <h4>tan(degrees)</h4>
-    <p>Return the tangent of an angle</p>
+	<h4>round(num)</h4>
+	<p>Calculates the closest whole number that is closest to the value of the parameter.</p>
 </li>
 <li style="display:none">
-    <h4>acos(val)</h4>
-    <p>Returns the arc cosine (inverse cosine) of a value. Depending on the angle mode, it returns values from 0-180 or 0-PI.</p>
+	<h4>ceil(num)</h4>
+	<p>Calculates the closest whole number that is greater than or equal to the value of the parameter.</p>
 </li>
 <li style="display:none">
-    <h4>asin(val)</h4>
-    <p>Returns the arc sine (inverse sine) of a value. Depending on the angle mode, it returns values from -90 to 90 or -PI/2 to PI/2.</p>
+	<h4>floor(num)</h4>
+	<p>Calculates the closest whole number that is less than or equal to the value of the parameter.</p>
 </li>
 <li style="display:none">
-    <h4>atan(val)</h4>
-    <p>Returns the arc tangent (inverse tangent) of a value. Depending on the angle mode, it returns values from -90 to 90 or -PI/2 to PI/2.</p>
+	<h4>mag(x1, y1)</h4>
+	<p>Calculates the magnitude (or length) of a vector. A vector is a direction in space commonly used in computer graphics and linear algebra. Because it has no \"start\" position, the magnitude of a vector can be thought of as the distance from coordinate (0,0) to its (x,y) value. Therefore, mag() is a shortcut for writing dist(0, 0, x, y).</p>
 </li>
 <li style="display:none">
-    <h4>radians(angle)</h4>
-    <p>Converts a degree measurement to its corresponding value in radians.</p>
+	<h4>exp(num)</h4>
+	<p>Returns Euler's number e (2.71828...) raised to the power of the value parameter.</p>
 </li>
 <li style="display:none">
-    <h4>degrees(angle)</h4>
-    <p>Converts a radians measurement to its corresponding value in degrees.</p>
+	<h4>map(num, low1, high1, low2, high2)</h4>
+	<p>Re-maps a number from one range to another. Numbers outside the range are not clamped to 0 and 1, because out-of-range values are often intentional and useful.</p>
 </li>
 <li style="display:none">
-    <h4>day()</h4>
-    <p>Returns the current day of the month, between 1 and 31, according to the clock on the user's computer</p>
+	<h4>norm(num, low, high)</h4>
+	<p>Normalizes a number from another range into a value between 0 and 1. This is the same as using the map function with the last two parameters set to 0 and 1, i.e: map(value, low, high, 0, 1), Numbers outside the range are not clamped to 0 and 1, because out-of-range values are often intentional and useful.</p>
 </li>
 <li style="display:none">
-    <h4>month()</h4>
-    <p>Returns the current month of the year, between 1-12, according to the clock on the user's computer</p>
+	<h4>lerp(num1, num2, amount)</h4>
+	<p>Calculates a number between two numbers at a specific increment.</p>
 </li>
 <li style="display:none">
-    <h4>year()</h4>
-    <p>Returns the current year according to the clock on the user's computer</p>
+	<h4>noise(x, y)</h4>
+	<p>Returns the Perlin noise value at specified coordinates. The resulting value will always be between 0.0 and 1.0</p>
 </li>
 <li style="display:none">
-    <h4>hour()</h4>
-    <p>Returns the current hour as a value from 0 - 23, based on the user's computer clock</p>
+	<h4>noiseDetail(octaves, falloff)</h4>
+	<p>Adjusts the character and level of detail produced by the Perlin noise function.</p>
 </li>
 <li style="display:none">
-    <h4>minute()</h4>
-    <p>Returns the current minute as a value from 0 - 59, based on the user's computer clock</p>
+	<h4>sin(degrees)</h4>
+	<p>Return the sine of an angle.</p>
 </li>
 <li style="display:none">
-    <h4>second()</h4>
-    <p>Returns the current second as a value from 0 - 59, based on the user's computer clock</p>
+	<h4>cos(degrees)</h4>
+	<p>Return the cosine of an angle.</p>
 </li>
 <li style="display:none">
-    <h4>millis()</h4>
-    <p>Returns the number of milliseconds (thousandths of a second) since starting the program. Useful for cyclic animations</p>
+	<h4>tan(degrees)</h4>
+	<p>Return the tangent of an angle</p>
 </li>
 <li style="display:none">
-    <h4>println(data)</h4>
-    <p>Prints a line of data to the console that pops up over the canvas. Click the X to close the console.</p>
+	<h4>acos(val)</h4>
+	<p>Returns the arc cosine (inverse cosine) of a value. Depending on the angle mode, it returns values from 0-180 or 0-PI.</p>
 </li>
 <li style="display:none">
-    <h4>print(data)</h4>
-    <p>Prints data to the console that pops up over the canvas, without creating a new line (like println does).</p>
+	<h4>asin(val)</h4>
+	<p>Returns the arc sine (inverse sine) of a value. Depending on the angle mode, it returns values from -90 to 90 or -PI/2 to PI/2.</p>
+</li>
+<li style="display:none">
+	<h4>atan(val)</h4>
+	<p>Returns the arc tangent (inverse tangent) of a value. Depending on the angle mode, it returns values from -90 to 90 or -PI/2 to PI/2.</p>
+</li>
+<li style="display:none">
+	<h4>radians(angle)</h4>
+	<p>Converts a degree measurement to its corresponding value in radians.</p>
+</li>
+<li style="display:none">
+	<h4>degrees(angle)</h4>
+	<p>Converts a radians measurement to its corresponding value in degrees.</p>
+</li>
+<li style="display:none">
+	<h4>day()</h4>
+	<p>Returns the current day of the month, between 1 and 31, according to the clock on the user's computer</p>
+</li>
+<li style="display:none">
+	<h4>month()</h4>
+	<p>Returns the current month of the year, between 1-12, according to the clock on the user's computer</p>
+</li>
+<li style="display:none">
+	<h4>year()</h4>
+	<p>Returns the current year according to the clock on the user's computer</p>
+</li>
+<li style="display:none">
+	<h4>hour()</h4>
+	<p>Returns the current hour as a value from 0 - 23, based on the user's computer clock</p>
+</li>
+<li style="display:none">
+	<h4>minute()</h4>
+	<p>Returns the current minute as a value from 0 - 59, based on the user's computer clock</p>
+</li>
+<li style="display:none">
+	<h4>second()</h4>
+	<p>Returns the current second as a value from 0 - 59, based on the user's computer clock</p>
+</li>
+<li style="display:none">
+	<h4>millis()</h4>
+	<p>Returns the number of milliseconds (thousandths of a second) since starting the program. Useful for cyclic animations</p>
+</li>
+<li style="display:none">
+	<h4>println(data)</h4>
+	<p>Prints a line of data to the console that pops up over the canvas. Click the X to close the console.</p>
+</li>
+<li style="display:none">
+	<h4>print(data)</h4>
+	<p>Prints data to the console that pops up over the canvas, without creating a new line (like println does).</p>
 </li>
 </ul>
 <div>
@@ -545,758 +492,86 @@
 
 <script>
 (function() {
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Live-Editor !
-window.AllImages = JSON.parse({{ .AllImages }});
-window.OutputImages = JSON.parse({{ .AllImages }});
-window.OutputSounds = JSON.parse({{ .OutputSounds }});
-window.liveEditor = new LiveEditor({
-    el: $("#cpg-live-editor"),
-    code: window.localStorage["test-code"] || "",
-    width: 400,
-    height: 400,
-    editorHeight: "400px",
-    autoFocus: true,
-    workersDir: "../build/workers/",
-    execFile: "external/output.html",
-    externalsDir: "../build/external/",
-    imagesDir: "static/userdata/{{ .UserNameForImages }}/images/",
-    soundsDir: "../static/userdata/{{ .UserNameForImages }}/sounds/",
-    jshintFile: "../build/external/jshint/jshint.js",
-    newErrorExperience: true 
-});
-window.liveEditor.editor.on("change", function () {
-    CPG_modified = true;
-});
-$( window ).trigger( "live-editor-late-integration" );
-
-$( ".scratchpad-toolbar" ).hide();
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-// Live Editor page logic
-//
-refreshSession("{{ .LoginTime }}");
-
-//////////////////////////////////////////
-// Fill in the globals form local storage
-var CPG_codeFileList = sessionStorage.codeFileList && JSON.parse(sessionStorage.codeFileList) || [],
-    CPG_allFilesList = sessionStorage.allFilesList && JSON.parse(sessionStorage.allFilesList) || [],
-    CPG_currentCodeFile = sessionStorage.currentCodeFile || "{{ .ControlBarNewFile }}";
-    CPG_codeFiles = {},
-    CPG_modified = false;
-
-for( var i=0 ; i<CPG_codeFileList.length ; i++ ) CPG_codeFiles[CPG_codeFileList[i]] = sessionStorage[CPG_codeFileList[i]] && JSON.parse(sessionStorage[CPG_codeFileList[i]]) || {};
-CPG_codeFiles[{{ .ControlBarNewFile }}] = sessionStorage[{{ .ControlBarNewFile }}] && JSON.parse(sessionStorage[{{ .ControlBarNewFile }}]) || { code: "" };
-
-///////////////////////////////////////////
-// showModalYesNo displays a modal dialog with answers yes and no
-var showModalYesNo = function(title, body, cb) {
-    var modal = $("#control-bar-yes-no-modal");
-
-    $(".modal-title", modal).text(title);
-    $(".modal-body p", modal).text(body);
-    $(".modal-yes", modal).off("click").one("click", function(e) {
-        var lcb = cb;
-        cb = null;
-        modal.modal('hide');
-        if( lcb ) lcb(true);
-    });
-    $(".modal-no", modal).off("click").one("click", function(e) {
-        // cb is called on hide event
-        modal.modal('hide');
-    });
-
-    modal.modal('show');
-    modal.one('hidden.bs.modal', function(e) {
-        if( cb ) cb(false);
-    });
-};
-
-
-///////////////////////////////////////////
-// showModalSound displays a modal dialog to select sounds
-var showModalSound = window.showModalSound = function(cb) {
-    var modal = $("#control-bar-sound-modal");
-
-    var soundGroups = window.OutputSounds[0].groups,
-        groups = $("<div id='modal-sound-groups'>");
-
-    for( var i=0 ; i<soundGroups.length ; i++ ) {
-        var gr = soundGroups[i],
-            sounds = $("<div class='soundgroup'>");
-        sounds.append("<div class='title'>"+gr.groupName+"</div>");
-        for( var j=0 ; j<gr.sounds.length ; j++ ) {
-            sound = gr.sounds[j];
-            sounds.append(
-                "<div class='sound'>"+
-                "   <audio src='static/userdata/{{ .UserNameForImages }}/sounds/"+gr.groupName+"/"+sound+".mp3' controls></audio>"+
-                "   <span class='sound-name' path='"+gr.groupName+"/"+sound+"'>"+sound+"</span>"+
-                "</div>"
-            );
-        }
-
-        groups.append(sounds);
-    }
-
-    $(".modal-body", modal).html(groups);
-
-    $(".modal-open", modal).off("click").one("click", function(e) {
-        modal.modal('hide');
-        if( cb ) cb($(".sound-name.selected").attr("path"));
-    });
-
-    $(".modal-cancel", modal).off("click").one("click", function(e) {
-        // cb is called on hide event
-        modal.modal('hide');
-    });
-
-    $(".sound-name", modal).hover(function(e) {
-        $(this).addClass("active");
-    }, function(e) {
-        $(this).removeClass("active");   
-    }).on("click", function(e) {
-        if( $(this).hasClass("selected") ) {
-            $(".modal-open", modal).trigger("click");
-        }
-        $(".sound-name", modal).removeClass("selected");
-        $(this).addClass("selected");
-    });
-
-    modal.modal('show');
-
-    modal.one('hidden.bs.modal', function(e) {
-        if( cb ) cb();
-    });
-};
-
-
-///////////////////////////////////////////
-// showModalCodeFiles shows the code file info and modification dialog
-var showModalCodeFiles = function(cb) {
-    var modal = $("#control-bar-codefile-modal");
-
-    var afl = CPG_allFilesList,
-        files = $("<div id='modal-codefiles'>"),
-        row = null;
-
-    for( var i=0 ; i<afl.length ; i++ ) {
-        files.append(
-            "<div class='file file"+i+" pull-left' filename='"+afl[i].name+"'>"+
-            "   <div class='top'>"+
-            "   </div>"+
-            "   <div class='middle'>"+
-            "       <img src='static/userdata/{{.UserName}}/js/"+(afl[i].name.slice(0,-3)+".png")+"'>"+
-            "   </div>"+
-            "   <div class='bottom'>"+
-            "       <span class='filename text-center'>"+afl[i].name+"</span>"+
-            "       <span class='timestamp pull-left vbottom'>"+getFormatedDate(afl[i].timeStamp)+"</span>"+
-            "       <input type='checkbox' class='checkbox large pull-right' value=''>"+
-            "   </div>"+
-            "</div>"
-        );
-    }
-    
-    // Correct font size of filenames
-    $(".modal-body", modal ).html(files);
-    modal.one('shown.bs.modal', function() {
-
-        for( var i=0 ; i<afl.length ; i++ ) {
-            var filename = $(".file"+i+" .filename", files),
-                maxWidth = filename.width(),
-                realWidth = filename[0].scrollWidth;
-
-            if( realWidth > maxWidth ) {
-                var fontSize = parseFloat(filename.css("font-size"));
-
-                for( var j=1 ; j<10 ; j++ ) {
-                    filename.css("font-size", (fontSize - j));
-                    if( filename[0].scrollWidth <= maxWidth ) break;
-                }
-            }
-        }
-    });
-
-    /*
-    $(".file .middle", modal).one("dblclick", function(e) {
-        cb("open", [$(this).parent().attr("filename")]);
-        cb = null;
-        modal.modal('hide');
-    });
-    */
-
-    $(".file .middle", modal).on("click", function(e) {
-        var checkbox = $(".checkbox", $(this).parent()); 
-        checkbox.prop("checked", !checkbox.prop("checked"));
-    });
-
-    var getCheckedFilenames = function() { 
-        var filenames = [];
-        $.each($(".file", modal), function( index, file ) {
-            var checkbox = $(".checkbox", $(this))
-            if( checkbox.is(':checked')) {
-                filenames.push($(this).attr("filename"));
-            }
-        });
-        return filenames;
-    }
-
-    $(".modal-open", modal).off("click").one("click", function(e) {
-
-        var lcb = cb;
-        cb = null;
-        modal.modal('hide');
-
-        //if( !lcb ) debugger;
-        if( lcb ) lcb("open", getCheckedFilenames());
-    });
-
-    $(".modal-cancel", modal).off("click").one("click", function(e) {
-        modal.modal('hide');
-    });
-
-    $(".modal-delete", modal).off("click").one("click", function(e) {
-        var lcb = cb;
-        cb = null;
-        modal.modal('hide');
-
-        //if( !lcb ) debugger;
-        if( lcb ) lcb("delete", getCheckedFilenames());
-    });
-
-    modal.one('hidden.bs.modal', function(e) {
-        if( cb ) cb("cancel");
-    });
-
-    modal.modal('show');
-};
-
-////////////////////////////////////////////
-// storeCurrentCodeFile syncs the current code file with the global variable and the local storage
-var storeCurrentCodeFile = function() {
-    if( CPG_currentCodeFile ) {
-        CPG_codeFiles[CPG_currentCodeFile].code = liveEditor.editor.text();
-        sessionStorage[CPG_currentCodeFile] = JSON.stringify(CPG_codeFiles[CPG_currentCodeFile]);            
-    }
-};
-
-/////////////////////////////////////////////
-// fillButtonControl fills the file select button with current files
-var fillButtonControl = function() {
-
-    // create file list for button control
-    var fileList = [];
-    for( var i=0 ; i<CPG_codeFileList.length ; i++ ) {
-        fileList.push({
-            fileName: CPG_codeFileList[i],
-            timeStamp: CPG_codeFiles[CPG_codeFileList[i]].timeStamp
-        });
-    }
-
-    fileList.sort(function(a,b) {
-        if( a.timeStamp > b.timeStamp ) return -1;
-        else return 1;
-    });
-
-    var cbf = $("#control-bar-files"),
-        width = cbf.width();
-
-    cbf.html("");
-    for( var i=0 ; i<fileList.length ; i++ ) {
-
-        cbf.append('<li class="control-bar-file" codefile="'+fileList[i].fileName+'"><span>'+fileList[i].fileName+'</span><span class="timestamp">'+getFormatedDate(fileList[i].timeStamp)+'</span></li>')
-            .width(width + 20); 
-    }
-
-    if( CPG_allFilesList.length >= 2 ) {
-        cbf.append('<li class="border-top control-bar-file" codefile="all"><span>{{ .ControlBarAllFiles }}</span></li>')
-    }
-
-    $("#control-bar-current-file").text(CPG_currentCodeFile);
-    $("#control-bar-input input").val(CPG_currentCodeFile);
-
-    $(".control-bar-file").on('click', function(e) {
-        if( CPG_currentCodeFile !== "{{ .ControlBarNewFile }}" ) {
-            storeCurrentCodeFile();
-        }
-
-        var codeFile = $(this).attr("codeFile");
- 
-        if( codeFile !== "all" ) {
-            sessionStorage.currentCodeFile = CPG_currentCodeFile = codeFile;
-            $("#control-bar-current-file").text(CPG_currentCodeFile);
-            $("#control-bar-input input").val(CPG_currentCodeFile)
-            liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile].code);
-            CPG_modified = false;
-        } else {
-            showModalCodeFiles(function(button, selFiles) {
-                switch( button ) {
-                    /////////////////////////////////////////////////
-                    // User selected "open"
-                    case "open":
-                        for( var i=0, openFiles=[] ; i<selFiles.length ; i++ ) {
-                            if( CPG_codeFileList.indexOf(selFiles[i]) !== -1 ) openFiles.push(selFiles[i]);
-                        }
-
-                        var readFiles = function() {
-                            if( selFiles.length ) {
-                                $WS.sendMessage({
-                                    command: "readJSFiles",
-                                    FileNames: selFiles,
-                                }, function(message) {
-                                    for( var i=0 ; i<selFiles.length ; i++ ) {
-                                        var fileName = selFiles[i],
-                                            codeFile = message.CodeFiles[fileName];
-                                        if( codeFile ) {
-                                            CPG_codeFiles[fileName] = {
-                                                code: codeFile.Code,
-                                                timeStamp: codeFile.TimeStamp,
-                                            }
-                                            sessionStorage[fileName] = JSON.stringify(CPG_codeFiles[fileName]);
-                                            if( CPG_codeFileList.indexOf(fileName) === -1 ) CPG_codeFileList.push(fileName);
-                                        }
-                                    }
-                                    sessionStorage.codeFileList = JSON.stringify(CPG_codeFileList);
-
-                                    sessionStorage.currentCodeFile = CPG_currentCodeFile = selFiles[0];
-                                    $("#control-bar-input input").val(CPG_currentCodeFile);
-                                    fillButtonControl();
-
-                                    liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile].code);
-                                    CPG_modified = false;
-                                });
-                            }
-                        }
-
-                        if( openFiles.length ) {
-                            showModalYesNo(openFiles.join("   "), openFiles.length === 1?"{{ .ControlBarModalAlreadyOpenS }}":"{{ .ControlBarModalAlreadyOpenP }}", function(yes) {
-                                if( !yes ) {
-                                    for( var i=openFiles.length-1 ; i>=0 ; i-- ) selFiles.splice(selFiles.indexOf(openFiles[i]),1);
-                                }
-
-                                readFiles();
-                            });
-                        } else {
-                            readFiles();
-                        }
-                        break;
-                    /////////////////////////////////////////////////
-                    // User selected "cancel" or closed the dialog
-                    case "cancel":
-                        break;
-                    /////////////////////////////////////////////////
-                    // User selected "delete"
-                    case "delete":
-                        if( selFiles.length ) {
-                            showModalYesNo(selFiles.join("   "), selFiles.length === 1? "{{ .ControlBarModalFileDeleteS }}" : "{{ .ControlBarModalFileDeleteP }}", function(yes) {
-                                if( yes ) {
-                                    $WS.sendMessage({
-                                        command: "deleteJSFiles",
-                                        FileNames: selFiles,
-                                    }, function(message) {
-
-                                        // Todo: Error message
-                                        //if( message.Error ) return;
-
-                                        for( var i=selFiles.length-1 ; i>=0 ; i-- ) {
-                                            // hier wird ab und zu ein Wort nicht aus allFiles gelöscht ... (step debug!!)
-
-                                            CPG_codeFileList.splice(CPG_codeFileList.indexOf(selFiles[i]),1);
-                                            for( var afl=CPG_allFilesList, j=afl.length-1 ; j>=0 ; j-- ) {
-                                                if( afl[j].name === selFiles[i] ) {
-                                                    afl.splice(j,1);
-                                                    break;
-                                                }
-                                            } 
-                                            CPG_codeFiles[selFiles[i]] = null;
-
-                                            if( selFiles[i] === CPG_currentCodeFile ) sessionStorage.currentCodeFile = CPG_currentCodeFile = CPG_codeFileList[0] || "{{ .ControlBarNewFile }}"
-                                        }
-                                        sessionStorage.allFilesList = JSON.stringify(CPG_allFilesList);
-                                        sessionStorage.codeFileList = JSON.stringify(CPG_codeFileList);
-                                        sessionStorage[CPG_currentCodeFile] = JSON.stringify(CPG_codeFiles[CPG_currentCodeFile] || { code: "" });
-
-                                        fillButtonControl();
-                                        liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile]? CPG_codeFiles[CPG_currentCodeFile].code : "");
-                                        CPG_modified = false;
-                                    });
-                                }
-                            });
-                            return;
-
-                        }
-                        break;
-                }
-            });
-        }
-    });
-};
-
-///////////////////////////////////////////
-// getFormatedDate returns a neatly formated date or time
-var getFormatedDate = function(time) {
-    if( !time ) return "";
-
-    var monthNames = ["Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sep.", "Okt.", "Nov.", "Dez."];
-
-    var date = new Date(),
-        today = date.toDateString(),
-        yearNow = date.getFullYear(),
-        yesterday = date.setDate(date.getDate()-1);
-    yesterday = date.toDateString();
-
-    date.setTime(time);
-    var day = date.getDate(),
-        monthIndex = date.getMonth(),
-        year = date.getFullYear(),
-        hour = date.getHours(),
-        minute = date.getMinutes();
-    if( today == date.toDateString() ) var dateString = hour+":"+(minute<10?"0":"")+minute;
-    else if( yesterday == date.toDateString() ) var dateString = "Gestern";
-    else {
-        var dateString = day+". "+monthNames[monthIndex];
-        if( year != yearNow ) {
-            dateString += " "+year;
-        }
-    }
-
-    return dateString;
-};
-
-/////////////////////////////////////////
-// selectFilename displays a filename input and selects the js filename
-var selectFilename = function(input) {
-
-    input.fadeIn();
-    input.focus();
-    var filename = input.val();
-
-    if( filename.slice(-3) != ".js" ) {
-        filename += ".js";
-        input.val(filename);
-    }
-
-    var startPos = 0,
-        endPos = filename.length-3;
-
-    if (typeof input[0].selectionStart != "undefined") {
-        input[0].selectionStart = startPos;
-        input[0].selectionEnd = endPos;
-    }
-}
-
-//////////////////////////////////////////
-// WS.connect connects to server and loads code files
-//$WS.connect("ws://192.168.0.177:8081/socket", "{{ .xsrfdata }}", function() {
-//$WS.connect("ws://192.168.13.182:8081/socket", "{{ .xsrfdata }}", function() {
-//$WS.connect("ws://localhost:8081/socket", "{{ .xsrfdata }}", function() {
-$WS.connect("{{ .WebsocketsAddress }}", "{{ .xsrfdata }}", function() {
-
-    if( "{{ .UserName }}" === "" ) {
-        
-        liveEditor.editor.reset(CPG_codeFiles[{{ .ControlBarNewFile }}].code || "");
-        CPG_modified = false;
-
-    } else if( !sessionStorage.codeFileList || !sessionStorage.codeFileList.length) {
-        $WS.sendMessage({
-            Command: "readJSDir"
-        }, function(message) {
-            CPG_codeFileList = [];
-
-            var files=[];
-            for( file in message.Files ) {
-                 files.push({ name: file, timeStamp: message.Files[file].TimeStamp });
-            }
-
-            files.sort(function(a, b) {
-                if( a.timeStamp < b.timeStamp ) return 1;
-                else return -1;
-            });
-
-            CPG_allFilesList = files;
-            sessionStorage.allFilesList = JSON.stringify(CPG_allFilesList);
-
-            for( var i=0, codeFilesToRead=[] ; i<5 && i<files.length ; i++ ) {
-                codeFilesToRead.push(files[i].name);
-            }
-
-            if( codeFilesToRead.length ) {
-                $WS.sendMessage({
-                    command: "readJSFiles",
-                    FileNames: codeFilesToRead,
-                }, function(message) {
-                    for( var i=0 ; i<codeFilesToRead.length ; i++ ) {
-                        var fileName = codeFilesToRead[i],
-                            codeFile = message.CodeFiles[fileName];
-                        if( codeFile ) {
-                            CPG_codeFiles[fileName] = {
-                                code: codeFile.Code,
-                                timeStamp: codeFile.TimeStamp,
-                            }
-                            sessionStorage[fileName] = JSON.stringify(CPG_codeFiles[fileName]);
-                            CPG_codeFileList.push(fileName);                            
-                        }
-                    }
-                    sessionStorage.codeFileList = JSON.stringify(CPG_codeFileList);
-
-                    sessionStorage.currentCodeFile = CPG_currentCodeFile = CPG_codeFileList[0];
-                    $("#control-bar-input input").val(CPG_currentCodeFile);
-                    fillButtonControl();
-
-                    liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile].code);
-                    CPG_modified = false;
-                });
-            } else {
-                CPG_currentCodeFile = "{{ .ControlBarNewFile }}";
-                CPG_codeFileList = [];
-                CPG_codeFiles[CPG_currentCodeFile] = { code: "", timeStamp: null };
-
-                sessionStorage.codeFileList = JSON.stringify(CPG_codeFileList);
-                sessionStorage.currentCodeFile = CPG_currentCodeFile;
-                sessionStorage[CPG_currentCodeFile] = JSON.stringify(CPG_codeFiles[CPG_currentCodeFile]);
-
-                $("#control-bar-input input").val(CPG_currentCodeFile);
-                fillButtonControl();
-                liveEditor.editor.reset("");
-                CPG_modified = false;
-            }
-        });
-    } else {
-
-        fillButtonControl();
-        
-        liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile]? CPG_codeFiles[CPG_currentCodeFile].code : "");
-        CPG_modified = false;
-    }
-
-    console.log("Websockets connected!");
-});
-
-///////////////////////////////////////////
-// Delete button
-$("#control-bar-delete").on('click', function() {
-    if( CPG_currentCodeFile !== "{{ .ControlBarNewFile }}" ) {
-        showModalYesNo(CPG_currentCodeFile, "{{ .ControlBarModalFileDeleteS }}", function(yes) {
-            if( yes ) {
-                $WS.sendMessage({
-                    command: "deleteJSFiles",
-                    FileNames: [CPG_currentCodeFile],
-                }, function(message) {
-
-                    // weiter mit go command deleteJSFiles
-                    CPG_codeFileList.splice(CPG_codeFileList.indexOf(CPG_currentCodeFile),1);
-                    for( var i=0, afl=CPG_allFilesList ; i<afl.length ; i++ ) {
-                        if( afl[i].name === CPG_currentCodeFile ) afl.splice(i,1);
-                        break;
-                    } 
-                    CPG_codeFiles[CPG_currentCodeFile] = null;
-
-                    sessionStorage.currentCodeFile = CPG_currentCodeFile = CPG_codeFileList[0] || "{{ .ControlBarNewFile }}"
-                    sessionStorage.codeFileList = JSON.stringify(CPG_codeFileList);
-                    sessionStorage.allFilesList = JSON.stringify(CPG_allFilesList);
-                    sessionStorage[CPG_currentCodeFile] = JSON.stringify(CPG_codeFiles[CPG_currentCodeFile] || { code: "" });
-
-                    fillButtonControl();
-                    liveEditor.editor.reset(CPG_codeFiles[CPG_currentCodeFile]? CPG_codeFiles[CPG_currentCodeFile].code : "");
-                    CPG_modified = false;
-                });
-            }
-        });
-        return;
-    }
-});
-
-$("#control-bar-new").on('click', function() {
-
-    var newFile = function() {
-        sessionStorage.currentCodeFile = CPG_currentCodeFile = "{{ .ControlBarNewFile }}";
-
-        $("#control-bar-current-file").text(CPG_currentCodeFile);
-        $("#control-bar-input input").val(CPG_currentCodeFile);
-        liveEditor.editor.reset("");
-        CPG_modified = false;
-
-        storeCurrentCodeFile();        
-    };
-
-    if( CPG_modified && CPG_currentCodeFile !== "{{ .ControlBarNewFile }}" ) {
-       showModalYesNo({{ .ControlBarModalFileChanged }}, {{ .ControlBarModalFileChanged2 }}, function(yes) {
-            if( yes ) {
-                saveCodeFile(CPG_currentCodeFile, function() { newFile(); } ); 
-            } else {
-                newFile();
-            }
-        });
-
-        return false;
-    }
-
-    newFile();
-});
-
-var saveCodeFile = function(filename, cb) {
-    $("#control-bar-label").text("...");
-    var code = liveEditor.editor.text();
-    // Unbind any handlers this function may have set for previous
-    // screenshots
-
-    window.liveEditor.getScreenshot(function (data) {
-
-        // remove BASE64-HTML header
-        image = data.substr(data.search(",")+1);
-
-        $WS.sendMessage({
-            Command: "writeJSFiles",
-            FileNames: [filename],
-            TimeStamps: CPG_codeFiles[filename] && [CPG_codeFiles[filename].timeStamp] || null,
-            CodeFiles: [code],
-            Overwrite: CPG_currentCodeFile === filename,
-            Images   : [image], 
-        }, function(message) {
-            if( message.Error ) {
-                showModalYesNo("{{ .ControlBarModalFileExists }}", message.Error, function(yes) {
-                    if( yes ) {
-                        CPG_currentCodeFile = filename;
-                        saveCodeFile(filename);
-                    } else {
-                        $("#control-bar-label").text("{{ .ControlBarLabel }}");
-                    }
-                });
-                return false;
-            } else if( CPG_currentCodeFile !== filename ) {
-
-                CPG_codeFiles[CPG_currentCodeFile].code = CPG_currentCodeFile !== "{{ .ControlBarNewFile }}"? liveEditor.editor.text() : "";
-                
-                CPG_codeFileList.push(filename);
-                for( var i=0, filenameExists=false, afl=CPG_allFilesList ; i<afl.length ; i++ ) {
-                    if( afl[i].name === filename ) {
-                        filenameExists = true;
-                        break;
-                    }
-                }
-                if( !filenameExists ) CPG_allFilesList.push({
-                    name: filename,
-                    timeStamp: CPG_codeFiles[CPG_currentCodeFile].timeStamp
-                });
-                sessionStorage[CPG_currentCodeFile] = JSON.stringify( CPG_codeFiles[CPG_currentCodeFile] );
-                sessionStorage.codeFileList = JSON.stringify(CPG_codeFileList);
-                sessionStorage.allFilesList = JSON.stringify(CPG_allFilesList);
-                sessionStorage.currentCodeFile = CPG_currentCodeFile = filename;
-
-            } else if(message.OutdatedTimeStamps.length > 0) {
-                showModalYesNo(filename, "{{ .ControlBarModalFileOutdated }}", function(yes) {
-                    if( yes ) {
-                        CPG_codeFiles[filename].timeStamp = message.OutdatedTimeStamps[0] 
-                        saveCodeFile(filename);
-                    } else {
-                        $("#control-bar-label").text("{{ .ControlBarLabel }}");
-                    }
-                });
-                return false;
-            } 
-
-            CPG_codeFiles[filename] = { 
-                code: liveEditor.editor.text(),
-                timeStamp: message.SavedTimeStamps[0]
-            };
-            sessionStorage[filename] = JSON.stringify(CPG_codeFiles[filename]);
-            fillButtonControl();
-            CPG_modified = false;
-            if( cb ) cb(); // call callback function after saving the file
-            $("#control-bar-label").text("{{ .ControlBarSaved }}").parent().removeClass("btn-primary").addClass("btn-success");
-            $
-            setTimeout(function() { 
-                $("#control-bar-label").text("{{ .ControlBarLabel }}")
-                    .parent().addClass("btn-primary")
-                    .removeClass("btn-success"); 
-            }, 2000);
-        });
-    });
-};
-
-$("#control-bar-save").on('click', function(e) {
-    var input = $("#control-bar-input input"),
-        filename = input.val();
-
-    if( filename === "{{ .ControlBarNewFile }}") {
-        selectFilename(input);
-    } else {
-        if( filename.slice(-3) != ".js" ) {
-            filename += ".js";
-            input.val(filename);
-        }
-
-        saveCodeFile(filename);
-        input.fadeOut();
-    }
-
-    return false;
-});
-
-$("#control-bar-label").on('click', function(e) {
-    $("#control-bar-save").trigger("click");
-    e.stopPropagation()
-});
-
-$("#control-bar-saveas").on('click', function() {
-    var input = $("#control-bar-input input");
-    selectFilename(input);
-});
-
-$("#control-bar-input").submit(function(e) {
-    var input = $("#control-bar-input input"),
-        filename = input.val();
-
-    if( filename === "{{ .ControlBarNewFile }}") {
-        selectFilename(input);
-    } else {
-
-        if( filename.slice(-3) != ".js" ) {
-            filename += ".js"
-            input.val(filename);
-        }
-
-        saveCodeFile(filename);
-        input.fadeOut();
-    }
-
-    return false;
-});
-
-
-$("#control-bar-restart").on("click", function(e) {
-    window.liveEditor.restartCode();
-});
-
-$("#logout-button").on("click", function(e) {
-    localStorage.loginTime = 0;
-});
-
-$(".kuenste a").on("click tap", function(e) {
-    storeCurrentCodeFile();
-    CPG_modified = false;
-});
-
-window.onbeforeunload = function() {
-    //storeCurrentCodeFile();
-    if( CPG_modified ) return "{{ .ControlBarModalFileChanged }}";
-}
-
-$(window).blur(function(e) {
-    //console.log("Going away to next tab");
-    // Do Blur Actions Here
-});
-
-$(window).on('hashchange', function(e){
-    console.log("URL changed.");
-    // do something...
-});
-
-setInterval(storeCurrentCodeFile, 30000)
-
+	// This is for Khan Live-Editor
+	window.AllImages = JSON.parse({{ .AllImages }});
+	window.OutputSounds = JSON.parse({{ .OutputSounds }});
+	window.OutputImages = JSON.parse({{ .AllImages }});
+
+	// Server data
+	window.CPG = {
+		LoginTime: {{ .LoginTime }},
+		UserName: {{ .UserName }},
+		UserNameForImages: {{ .UserNameForImages }},
+		WebsocketsAddress: {{ .WebsocketsAddress }},
+		xsrfdata: {{ .xsrfdata }},
+		ControlBarLabel: {{ .ControlBarLabel }},
+		RightInviteToGroups: {{ .RightInviteToGroups }},
+		RightAddGroups: {{ .RightAddGroups }},
+		ProjectBarNewFile: {{ .ProjectBarNewFile }},
+		ProjectBarAllFiles: {{ .ProjectBarAllFiles }},
+		ProjectBarAdministrate: {{ .ProjectBarAdministrate }},
+		ProjectBarDisinvite: {{ .ProjectBarDisinvite }},
+		ProjectBarGalleryOff: {{ .ProjectBarGalleryOff }},
+		ProjectBarGalleryOn: {{ .ProjectBarGalleryOn }},
+		ProjectBarGalleryOn: {{ .ProjectBarGalleryOn }},
+		ProjectBarInvite: {{ .ProjectBarInvite }},
+		ProjectBarMail: {{ .ProjectBarMail }},
+		ProjectBarMessage: {{ .ProjectBarMessage }},
+		ProjectBarModalProjectInit: {{ .ProjectBarModalProjectInit }},
+		ProjectBarModalProjectInit2: {{ .ProjectBarModalProjectInit2 }},
+		ProjectBarModalProjectInitOk: {{ .ProjectBarModalProjectInitOk }},
+		ProjectBarModalProjectSave: {{ .ProjectBarModalProjectSave }},
+		ProjectBarModalProjectSave2: {{ .ProjectBarModalProjectSave2 }},
+		ProjectBarModalProjectSaveOk: {{ .ProjectBarModalProjectSaveOk }},
+		ProjectBarModalAlreadyOpenP: {{ .ProjectBarModalAlreadyOpenP }},
+		ProjectBarModalAlreadyOpenS: {{ .ProjectBarModalAlreadyOpenS }},
+		ProjectBarModalOk: {{ .ProjectBarModalOk }},
+		ProjectBarOtherVersion: {{ .ProjectBarOtherVersion }}, 
+		ProjectBarModalConflicts: {{ .ProjectBarModalConflicts }},
+		ProjectBarModalConflicts2: {{ .ProjectBarModalConflicts2 }},
+		ProjectBarModalYes: {{ .ProjectBarModalYes }},
+		ProjectBarModalNo: {{ .ProjectBarModalNo }},
+		ProjectBarModalCancel: {{ .ProjectBarModalCancel }},
+        ProjectBarModalSave: {{ .ProjectBarModalSave }},
+        ProjectBarModalFilename: {{ .ProjectBarModalFilename }},
+        ProjectBarModalSaveFilename: {{ .ProjectBarModalSaveFilename }},
+        ProjectBarModalSaveFilename2: {{ .ProjectBarModalSaveFilename2 }},
+		ProjectBarModalCodefileTitle: {{ .ProjectBarModalCodefileTitle }},
+		ProjectBarModalDelete: {{ .ProjectBarModalDelete }},
+		ProjectBarModalFileChanged2: {{ .ProjectBarModalFileChanged2 }},
+		ProjectBarModalFileChanged: {{ .ProjectBarModalFileChanged }},
+		ProjectBarModalFileDeleteP: {{ .ProjectBarModalFileDeleteP }},
+		ProjectBarModalFileDeleteS: {{ .ProjectBarModalFileDeleteS }},
+		ProjectBarModalFileExists: {{ .ProjectBarModalFileExists }},
+		ProjectBarModalFileExists2: {{ .ProjectBarModalFileExists2 }},
+		ProjectBarModalFileOutdated: {{ .ProjectBarModalFileOutdated }},
+		ProjectBarModalInvite: {{ .ProjectBarModalInvite }},
+		ProjectBarModalInvite2: {{ .ProjectBarModalInvite2 }},
+		ProjectBarModalInviteOk: {{ .ProjectBarModalInviteOk }},
+		ProjectBarModalOpen: {{ .ProjectBarModalOpen }},
+		ProjectBarModalRestartEditor: {{ .ProjectBarModalRestartEditor }},
+		ProjectBarModalRestartEditor2: {{ .ProjectBarModalRestartEditor2 }},
+		ProjectBarNew: {{ .ProjectBarNew }},
+		ProjectBarOpen: {{ .ProjectBarOpen }},
+		ProjectBarOrganize: {{ .ProjectBarOrganize }},
+		ProjectBarRename: {{ .ProjectBarRename }},
+		ProjectBarSave: {{ .ProjectBarSave }},
+		ProjectBarSaved: {{ .ProjectBarSaved }},
+		ProjectBarSaveAs: {{ .ProjectBarSaveAs }},
+		ProjectBarSaveProject: {{ .ProjectBarSaveProject }},
+		ProjectBarSaveTemplate: {{ .ProjectBarSaveTemplate }},
+		ProjectBarTransfer: {{ .ProjectBarTransfer }},
+		ProjectBarProject: {{ .ProjectBarProject }},
+		ProjectBarModalOpenNewProject: {{ .ProjectBarModalOpenNewProject }},
+		ProjectBarModalOpenNewProject2: {{ .ProjectBarModalOpenNewProject2 }},
+		ProjectBarModalProjectExists: {{ .ProjectBarModalProjectExists }},
+		ProjectBarModalProjectExists2: {{ .ProjectBarModalProjectExists2 }},
+	}
 })();
-    </script>
-
-
+</script>
+<script src="static/js/cpg-project-bar.js"></script>
+<script src="static/js/cpg-live-editor-pjs.js"></script>
+<script src="static/js/cpg-live-editor-html.js"></script>
+<script src="static/js/cpg-live-editor.js"></script>
 </body>
 </html>

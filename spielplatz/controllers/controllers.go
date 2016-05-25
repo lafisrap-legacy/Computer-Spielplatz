@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/session"
 	"github.com/lafisrap/Computer-Spielplatz/spielplatz/models"
+	"gopkg.in/libgit2/git2go.v22"
 	"html/template"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"time"
@@ -203,8 +204,15 @@ func (c *LoginController) Get() {
 	s, _ := globalSessions.SessionStart(w, r)
 	defer s.SessionRelease(w)
 
+	T := models.T
+
 	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 	c.Data["Destination"] = "/" + c.Ctx.Input.Param(":dest")
+	c.Data["LoginInvitation"] = T["login_invitation"]
+	c.Data["LoginInputName"] = T["login_input_name"]
+	c.Data["LoginPassword"] = T["login_input_password"]
+	c.Data["LoginLoginGo"] = T["login_login_go"]
+
 	c.TplName = "login.html"
 }
 
@@ -214,6 +222,7 @@ func (c *LoginController) Post() {
 	///////////////////////////////////
 	// Session prefix
 	s := c.StartSession()
+	T := models.T
 
 	var (
 		u   models.User
@@ -225,17 +234,22 @@ func (c *LoginController) Post() {
 		dest = "/"
 	}
 	if err = c.ParseForm(&uf); err == nil {
-		if u, err = models.Login(&uf); err == nil {
+		if u, err = models.AuthenticateUser(&uf); err == nil {
 			s.Set("UserName", u.Name)
 			s.Set("Email", u.Email)
+			s.Set("Rights", models.GetRightsFromDatabase(u.Name))
+			s.Set("Groups", models.GetGroupsFromDatabase(u.Name))
 			s.Set("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
-			mountAdminData(u.Name)
 			c.Ctx.Redirect(302, dest)
 			return
 		}
 	}
 
 	c.Data["Error"] = err.Error()
+	c.Data["LoginInvitation"] = T["login_invitation"]
+	c.Data["LoginInputName"] = T["login_input_name"]
+	c.Data["LoginPassword"] = T["login_input_password"]
+	c.Data["LoginLoginGo"] = T["login_login_go"]
 	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 	c.Data["Destination"] = dest
 	c.TplName = "login.html"
@@ -261,8 +275,17 @@ func (c *LogoutController) Get() {
 //
 // Get
 func (c *SignupController) Get() {
+	T := models.T
+
+	if _, ok := c.Data["Destination"]; !ok {
+		c.Data["Destination"] = "/" + c.Ctx.Input.Param(":dest")
+	}
 	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
-	c.Data["Destination"] = "/" + c.Ctx.Input.Param(":dest")
+	c.Data["SignupInvitation"] = T["signup_invitation"]
+	c.Data["SignupInputName"] = T["signup_input_name"]
+	c.Data["SignupInputPassword"] = T["signup_input_password"]
+	c.Data["SignupInputPassword2"] = T["signup_input_password2"]
+	c.Data["SignupSignupGo"] = T["signup_signup_go"]
 	c.TplName = "signup.html"
 }
 
@@ -278,18 +301,17 @@ func (c *SignupController) Post() {
 	T := models.T
 	uf := models.UserForm{}
 	dest := c.Ctx.Input.Query("_dest")
-	beego.Trace("Destination:", dest)
 	if dest == "" {
 		dest = "/"
 	}
 	if err = c.ParseForm(&uf); err == nil {
 		if uf.Pwd == uf.Pwd2 {
-			if u, err = models.Signup(&uf); err == nil {
+			if u, err = models.CreateUserInDatabase(&uf); err == nil {
 				s.Set("UserName", u.Name)
 				s.Set("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
 				s.Set("Email", u.Email)
 
-				c.setupAccount(u.Name)
+				c.createUserDirectory(u)
 				c.Ctx.Redirect(302, dest)
 				return
 			} else {
@@ -308,53 +330,53 @@ func (c *SignupController) Post() {
 	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 }
 
-func (c *SignupController) setupAccount(userName string) {
+///////////////////////////////////////////////
+// Create user directories, for code files and resources
+func (c *SignupController) createUserDirectory(user models.User) {
 
-	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::jsfiles")
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		beego.Error("Cannot create directory", dir)
-	}
-	dir = beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::imagefiles") + beego.AppConfig.String("userdata::examples")
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		beego.Error("Cannot create directory", dir)
-	}
-	dir = beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::soundfiles") + beego.AppConfig.String("userdata::examples")
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		beego.Error("Cannot create directory", dir)
-	}
+	// Create project directories
+	models.CreateDirectories(beego.AppConfig.String("userdata::location")+user.Name, true)
 
-	mountAdminData(userName)
+	// Create .spielplatz files
+	dir := beego.AppConfig.String("userdata::location") + user.Name + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/"
+	identityFile := dir + "identity"
+	file, err := os.Create(identityFile)
+	if err != nil {
+		beego.Error(err)
+	}
+	file.Close()
+	cnf, err := config.NewConfig("ini", identityFile)
+	if err != nil {
+		beego.Error("Cannot create identity file in " + dir + " (" + err.Error() + ")")
+	}
+	cnf.Set("auth::Pwhash", user.Pwhash)
+	cnf.SaveConfigFile(identityFile)
+
+	// Clone Admin Spielplatz project
+	err = cloneProjectDir(user.Name, beego.AppConfig.String("userdata::commonproject"))
+	if err != nil {
+		beego.Error(err)
+	}
 }
 
-func mountAdminData(userName string) error {
+func cloneProjectDir(toUser string, project string) error {
+	url := beego.AppConfig.String("userdata::location") + "/" +
+		beego.AppConfig.String("userdata::bareprojects") + "/" +
+		project
 
-	adminName := beego.AppConfig.String("userdata::admin")
+	dir := beego.AppConfig.String("userdata::location") +
+		toUser + "/" +
+		beego.AppConfig.String("userdata::projects") + "/" +
+		project
 
-	if userName == adminName {
-		return nil
+	options := git.CloneOptions{
+		Bare: false,
 	}
-
-	resources := []string{"image", "sound"}
-	for _, res := range resources {
-		dir1 := beego.AppConfig.String("userdata::location") + adminName + "/" + beego.AppConfig.String("userdata::"+res+"files") + beego.AppConfig.String("userdata::examples")
-		dir2 := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::"+res+"files") + beego.AppConfig.String("userdata::examples")
-
-		_, err := os.Stat(dir2)
-		if !os.IsNotExist(err) {
-			cmd := exec.Command("sudo", "mount", "--bind", dir1, dir2)
-			err := cmd.Run()
-			if err != nil {
-				beego.Error("Cannot mount --bind ", dir2, err.Error())
-			}
-			cmd = exec.Command("sudo", "mount", "-o", "remount,ro", dir2)
-			err = cmd.Run()
-			if err != nil {
-				beego.Error("Cannot remount ", dir2, err.Error())
-			}
-		}
+	_, err := git.Clone(url, dir, &options)
+	if err == nil {
+		models.MountResourceFiles(toUser, project)
 	}
-
-	return nil
+	return err
 }
 
 //////////////////////////////////////////////////////////
@@ -366,10 +388,14 @@ func (c *LiveEditorController) Get() {
 	s := c.StartSession()
 	userName := ""
 	userNameForImages := "Admin"
+	var (
+		rights models.RightsMap
+	)
 
 	if s.Get("UserName") != nil {
 		userName = s.Get("UserName").(string)
 		userNameForImages = userName
+		rights = *s.Get("Rights").(*models.RightsMap)
 	}
 
 	c.Data["AllImages"] = c.getImageInfo(userNameForImages)
@@ -382,34 +408,72 @@ func (c *LiveEditorController) Get() {
 	} else {
 		c.Data["UserName"] = userName
 		c.Data["LoginTime"] = s.Get("LoginTime")
-		c.Data["ControlBarLabel"] = T["control_bar_label"]
-		c.Data["ControlBarSave"] = T["control_bar_save"]
-		c.Data["ControlBarSaveAs"] = T["control_bar_save_as"]
-		c.Data["ControlBarSaved"] = T["control_bar_saved"]
-		c.Data["ControlBarVersion"] = T["control_bar_version"]
-		c.Data["ControlBarHistory"] = T["control_bar_history"]
-		c.Data["ControlBarNew"] = T["control_bar_new"]
-		c.Data["ControlBarDelete"] = T["control_bar_delete"]
-		c.Data["ControlBarRestart"] = T["control_bar_restart"]
-		c.Data["ControlBarNewFile"] = T["control_bar_new_file"]
-		c.Data["ControlBarNoUser"] = T["control_bar_no_user"]
-		c.Data["ControlBarAllFiles"] = T["control_bar_all_files"]
-		c.Data["ControlBarFileDelete"] = T["control_bar_file_delete"]
-		c.Data["ControlBarModalYes"] = T["control_bar_modal_yes"]
-		c.Data["ControlBarModalNo"] = T["control_bar_modal_no"]
-		c.Data["ControlBarModalFileExists"] = T["control_bar_modal_file_exists"]
-		c.Data["ControlBarModalFileOutdated"] = T["control_bar_modal_file_outdated"]
-		c.Data["ControlBarModalFileDeleteS"] = T["control_bar_modal_file_delete_s"]
-		c.Data["ControlBarModalFileDeleteP"] = T["control_bar_modal_file_delete_p"]
-		c.Data["ControlBarModalAlreadyOpenS"] = T["control_bar_modal_already_open_s"]
-		c.Data["ControlBarModalAlreadyOpenP"] = T["control_bar_modal_already_open_p"]
-		c.Data["ControlBarModalCodefileTitle"] = T["control_bar_modal_codefile_title"]
-		c.Data["ControlBarModalFileChanged"] = T["control_bar_modal_file_changed"]
-		c.Data["ControlBarModalFileChanged2"] = T["control_bar_modal_file_changed_2"]
-		c.Data["ControlBarModalDelete"] = T["control_bar_modal_delete"]
-		c.Data["ControlBarModalCancel"] = T["control_bar_modal_cancel"]
-		c.Data["ControlBarModalOpen"] = T["control_bar_modal_open"]
-		c.Data["ControlBarModalSoundTitle"] = T["control_bar_modal_sound_title"]
+		c.Data["RightInviteToGroups"] = rights["invitetogroups"]
+		c.Data["RightAddGroups"] = rights["addgroups"]
+		c.Data["LiveEditorHeaderPjs"] = T["live_editor_header_pjs"]
+		c.Data["LiveEditorHeaderHTML"] = T["live_editor_header_html"]
+
+		c.Data["ProjectBarAdministrate"] = T["project_bar_administrate"]
+		c.Data["ProjectBarAllFiles"] = T["project_bar_all_files"]
+		c.Data["ProjectBarDisinvite"] = T["project_bar_disinvite"]
+		c.Data["ProjectBarGalleryOff"] = T["project_bar_gallery_off"]
+		c.Data["ProjectBarGalleryOn"] = T["project_bar_gallery_on"]
+		c.Data["ProjectBarInvite"] = T["project_bar_invite"]
+		c.Data["ProjectBarMail"] = T["project_bar_mail"]
+		c.Data["ProjectBarMessage"] = T["project_bar_message"]
+		c.Data["ProjectBarModalAlreadyOpenP"] = T["project_bar_modal_already_open_p"]
+		c.Data["ProjectBarModalAlreadyOpenS"] = T["project_bar_modal_already_open_s"]
+		c.Data["ProjectBarModalCancel"] = T["project_bar_modal_cancel"]
+		c.Data["ProjectBarModalCodefileTitle"] = T["project_bar_modal_codefile_title"]
+		c.Data["ProjectBarModalConflicts2"] = T["project_bar_modal_conflicts_2"]
+		c.Data["ProjectBarModalConflicts"] = T["project_bar_modal_conflicts"]
+		c.Data["ProjectBarModalDelete"] = T["project_bar_modal_delete"]
+		c.Data["ProjectBarModalFileChanged2"] = T["project_bar_modal_file_changed_2"]
+		c.Data["ProjectBarModalFileChanged"] = T["project_bar_modal_file_changed"]
+		c.Data["ProjectBarModalFileDeleteP"] = T["project_bar_modal_file_delete_p"]
+		c.Data["ProjectBarModalFileDeleteS"] = T["project_bar_modal_file_delete_s"]
+		c.Data["ProjectBarModalFileExists"] = T["project_bar_modal_file_exists"]
+		c.Data["ProjectBarModalFileExists2"] = T["project_bar_modal_file_exists_2"]
+		c.Data["ProjectBarModalProjectExists"] = T["project_bar_modal_project_exists"]
+		c.Data["ProjectBarModalProjectExists2"] = T["project_bar_modal_project_exists_2"]
+		c.Data["ProjectBarModalFilename"] = T["project_bar_modal_filename"]
+		c.Data["ProjectBarModalFileOutdated"] = T["project_bar_modal_file_outdated"]
+		c.Data["ProjectBarModalInvite"] = T["project_bar_modal_invite"]
+		c.Data["ProjectBarModalInvite2"] = T["project_bar_modal_invite_2"]
+		c.Data["ProjectBarModalInviteOk"] = T["project_bar_modal_invite_ok"]
+		c.Data["ProjectBarModalNo"] = T["project_bar_modal_no"]
+		c.Data["ProjectBarModalOk"] = T["project_bar_modal_ok"]
+		c.Data["ProjectBarModalOpen"] = T["project_bar_modal_open"]
+		c.Data["ProjectBarModalProjectInit2"] = T["project_bar_modal_project_init_2"]
+		c.Data["ProjectBarModalProjectInitOk"] = T["project_bar_modal_project_init_ok"]
+		c.Data["ProjectBarModalProjectInit"] = T["project_bar_modal_project_init"]
+		c.Data["ProjectBarModalProjectSave2"] = T["project_bar_modal_project_save_2"]
+		c.Data["ProjectBarModalProjectSaveOk"] = T["project_bar_modal_project_save_ok"]
+		c.Data["ProjectBarModalOpenNewProject"] = T["project_bar_modal_open_new_project"]
+		c.Data["ProjectBarModalOpenNewProject2"] = T["project_bar_modal_open_new_project_2"]
+		c.Data["ProjectBarModalProjectSave"] = T["project_bar_modal_project_save"]
+		c.Data["ProjectBarModalSaveFilename2"] = T["project_bar_modal_save_filename_2"]
+		c.Data["ProjectBarModalSaveFilename"] = T["project_bar_modal_save_filename"]
+		c.Data["ProjectBarModalSave"] = T["project_bar_modal_save"]
+		c.Data["ProjectBarModalSoundTitle"] = T["project_bar_modal_sound_title"]
+		c.Data["ProjectBarModalYes"] = T["project_bar_modal_yes"]
+		c.Data["ProjectBarModalRestartEditor"] = T["project_bar_modal_restart_editor"]
+		c.Data["ProjectBarModalRestartEditor2"] = T["project_bar_modal_restart_editor_2"]
+		c.Data["ProjectBarNewFile"] = T["project_bar_new_file"]
+		c.Data["ProjectBarNew"] = T["project_bar_new"]
+		c.Data["ProjectBarNoUser"] = T["project_bar_no_user"]
+		c.Data["ProjectBarOpen"] = T["project_bar_open"]
+		c.Data["ProjectBarOtherVersion"] = T["project_bar_modal_other_version"]
+		c.Data["ProjectBarOrganize"] = T["project_bar_organize"]
+		c.Data["ProjectBarProject"] = T["project_bar_project"]
+		c.Data["ProjectBarRename"] = T["project_bar_rename"]
+		c.Data["ProjectBarRestart"] = T["project_bar_restart"]
+		c.Data["ProjectBarSaveAs"] = T["project_bar_save_as"]
+		c.Data["ProjectBarSaved"] = T["project_bar_saved"]
+		c.Data["ProjectBarSaveProject"] = T["project_bar_save_project"]
+		c.Data["ProjectBarSaveTemplate"] = T["project_bar_saveTemplate"]
+		c.Data["ProjectBarSave"] = T["project_bar_save"]
+		c.Data["ProjectBarTransfer"] = T["project_bar_transfer"]
 		c.Data["LoginLogin"] = T["login_login"]
 		c.Data["LoginSignup"] = T["login_signup"]
 		c.Data["LoginLogout"] = T["login_logout"]
@@ -426,15 +490,12 @@ func (c *LiveEditorController) Get() {
 //////////////////////////////////////////////////////////
 // getImageInfo retrieves a list of all images for one particular user
 func (c *CPGController) getImageInfo(userName string) string {
-	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::imagefiles")
-	admin := userName == beego.AppConfig.String("userdata::admin")
-	examples := beego.AppConfig.String("userdata::examples")
+	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::imagefiles") + "/"
 
 	imageInfo := make([]imageGroup, 0, 21)
 
 	imageInfo = append(imageInfo, imageGroup{
 		GroupName: "/",
-		Readonly:  false,
 		Images:    []string{},
 	})
 	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
@@ -443,7 +504,6 @@ func (c *CPGController) getImageInfo(userName string) string {
 			folder := string(matches[1])
 			file := string(matches[2])
 			found := false
-			readonly := false
 			var i int
 
 			for i = 0; i < len(imageInfo); i++ {
@@ -452,13 +512,9 @@ func (c *CPGController) getImageInfo(userName string) string {
 					break
 				}
 			}
-			if !admin && folder == examples {
-				readonly = true
-			}
 			if !found {
 				imageInfo = append(imageInfo, imageGroup{
 					GroupName: folder,
-					Readonly:  readonly,
 					Images:    []string{file},
 				})
 			} else {
@@ -479,15 +535,12 @@ func (c *CPGController) getImageInfo(userName string) string {
 //////////////////////////////////////////////////////////
 // getSoundInfo retrieves a list of all sounds for one particular user
 func (c *CPGController) getSoundInfo(userName string) string {
-	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::soundfiles")
+	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::soundfiles") + "/"
 	soundInfo := make([]soundGroup, 0, 21)
 
-	beego.Warning(dir)
 	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		matches := soundRegexp.FindSubmatch([]byte(path))
-		beego.Warning("!!!", path)
 		if matches != nil {
-			beego.Warning("!!!!", matches)
 			folder := string(matches[1])
 			file := string(matches[2])
 			found := false
@@ -572,6 +625,8 @@ func (c *GraphicsController) Get() {
 	c.Data["LoginLogin"] = T["login_login"]
 	c.Data["LoginSignup"] = T["login_signup"]
 	c.Data["LoginLogout"] = T["login_logout"]
+	c.Data["GraphicsHeaderGraphics"] = T["graphics_header_graphics"]
+	c.Data["GraphicsHeaderAnimations"] = T["graphics_header_animations"]
 	c.Data["GraphicsCommandsImportTitle"] = T["graphics_commands_import_title"]
 	c.Data["GraphicsCommandsImportLocal1"] = T["graphics_commands_import_local_1"]
 	c.Data["GraphicsCommandsImportLocal2"] = T["graphics_commands_import_local_2"]

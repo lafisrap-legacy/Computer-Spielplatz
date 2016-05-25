@@ -12,22 +12,17 @@
 </head>
 <body>
     <div class="container">
-        <form class="form-signin {{ if .Error }}has-error{{ end }}" action="login" method="post">
+        <form class="form-login {{ if .Error }}has-error{{ end }}" action="login" method="post">
             {{ .xsrfdata }}
             <input type="hidden" name="_dest" value="{{ .Destination }}">
-            <h2 class="form-signin-heading">Logge dich ein</h2>
-            <label for="inputName" class="sr-only">E-Mail-Adresse</label>
-            <input id="inputName" class="form-control" placeholder="Email address" required="" autofocus="" type="name" name="name" value="{{ .Name }}">
-            <label for="inputPassword" class="sr-only">Passwort</label>
-            <input id="inputPassword" class="form-control" placeholder="Password" required="" type="password" name="password" value="{{ .Password }}">
-            <div class="checkbox">
-                <label>
-                    <input value="remember-me" type="checkbox"> Remember me
-                </label>
-            </div>
-            <button class="btn btn-lg btn-primary btn-block" type="submit">Einloggen</button>
+            <h2 class="form-login-heading">{{ .LoginInvitation }}</h2>
+            <label for="inputName" class="sr-only">{{ .LoginInputName }}</label>
+            <input id="inputName" class="form-control" placeholder="{{ .LoginInputName }}" required="" autofocus="" type="name" name="name" value="{{ .Name }}">
+            <label for="inputPassword" class="sr-only">{{ .LoginPassword }}</label>
+            <input id="inputPassword" class="form-control" placeholder="" required="" type="password" name="password" value="{{ .Password }}">
+            <button class="btn btn-lg btn-primary btn-block" type="submit">{{ .LoginLoginGo }}</button>
             {{ if .Error }}
-            <span >{{ .Error }}</span>
+            <div class="error-message">{{ .Error }}</div>
             {{ end }}
         </form>
     </div>

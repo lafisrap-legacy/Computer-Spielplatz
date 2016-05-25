@@ -1,0 +1,13 @@
+[auth]
+Pwhash=fa376e383626491fb6f3b6b5c06b1c208bba702b
+
+[rights]
+AddGroups=true
+InviteToGroups=true
+
+[groupsdef]
+Klasse11="Klasse 11;AllesWirdGut"
+Klasse9a="Klasse 9a;AllesIstGut"
+
+[groups]
+member=Klasse 11;Klasse 9a;

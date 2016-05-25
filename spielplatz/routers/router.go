@@ -18,6 +18,7 @@ type langType struct {
 var langTypes []*langType // Languages are supported.
 
 func init() {
+	beego.Trace("!Hello World!")
 	beego.Router("/", &controllers.RootController{})
 	beego.Router("/login/?:dest", &controllers.LoginController{})
 	beego.Router("/logout", &controllers.LogoutController{})
@@ -65,7 +66,7 @@ func loadLanguages() {
 
 		jsonParser := json.NewDecoder(configFile)
 		if err = jsonParser.Decode(&t); err != nil {
-			beego.Error("Error parsing config file", err.Error())
+			beego.Error("Error parsing config file: ", err.Error())
 		}
 
 		tLanguages[lang] = t
