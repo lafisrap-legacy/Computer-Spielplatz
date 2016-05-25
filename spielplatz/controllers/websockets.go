@@ -192,6 +192,8 @@ func serveMessages(messageChan chan Message) {
 			data = readSourceFiles(s, message.FileNames, message.ProjectNames, message.FileType)
 		case "writeSourceFiles":
 			data = writeSourceFiles(s, message.FileNames, message.ProjectName, message.FileType, message.CodeFiles, message.TimeStamps, message.Images, message.Overwrite)
+		case "renameSourceFile":
+			data = renameSourceFile(s, message.FileNames, message.FileType)
 		case "deleteSourceFiles":
 			data = deleteSourceFiles(s, message.FileNames, message.ProjectNames)
 		case "initProject":
@@ -298,6 +300,33 @@ func writeSourceFiles(s session.Store, fileNames []string, project string, fileT
 		"OutdatedTimeStamps": outdatedTimeStamps,
 		"OutdatedFiles":      outdatedFiles,
 	}
+}
+
+func renameSourceFile(s session.Store, fileNames []string, fileType string) Data {
+
+	// if user is not logged in return
+	if s.Get("UserName") == nil {
+		return Data{}
+	}
+
+	name := s.Get("UserName").(string)
+	dir := beego.AppConfig.String("userdata::location") + name + "/" + fileType + "/"
+
+	_, err := os.Stat(dir + "/" + fileNames[1])
+	if !os.IsNotExist(err) {
+		return Data{
+			"Error": "file exists",
+		}
+	}
+
+	err = os.Rename(dir+"/"+fileNames[0], dir+"/"+fileNames[1])
+	if err != nil {
+		return Data{
+			"Error": "cannot rename file",
+		}
+	}
+
+	return Data{}
 }
 
 func readSourceFiles(s session.Store, fileNames []string, fileProjects []string, fileType string) Data {
@@ -482,8 +511,6 @@ func deleteSourceFiles(s session.Store, fileNames []string, projectNames []strin
 
 func initProject(s session.Store, projectName string, fileType string, fileNames []string, codeFiles []string, resourceFiles []string, images []string) Data {
 
-	T := models.T
-
 	beego.Trace("Entering initProject", projectName, fileNames, resourceFiles)
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -505,7 +532,7 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 	_, err := os.Stat(bareDir)
 	if !os.IsNotExist(err) {
 		return Data{
-			"Error": T["websockets_project_exists"],
+			"Error": "project exists",
 		}
 	}
 

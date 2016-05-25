@@ -238,8 +238,6 @@ window.ProjectControlBar = Backbone.Model.extend( {
 	saveProject: function( ) {
 		var self = this;
 
-		console.log( "saveProject! " + this.isSaving );
-
 		if( !this.isSaving ) {
 
 			this.isSaving = true;
@@ -250,7 +248,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				projectName = self.codeFiles[ self.currentCodeFile ] && self.codeFiles[ self.currentCodeFile ].project || "";
 				fileName = self.currentCodeFile !== self.newFile ? self.currentCodeFile : "";
 
-				if(  projectName === "" ) {
+				if( projectName === "" ) {
 					projectName = fileName.substr( 0, fileName.length - self.fileType.length - 1 );
 
 					self.buttonGroup.showModalStringInput( window.CPG.ProjectBarModalProjectInit , window.CPG.ProjectBarModalProjectInit2, projectName, window.CPG.ProjectBarModalProjectInitOk, function( name ) {
@@ -258,7 +256,26 @@ window.ProjectControlBar = Backbone.Model.extend( {
 						var res = self.editor.moveResources( name ),
 							code = res.code;
 
-						if( name && name !== self.newFile.substr( 0, self.newFile.length - self.fileType.length - 1 ) ) {
+						// Look if the selected name is already used (and not the current one)
+						var fileExists = false;
+						if( name !== self.currentCodeFile.substr( 0, self.newFile.length - self.fileType.length - 1 )) {
+							for( var i = 0; i < self.allFilesList.length ; i++ ) {
+								if( self.allFilesList[i].name === name + "." + self.fileType ) {
+									fileExists = true;
+									break;
+								}
+							}
+						}
+
+						if( fileExists ) {
+							self.buttonGroup.showModalOk( window.CPG.ProjectBarModalFileExists, window.CPG.ProjectBarModalFileExists2, function() {
+								self.isSaving = false;
+								self.saveProject();
+							} );
+
+							self.isSaving = false;
+							return
+						} else if( name && name !== self.newFile.substr( 0, self.newFile.length - self.fileType.length - 1 ) ) {
 
 							self.buttonGroup.showSaving( "...", true );
 
@@ -273,9 +290,13 @@ window.ProjectControlBar = Backbone.Model.extend( {
 			 					Images : [ image ], 
 							}, function( message ) {
 								if( message.Error ) {
-									self.isSaving = false;
 
-									self.saveProject();
+									if( message.Error === "project exists" ) {
+										self.buttonGroup.showModalOk( window.CPG.ProjectBarModalProjectExists, window.CPG.ProjectBarModalProjectExists2, function() {
+											self.isSaving = false;
+											self.saveProject();
+										} );
+									}
 								} else {
 									// Success: Project was created
 									var newCodeFile = name + "." + self.fileType;
@@ -496,6 +517,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				} else if( self.currentCodeFile !== fileName ) {
 
 					codeFile.code = self.editor.text( );
+					codeFile.timeStamp = message.SavedTimeStamps[ 0 ]
 					self.codeFileList.push( fileName );
 
 					for( var i=0, filenameExists=false, afl=self.allFilesList ; i<afl.length ; i++ ) {
@@ -551,6 +573,50 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				if( cb ) cb( true );
 		   } );
 		} );
+	},
+
+	renameSourceFile: function( oldFileName, newFileName, cb ) {
+		var self = this;
+
+		if( oldFileName !== "" && newFileName !== "" ) {
+			$WS.sendMessage( {
+				command: "renameSourceFile",
+				FileNames: [oldFileName, newFileName],
+				FileType: self.fileType,
+			}, function( message ) {
+				if( message.Error ) {
+					console.error( "Error while trying to rename '" + oldFileName + "' to '" + newFileName + "'.");
+					if( cb ) cb( false );
+					return
+				} 
+
+				self.codeFiles[ newFileName ] = self.codeFiles[ oldFileName ];
+				self.codeFiles[ newFileName ].name = newFileName;
+				delete self.codeFiles[ oldFileName ];
+
+				var i = self.codeFileList.indexOf( oldFileName );
+				if( i > -1 ) self.codeFileList[ i ] = newFileName;
+
+				for( var i=0 ; i<self.allFilesList.length ; i++ ) {
+					if( self.allFilesList[i].name === oldFileName ) {
+						self.allFilesList[i].name = newFileName;
+						break;
+					}
+				}
+				
+				sessionStorage[ newFileName ] = JSON.stringify( self.codeFiles[ newFileName ] );
+				sessionStorage.removeItem( oldFileName );
+				sessionStorage[ self.fileType + "AllFilesList" ] = JSON.stringify( self.codeFileList );
+				sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
+				sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = newFileName;
+				self.buttonGroup.fillOpenControl( );
+
+				self.buttonGroup.showFilename();
+				if( cb ) cb( newFileName );
+			} );
+		} else {
+			if( cb ) cb();
+		}
 	},
 
 	////////////////////////////////////////////
@@ -616,7 +682,24 @@ window.ProjectControlBar = Backbone.Model.extend( {
 							}, function( message ) {
 								console.log( "SUCCESS! " + message );
 
-								self.openNewProject( element.ProjectName );
+								// Look if a filename with the new project name already exists
+								var fileExists = false,
+									fileName = element.ProjectName;
+								for( var i = 0; i < self.allFilesList.length ; i++ ) {
+									if( self.allFilesList[i].name === fileName + "." + self.fileType ) {
+										fileExists = true;
+										fileName = fileName + ".";
+										i = -1; // Search through all files again for the new name
+									}
+								}
+
+								if( fileExists ) {
+									self.renameSourceFile( element.ProjectName + "." + self.fileType, fileName + "." + self.fileType, function() {
+										self.openNewProject( element.ProjectName );
+									} );
+								} else {
+									self.openNewProject( element.ProjectName );
+								}
 							} );
 						}
 
@@ -786,7 +869,7 @@ var ButtonGroup = Backbone.View.extend( {
 					"<p>You forgot to set the body text&hellip,</p>" +
 					"</div>" +
 					"<div class='modal-footer'>" +
-					"<button type='button' class='modal-ok btn btn-default' data-dismiss='modal'>" + window.CPG.ProjectBarModalOk + "</button>" +
+					"<button type='button' class='modal-ok btn btn-primary' data-dismiss='modal'>" + window.CPG.ProjectBarModalOk + "</button>" +
 					"</div>" +
 				"</div><!-- /.modal-content -->" +
 				"</div><!-- /.modal-dialog -->" +
@@ -1119,6 +1202,13 @@ var ButtonGroup = Backbone.View.extend( {
 		modal.off( 'hidden.bs.modal' ).one( 'hidden.bs.modal', function( e ) {
 			if( cb ) cb( );
 		} );
+
+		modal.keypress( function( e ) {
+			if(e.which == 13) {
+				$( ".modal-ok", modal ).trigger( "click" );
+				e.stopPropagation();
+			}
+		})
 	},
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1138,7 +1228,7 @@ var ButtonGroup = Backbone.View.extend( {
 			var value = input.val(),
 				filteredValue = value.replace(/[^a-z0-9\ \.\,\!\+\-\(\)]/gi, "");
 
-			if( value !== filteredValue ) {
+			if( value === "" || value !== filteredValue ) {
 				input.val( filteredValue ).focus();
 				e.stopPropagation();
 				return
