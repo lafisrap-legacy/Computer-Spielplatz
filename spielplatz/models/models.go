@@ -9,7 +9,7 @@ import (
 	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
-	"gopkg.in/libgit2/git2go.v22"
+	"github.com/libgit2/git2go"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -171,6 +171,7 @@ func init() {
 
 	// Drop all runtime tables
 	o := orm.NewOrm()
+	o.Raw("SET FOREIGN_KEY_CHECKS=0;").Exec()
 	_, err := o.Raw("TRUNCATE TABLE user;").Exec()
 	if err != nil {
 		// If table can't be truncated, rebuild all tables (CAUTION: Star and Message db are lost!)
@@ -185,6 +186,7 @@ func init() {
 	o.Raw("TRUNCATE TABLE project_user;").Exec()
 	o.Raw("TRUNCATE TABLE groups;").Exec()
 	o.Raw("TRUNCATE TABLE group_user;").Exec()
+	o.Raw("SET FOREIGN_KEY_CHECKS=1;").Exec()
 
 	createAllUserDatabaseEntries()
 }
@@ -968,16 +970,16 @@ func GitAddCommitPush(userName string, dir string, message string, firstCommit b
 	}
 
 	// 3 Get remote
-	remote, err := repo.LookupRemote("origin")
+	remote, err := repo.Remotes.Lookup("origin")
 	if err != nil {
-		remote, err = repo.CreateRemote("origin", repo.Path())
+		remote, err = repo.Remotes.Create("origin", repo.Path())
 		if err != nil {
 			beego.Error("CreateRemote - ", err)
 		}
 	}
 
 	// 4 Read the remote branch
-	remoteBranch, err := repo.LookupReference("refs/remotes/origin/master")
+	remoteBranch, err := repo.References.Lookup("refs/remotes/origin/master")
 	if err != nil {
 		beego.Error("Fetch 2 - ", err)
 	}
@@ -1044,8 +1046,8 @@ func GitAddCommitPush(userName string, dir string, message string, firstCommit b
 		}
 
 		// 1a Read the remote branch
-		remote, err = repo.LookupRemote("origin")
-		remoteBranch, err = repo.LookupReference("refs/remotes/origin/master")
+		remote, err = repo.Remotes.Lookup("origin")
+		remoteBranch, err = repo.References.Lookup("refs/remotes/origin/master")
 		if err != nil {
 			beego.Error("Fetch 2 - ", err)
 		}
@@ -1138,14 +1140,14 @@ func GitAddCommitPush(userName string, dir string, message string, firstCommit b
 				return err
 			}
 
-			branch, err := repo.LookupReference("refs/heads/master")
+			branch, err := repo.References.Lookup("refs/heads/master")
 			if err != nil {
 				return err
 			}
 
 			// Point branch to the object
-			branch.SetTarget(remoteBranch.Target(), sig, "")
-			if _, err := currentBranch.SetTarget(remoteBranch.Target(), sig, ""); err != nil {
+			branch.SetTarget(remoteBranch.Target(), "")
+			if _, err := currentBranch.SetTarget(remoteBranch.Target(), ""); err != nil {
 				return err
 			}
 		}
@@ -1153,7 +1155,7 @@ func GitAddCommitPush(userName string, dir string, message string, firstCommit b
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Push
-	err = remote.Push([]string{"refs/heads/master"}, nil, sig, message)
+	err = remote.Push([]string{"refs/heads/master"}, nil)
 	if err != nil {
 		beego.Error("Push - ", err)
 	}
@@ -1165,7 +1167,7 @@ func AnnotatedPull(repo *git.Repository, sig *git.Signature) error {
 
 	beego.Trace("Entering annotated pull ...")
 	// 1 Get remote
-	remote, err := repo.LookupRemote("origin")
+	remote, err := repo.Remotes.Lookup("origin")
 	ls, _ := remote.Ls()
 	beego.Trace("0", "Name:", remote.Name(), "Ls:", ls)
 	if err != nil {
@@ -1180,7 +1182,7 @@ func AnnotatedPull(repo *git.Repository, sig *git.Signature) error {
 	}
 
 	// 3 Read the remote branch
-	remoteBranch, err := repo.LookupReference("refs/remotes/origin/master")
+	remoteBranch, err := repo.References.Lookup("refs/remotes/origin/master")
 	beego.Trace("2", "Shorthand:", remoteBranch.Shorthand(), "Target:", remoteBranch.Target().String())
 	if err != nil {
 		return errors.New("Fetch 2 - " + err.Error())

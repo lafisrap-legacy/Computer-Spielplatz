@@ -11,7 +11,7 @@ import (
 	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/session"
 	"github.com/lafisrap/Computer-Spielplatz/spielplatz/models"
-	"gopkg.in/libgit2/git2go.v22"
+	"github.com/libgit2/git2go"
 	"image"
 	"image/png"
 	"io"
