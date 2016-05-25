@@ -5,7 +5,8 @@
     "signup_insert_failed"              : "Die Datenbank scheint derzeit nicht richtig zu funktionieren.",
                                         
     "signup_name_exists"                : "Den Namen gibt es schon.",
-    "signup_passwords_dont_match"       : "Die Passworte passen nicht zusammen.",
+    "signup_passwords_dont_match"		: "Die Passworte passen nicht zusammen.",
+    "signup_group_code_wrong"			: "Der Grupppen-Code stimmt nicht.",
     "login_password_incorrect"          : "Passwort oder Name sind nicht korrekt.",
                                         
     "arts_programming"                  : "Programmieren",
@@ -116,6 +117,7 @@
 	"signup_input_name"					: "Name",
 	"signup_input_password"				: "Passwort",
 	"signup_input_password2"			: "Passwort-Wiederholung",
+	"signup_input_group_code"			: "Code für deine Gruppe",
 	"signup_signup_go"					: "Konto anlegen",
 
 	"login_invitation"					: "Logge dich ein ...",

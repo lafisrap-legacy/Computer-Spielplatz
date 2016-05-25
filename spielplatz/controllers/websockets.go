@@ -737,51 +737,9 @@ func cloneProject(s session.Store, projectName string) Data {
 	}
 
 	// Check for rights
-	// Maybe add a token check here, otherwise manipulated clients can open projects
+	// Maybe add a token check here, otherwise manipulated clients can clone any project
 
-	userDir := beego.AppConfig.String("userdata::location") + userName
-	projectDir := userDir + "/" + beego.AppConfig.String("userdata::projects") + "/" + projectName
-	bareDir := beego.AppConfig.String("userdata::location") + beego.AppConfig.String("userdata::bareprojects") + "/" + projectName
-
-	beego.Warning("Doing git clone with", userDir, ",", projectDir, "and", bareDir)
-	// Clone it to own project directory
-	options := git.CloneOptions{
-		Bare: false,
-	}
-	_, err := git.Clone(bareDir, projectDir, &options)
-	if err != nil {
-		beego.Error("Cannot clone git directory", bareDir, "into", projectDir, "(", err.Error(), ")")
-	}
-
-	// Mount resource directories
-	models.MountResourceFiles(userName, projectName)
-
-	// Create rights file
-	rightsFile := projectDir + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/rights"
-	file, err := os.Create(rightsFile)
-	if err != nil {
-		beego.Error(err)
-	}
-	file.Close()
-	cnf, err := config.NewConfig("ini", rightsFile)
-	if err != nil {
-		beego.Error("Cannot create rights file " + rightsFile + " (" + err.Error() + ")")
-	}
-	for _, right := range models.PRR_NAMES {
-		if right == "Write" {
-			cnf.Set("rights::"+right, "true")
-		} else {
-			cnf.Set("rights::"+right, "false")
-		}
-	}
-	cnf.SaveConfigFile(rightsFile)
-
-	// Create database entry
-	user, _ := models.GetUser(userName)
-	project := new(models.Project)
-	project.Name = projectName
-	models.CreateProjectDatabaseEntry(project, user, 1)
-
+	models.CloneProjectDir(userName, projectName)
 	return Data{
 		"ProjectName": projectName,
 	}

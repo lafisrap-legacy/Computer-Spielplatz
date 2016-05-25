@@ -7,7 +7,6 @@ import (
 	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/session"
 	"github.com/lafisrap/Computer-Spielplatz/spielplatz/models"
-	"gopkg.in/libgit2/git2go.v22"
 	"html/template"
 	"os"
 	"path/filepath"
@@ -285,6 +284,7 @@ func (c *SignupController) Get() {
 	c.Data["SignupInputName"] = T["signup_input_name"]
 	c.Data["SignupInputPassword"] = T["signup_input_password"]
 	c.Data["SignupInputPassword2"] = T["signup_input_password2"]
+	c.Data["SignupInputGroupCode"] = T["signup_input_group_code"]
 	c.Data["SignupSignupGo"] = T["signup_signup_go"]
 	c.TplName = "signup.html"
 }
@@ -295,8 +295,9 @@ func (c *SignupController) Post() {
 	s := c.StartSession()
 
 	var (
-		u   models.User
-		err error
+		u     models.User
+		group string
+		err   error
 	)
 	T := models.T
 	uf := models.UserForm{}
@@ -306,17 +307,22 @@ func (c *SignupController) Post() {
 	}
 	if err = c.ParseForm(&uf); err == nil {
 		if uf.Pwd == uf.Pwd2 {
-			if u, err = models.CreateUserInDatabase(&uf); err == nil {
+			if u, group, err = models.CreateUserInDatabase(&uf); err == nil {
 				s.Set("UserName", u.Name)
 				s.Set("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
 				s.Set("Email", u.Email)
 
-				c.createUserDirectory(u)
+				c.createUserDirectory(u, group)
 				c.Ctx.Redirect(302, dest)
 				return
 			} else {
+				if err.Error() == "group code wrong" {
+					err = errors.New(T["signup_group_code_wrong"])
+				} else {
+					beego.Error(err)
+				}
+
 				c.Data["Name"] = uf.Name
-				c.Data["Pwd"] = uf.Pwd
 			}
 		} else {
 			c.Data["Name"] = uf.Name
@@ -332,7 +338,7 @@ func (c *SignupController) Post() {
 
 ///////////////////////////////////////////////
 // Create user directories, for code files and resources
-func (c *SignupController) createUserDirectory(user models.User) {
+func (c *SignupController) createUserDirectory(user models.User, group string) {
 
 	// Create project directories
 	models.CreateDirectories(beego.AppConfig.String("userdata::location")+user.Name, true)
@@ -350,33 +356,15 @@ func (c *SignupController) createUserDirectory(user models.User) {
 		beego.Error("Cannot create identity file in " + dir + " (" + err.Error() + ")")
 	}
 	cnf.Set("auth::Pwhash", user.Pwhash)
+	cnf.Set("rights::NoSpecialRights", "true")
+	cnf.Set("groups::member", group)
 	cnf.SaveConfigFile(identityFile)
 
 	// Clone Admin Spielplatz project
-	err = cloneProjectDir(user.Name, beego.AppConfig.String("userdata::commonproject"))
+	err = models.CloneProjectDir(user.Name, beego.AppConfig.String("userdata::commonproject"))
 	if err != nil {
 		beego.Error(err)
 	}
-}
-
-func cloneProjectDir(toUser string, project string) error {
-	url := beego.AppConfig.String("userdata::location") + "/" +
-		beego.AppConfig.String("userdata::bareprojects") + "/" +
-		project
-
-	dir := beego.AppConfig.String("userdata::location") +
-		toUser + "/" +
-		beego.AppConfig.String("userdata::projects") + "/" +
-		project
-
-	options := git.CloneOptions{
-		Bare: false,
-	}
-	_, err := git.Clone(url, dir, &options)
-	if err == nil {
-		models.MountResourceFiles(toUser, project)
-	}
-	return err
 }
 
 //////////////////////////////////////////////////////////
@@ -388,14 +376,16 @@ func (c *LiveEditorController) Get() {
 	s := c.StartSession()
 	userName := ""
 	userNameForImages := "Admin"
-	var (
-		rights models.RightsMap
-	)
+	var rights models.RightsMap
 
 	if s.Get("UserName") != nil {
 		userName = s.Get("UserName").(string)
 		userNameForImages = userName
-		rights = *s.Get("Rights").(*models.RightsMap)
+
+		val := s.Get("Rights")
+		if val != nil {
+			rights = *val.(*models.RightsMap)
+		}
 	}
 
 	c.Data["AllImages"] = c.getImageInfo(userNameForImages)
@@ -603,7 +593,6 @@ func (c *LiveEditorBuildController) Get() {
 
 //////////////////////////////////////////////////////////
 // GraphicsController
-//
 // Get
 func (c *GraphicsController) Get() {
 	T := models.T

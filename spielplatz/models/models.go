@@ -98,10 +98,10 @@ type ProjectRight int64
 
 // UserForm is a struct to collect input data from login and setup
 type UserForm struct {
-	Name  string `form:"name"`
-	Pwd   string `form:"password"`
-	Pwd2  string `form:"password2"`
-	Email string `form:"email"`
+	Name      string `form:"name"`
+	Pwd       string `form:"password"`
+	Pwd2      string `form:"password2"`
+	GroupCode string `form:"groupcode"`
 }
 
 // ??
@@ -315,7 +315,7 @@ func MountResourceFiles(user string, project string) error {
 			user + "/" + beego.AppConfig.String("userdata::"+res+"files") + "/" +
 			project
 
-		res, _ := exec.Command("sh", "-c", "mount | grep "+toDir).Output()
+		res, _ := exec.Command("sh", "-c", "mount | grep \""+toDir+"\"").Output()
 		if len(res) == 0 {
 
 			beego.Trace("MOUNTING resource", res, "of project", project, "from user", user)
@@ -375,13 +375,64 @@ func CreateGroupUserDatabaseEntry(u *User, group string) error {
 		}
 		_, err := o.Insert(gu)
 		if err != nil {
-			beego.Error(err)
+			return err
 		}
 	} else {
-		beego.Error(err, group)
+		return err
 	}
 
 	return nil
+}
+
+//////////////////////////////////////////////////
+// CloneProjectDir
+func CloneProjectDir(userName string, projectName string) error {
+	url := beego.AppConfig.String("userdata::location") + "/" +
+		beego.AppConfig.String("userdata::bareprojects") + "/" +
+		projectName
+
+	dir := beego.AppConfig.String("userdata::location") +
+		userName + "/" +
+		beego.AppConfig.String("userdata::projects") + "/" +
+		projectName
+
+	options := git.CloneOptions{
+		Bare: false,
+	}
+	_, err := git.Clone(url, dir, &options)
+	if err == nil {
+		MountResourceFiles(userName, projectName)
+	}
+
+	// Create rights file
+	rightsFile := dir + "/" + beego.AppConfig.String("userdata::spielplatzdir") + "/rights"
+	file, err := os.Create(rightsFile)
+	if err != nil {
+		beego.Error(err)
+		return err
+	}
+	file.Close()
+	cnf, err := config.NewConfig("ini", rightsFile)
+	if err != nil {
+		beego.Error("Cannot create rights file " + rightsFile + " (" + err.Error() + ")")
+		return err
+	}
+	for _, right := range PRR_NAMES {
+		if right == "Write" {
+			cnf.Set("rights::"+right, "true")
+		} else {
+			cnf.Set("rights::"+right, "false")
+		}
+	}
+	cnf.SaveConfigFile(rightsFile)
+
+	// Create database entry
+	user, _ := GetUser(userName)
+	project := new(Project)
+	project.Name = projectName
+	err = CreateProjectDatabaseEntry(project, user, 1)
+
+	return err
 }
 
 //////////////////////////////////////////////////
@@ -726,13 +777,38 @@ func AddProjectStar(s Star) error {
 
 //////////////////////////////////////////////////
 // CreateUserInDatabase reads user form and calls CreateUserDatabaseEntry
-func CreateUserInDatabase(uf *UserForm) (User, error) {
+func CreateUserInDatabase(uf *UserForm) (User, string, error) {
+	// Check group code
+	group := Groups{
+		Code: uf.GroupCode,
+	}
+	o := orm.NewOrm()
+	o.Using("default")
+	err := o.Read(&group, "Code")
+	if err == orm.ErrNoRows {
+		return User{}, "", errors.New("group code wrong")
+	} else if err != nil {
+		return User{}, "", err
+	}
+
 	hash := sha1.Sum([]byte(uf.Pwd))
-	u := User{
+	user := User{
 		Name:   uf.Name,
 		Pwhash: hex.EncodeToString(hash[:]),
 	}
-	return u, CreateUserDatabaseEntry(&u)
+
+	err = CreateUserDatabaseEntry(&user)
+	if err != nil {
+		return User{}, "", err
+	}
+
+	beego.Warning("Group found:", group)
+	err = CreateGroupUserDatabaseEntry(&user, group.Name)
+	if err != nil {
+		return user, "", err
+	}
+
+	return user, group.Name, nil
 }
 
 //////////////////////////////////////////////////
