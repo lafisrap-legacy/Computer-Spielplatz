@@ -323,9 +323,14 @@ func (c *SignupController) Post() {
 				}
 
 				c.Data["Name"] = uf.Name
+				c.Data["GroupCode"] = uf.GroupCode
+				c.Data["Pwd1"] = uf.Pwd
+				c.Data["Pwd2"] = uf.Pwd2
 			}
 		} else {
 			c.Data["Name"] = uf.Name
+			c.Data["GroupCode"] = uf.GroupCode
+			c.Data["Pwd1"] = uf.Pwd
 			err = errors.New(T["signup_passwords_dont_match"])
 		}
 	}
@@ -333,6 +338,12 @@ func (c *SignupController) Post() {
 	c.Data["Error"] = err.Error()
 	c.TplName = "signup.html"
 	c.Data["Destination"] = dest
+	c.Data["SignupInvitation"] = T["signup_invitation"]
+	c.Data["SignupInputName"] = T["signup_input_name"]
+	c.Data["SignupInputPassword"] = T["signup_input_password"]
+	c.Data["SignupInputPassword2"] = T["signup_input_password2"]
+	c.Data["SignupInputGroupCode"] = T["signup_input_group_code"]
+	c.Data["SignupSignupGo"] = T["signup_signup_go"]
 	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 }
 
@@ -440,6 +451,8 @@ func (c *LiveEditorController) Get() {
 		c.Data["ProjectBarModalProjectSave2"] = T["project_bar_modal_project_save_2"]
 		c.Data["ProjectBarModalProjectSaveOk"] = T["project_bar_modal_project_save_ok"]
 		c.Data["ProjectBarModalOpenNewProject"] = T["project_bar_modal_open_new_project"]
+		c.Data["ProjectBarModalAlreadyMember"] = T["project_bar_modal_already_member"]
+		c.Data["ProjectBarModalAlreadyMember2"] = T["project_bar_modal_already_member_2"]
 		c.Data["ProjectBarModalOpenNewProject2"] = T["project_bar_modal_open_new_project_2"]
 		c.Data["ProjectBarModalProjectSave"] = T["project_bar_modal_project_save"]
 		c.Data["ProjectBarModalSaveFilename2"] = T["project_bar_modal_save_filename_2"]

@@ -313,14 +313,18 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 									self.editor.reset( code );
 
-									if( newCodeFile !== self.currentCodeFile ) {
-										self.codeFileList.unshift( newCodeFile );
-										self.allFilesList.unshift( self.codeFiles[ newCodeFile ] );
+									self.codeFileList.unshift( newCodeFile );
+									self.allFilesList.unshift( {
+										name: self.codeFiles[ newCodeFile ].name,
+										timeStamp: self.codeFiles[ newCodeFile ].timeStamp,
+										project: self.codeFiles[ newCodeFile ].project 
+									} );
 
+									if( newCodeFile !== self.currentCodeFile ) {
 										if( self.currentCodeFile !== self.newFile ) {
 											delete self.codeFiles[ self.currentCodeFile ];
 											self.codeFileList.splice( self.codeFileList.indexOf( self.currentCodeFile ), 1 );
-											self.allFileList.splice( self.allFileList.indexOf( self.codeFiles[ self.currentCodeFile ] ), 1 );
+											self.allFilesList.splice( self.allFilesList.indexOf( self.checkCodeFile( self.currentCodeFile ) ), 1 );
 										}
 										
 										self.currentCodeFile = newCodeFile;
@@ -385,6 +389,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 												sendWriteProject();
 											} else {
 												self.buttonGroup.showSaving( false, true );
+												self.isSaving = false;
 											}
 										} );
 									} else if( message.Conflicts ) {
@@ -423,8 +428,18 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		$WS.sendMessage( {
 			Command: "readPals",
 		}, function( message ) {
+			var users = self.codeFiles[ self.currentCodeFile ].users;
+
+			for( var i = 0 ; users && i < users.length ; i++ ) {
+				for( g in message.Pals ) {
+					var group = message.Pals[ g ],
+						id = group.indexOf( users[i] );
+					if( id !== -1 ) group.splice( id, 1 );
+				}
+			}
+
 			self.buttonGroup.showModalInvite( message.Pals, function( userNames ) {
-				if( userNames ) {
+				if( userNames && userNames.length ) {
 					$WS.sendMessage( {
 						Command: "sendInvitations",
 						UserNames: userNames,
@@ -462,6 +477,18 @@ window.ProjectControlBar = Backbone.Model.extend( {
 						}
 						sessionStorage[ fileName ] = JSON.stringify( self.codeFiles[ fileName ] );
 						if( self.codeFileList.indexOf( fileName ) === -1 ) self.codeFileList.push( fileName );
+
+						for( var i = 0, found = false; i < self.allFilesList.length; i++ ) {
+							if( self.allFilesList[i].name === fileName ) {
+								found = true;
+								break;
+							}
+						}
+						if( !found ) self.allFilesList.unshift( {
+							name: fileName,
+							timeStamp: codeFile.TimeStamp,
+							project: codeFile.Project,
+						} );
 					}
 				}
 				sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
@@ -520,21 +547,17 @@ window.ProjectControlBar = Backbone.Model.extend( {
 					codeFile.timeStamp = message.SavedTimeStamps[ 0 ]
 					self.codeFileList.push( fileName );
 
-					for( var i=0, filenameExists=false, afl=self.allFilesList ; i<afl.length ; i++ ) {
+					for( var i = 0, found = false, afl=self.allFilesList ; i<afl.length ; i++ ) {
 						if( afl[ i ].name === fileName ) {
-							filenameExists = true;
+							found = true;
 							break;
 						}
 					}
 
-					if( !filenameExists ) self.allFilesList.push( {
+					if( !found ) self.allFilesList.push( {
 						name: fileName,
-						code: codeFile.code,
 						timeStamp: codeFile.timeStamp,
 						project: codeFile.project,
-						rights: codeFile.rights,
-						users: codeFile.users,
-						status: codeFile.status
 					} );
 					sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
 					sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
@@ -672,39 +695,50 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				switch( element.Action ) {
 				case self.MSG_INVITE: 
 
-					self.buttonGroup.showModalYesNo( element.Subject, element.Text, true, function( res ) {
-						if( !res ) return
-						else if( res === "yes" ) {
+					// Check if project is in the AllFilesList
+					var file = self.checkCodeFile( element.ProjectName );
+					if( file && file.project && file.project.length ) {
+						self.buttonGroup.showModalOk( window.CPG.ProjectBarModalAlreadyMember, window.CPG.ProjectBarModalAlreadyMember2, function() {
+							self.removeMessage( id, index );							
+						} );
+					} else {
 
-							$WS.sendMessage( {
-								Command: "cloneProject",
-								ProjectName: element.ProjectName,
-							}, function( message ) {
-								console.log( "SUCCESS! " + message );
+						self.buttonGroup.showModalYesNo( element.Subject, element.Text, true, function( res ) {
+							if( !res ) return
+							else if( res === "yes" ) {
 
-								// Look if a filename with the new project name already exists
-								var fileExists = false,
-									fileName = element.ProjectName;
-								for( var i = 0; i < self.allFilesList.length ; i++ ) {
-									if( self.allFilesList[i].name === fileName + "." + self.fileType ) {
-										fileExists = true;
-										fileName = fileName + ".";
-										i = -1; // Search through all files again for the new name
+								$WS.sendMessage( {
+									Command: "cloneProject",
+									ProjectName: element.ProjectName,
+								}, function( message ) {
+									console.log( "SUCCESS! " + message );
+
+									// Look if a filename with the new project name already exists
+									var fileExists = false,
+										fileName = element.ProjectName;
+									for( var i = 0; i < self.allFilesList.length ; i++ ) {
+										if( self.allFilesList[i].name === fileName + "." + self.fileType ) {
+											fileExists = true;
+											fileName = fileName + ".";
+											i = -1; // Search through all files again for the new name
+										}
 									}
-								}
 
-								if( fileExists ) {
-									self.renameSourceFile( element.ProjectName + "." + self.fileType, fileName + "." + self.fileType, function() {
+									if( fileExists ) {
+										self.renameSourceFile( element.ProjectName + "." + self.fileType, fileName + "." + self.fileType, function() {
+											self.openNewProject( element.ProjectName );
+										} );
+									} else {
 										self.openNewProject( element.ProjectName );
-									} );
-								} else {
-									self.openNewProject( element.ProjectName );
-								}
-							} );
-						}
+									}
+								} );
+							}
 
-						self.removeMessage( id, index );
-					} );
+							self.removeMessage( id, index );
+						} );
+
+					}	
+
 				}
 			}
 		} )
@@ -733,6 +767,19 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		for( var i = 0; rights && i < arguments.length; i++ ) if( rights.indexOf( arguments[i] ) !== -1 ) res = true;
 
 		return res; 
+	},
+
+	checkCodeFile: function( fileName ) {
+
+		if( fileName.substr( fileName.length - this.fileType.length - 1 , this.fileType.length + 1 ) !== "." + this.fileType ) fileName += "." + this.fileType;
+		
+		for( var i = 0; i < this.allFilesList.length ; i++ ) {
+			if( this.allFilesList[i].name === fileName ) {
+				return this.allFilesList[i];
+			}
+		}
+
+		return false;
 	},
 
 	getCurrentCodeFile: function() {

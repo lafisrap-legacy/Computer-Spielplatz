@@ -18,10 +18,10 @@ CPG_liveEditor =( CPG_page === "pjs" ) ? new window.LiveEditorFramePjs( CPG_opti
 
 var projectControlBar = window.ProjectControlBar.extend( {
 
-	openNewProject: function( projectName ) {
+	openNewProject: function( projectName, cb ) {
 
 		this.readSourceFiles( [ projectName + "." + this.fileType ], [ projectName ], function() {
-			console.log( "Finished reading files of new project." );
+			if( cb ) cb()
 		} );
 	},
 } );

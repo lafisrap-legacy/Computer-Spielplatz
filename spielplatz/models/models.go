@@ -639,7 +639,7 @@ func CreateRightsDatabaseEntry(u *User, right string, value string) error {
 		if err != nil {
 			beego.Error(err)
 		}
-	} else {
+	} else if err != nil {
 		beego.Error(err)
 	}
 

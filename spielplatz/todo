@@ -12,26 +12,33 @@ throbber.gif und ohnoes.png Pfade umleiten (wie fir throbber-full in integration
 
 FEATURE:
 - Shortcuts für alles!
-- Keine Leer- und Sonerzeichen im Namen / Filenamen
-- Notifications (evnt. erst mit socket.io)
 
 BUG:
 # KRITISCH
+- Firefox und Chrome mit zwei verschiedenen Users auf einem Rechner gibt Probleme mit Websockets oder Session? socket.io?
 
-- Sounds werden für neue Projekte nicht direkt geladen / erst nach Neuanmeldungs 
-- Beim Projekt anlegen: Wenn Projektname schon vorhanden, bleibt Bildschirm stehen
-	- Prüfen, ob neues Projekt schon existiert
-- Projekt unbekannt kann angelegt werden
-- Commit-Message darf nicht leer sein.
+
+# MÖGLICHERWEISE KRITISCH
+- [models.go:295][E] Couldn't open rights file of user Tester0 in project Spielplatz. (open static/userdata/Tester0/projects/Spielplatz/.spielplatz/rights: no such file or directory) 
+	2016/05/24 11:20:48 [router.go:861][C] /home/michael/go/src/github.com/lafisrap/Computer-Spielplatz-Gitbase/spielplatz/controllers/controllers.go:397 
 
 # WICHTIG
-- Wenn Projekt gespeichert wird, wird Datei nicht in AllFilesList übernommen
-- Filename bei Project Init markieren
+- Besser kennzeichnen, wenn Projekt nicht zusammengeführte Änderungen hat (Projekt blinken?)
+- Session-Ende anzeigen (Modal?)
+	- Webverbindung prüfen (Sockets + Session) und ggf. neu verbinden
 - "Projekt anlegen" und "Projekt speichern" unterscheiden
-- Editor muss neu gestartet werden, wenn die Resourcedatei verändert werden
+- Password-Recovery
+
 
 # NETT
 - Hover über Punkte: Mitglieder-Namen
+- Neu
+	- mit leerer Datei
+	- mit aktuellem Quelltext
+	- ---
+	- 
+- Nachricht wenn Projektbeitritt (aktualisieren)
+- 
 
 
 Beispiel-Programme für DLwmds

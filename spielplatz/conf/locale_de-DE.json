@@ -6,7 +6,7 @@
                                         
     "signup_name_exists"                : "Den Namen gibt es schon.",
     "signup_passwords_dont_match"		: "Die Passworte passen nicht zusammen.",
-    "signup_group_code_wrong"			: "Der Grupppen-Code stimmt nicht.",
+    "signup_group_code_wrong"			: "Der Gruppen-Code stimmt nicht.",
     "login_password_incorrect"          : "Passwort oder Name sind nicht korrekt.",
                                         
     "arts_programming"                  : "Programmieren",
@@ -54,6 +54,8 @@
 	"project_bar_modal_file_exists_2"   : "Wähle einen anderen Namen, um einen Nameskonflikt zu vermeiden.",
 	"project_bar_modal_project_exists"  : "Projekt existiert schon",
 	"project_bar_modal_project_exists_2": "Ein Projekt mit diesem Namen gibt es schon.",
+	"project_bar_modal_already_member"  : "Schon Mitglied",
+	"project_bar_modal_already_member_2": "Du bist schon Mitglied in diesem Projekt.",
 	"project_bar_modal_filename"	    : "Dateiname",
 	"project_bar_modal_file_outdated"   : "Die gespeicherte Version der Datei ist neuer. Überscheiben?",
 	"project_bar_modal_no"              : "Nein",

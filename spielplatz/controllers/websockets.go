@@ -325,6 +325,17 @@ func renameSourceFile(s session.Store, fileNames []string, fileType string) Data
 			"Error": "cannot rename file",
 		}
 	}
+	// Also rename associated pngs
+	for i := 0; i < 2; i++ {
+		fileNames[i] = fileNames[i][:strings.LastIndex(fileNames[i], ".")] + ".png"
+	}
+	beego.Warning("Renaming", fileNames[0], "to", fileNames[1])
+	err = os.Rename(dir+"/"+fileNames[0], dir+"/"+fileNames[1])
+	if err != nil {
+		return Data{
+			"Error": "cannot rename file",
+		}
+	}
 
 	return Data{}
 }

@@ -19,11 +19,11 @@
             <label for="inputName" class="sr-only">{{ .SignupInputName }}</label>
             <input id="inputName" class="form-control" placeholder="{{ .SignupInputName }}" required="true" autofocus="" type="name" name="name" value="{{ .Name }}">
             <label for="inputPassword" class="sr-only">{{ .SignupInputPassword }}</label>
-            <input id="inputPassword" class="form-control" placeholder="{{ .SignupInputPassword }}" required="true" type="password" name="password" value="{{ .Pwd }}">
+            <input id="inputPassword" class="form-control" placeholder="{{ .SignupInputPassword }}" required="true" type="password" name="password" value="{{ .Pwd1 }}">
             <label for="inputPassword2" class="sr-only">{{ .SignupInputPassword2 }}</label>
-            <input id="inputPassword2" class="form-control" placeholder="{{ .SignupInputPassword2 }}" required="true" type="password" name="password2" value="{{ .Pwd }}">
+            <input id="inputPassword2" class="form-control" placeholder="{{ .SignupInputPassword2 }}" required="true" type="password" name="password2" value="{{ .Pwd2 }}">
             <label for="inputGroupCode" class="sr-only">{{ .SignupInputGroupCode }}</label>
-            <input id="inputGroupCode" class="form-control" placeholder="{{ .SignupInputGroupCode }}" required="true" type="password" name="groupcode" value="">
+            <input id="inputGroupCode" class="form-control" placeholder="{{ .SignupInputGroupCode }}" required="true" type="name" name="groupcode" value="{{ .GroupCode }}">
             <button class="btn btn-lg btn-primary btn-block" type="submit">{{ .SignupSignupGo }}</button>
             {{ if .Error }}
             <div class="error-message">{{ .Error }}</div>
