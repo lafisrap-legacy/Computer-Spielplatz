@@ -15,6 +15,7 @@ FEATURE:
 
 BUG:
 # KRITISCH
+- Datei speichern mit gleichem Namen wie ein vorhandenes Projekt ist noch möglich
 - Firefox und Chrome mit zwei verschiedenen Users auf einem Rechner gibt Probleme mit Websockets oder Session? socket.io?
 
 

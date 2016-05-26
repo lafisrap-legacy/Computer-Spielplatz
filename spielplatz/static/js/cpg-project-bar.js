@@ -226,7 +226,15 @@ window.ProjectControlBar = Backbone.Model.extend( {
 							fileName += "." + self.fileType;
 						}
 
-						if( fileName !== self.newFile ) self.saveSourceFile( fileName );
+						if( fileName !== self.newFile && !self.checkCodeFile( fileName ) ) {
+							self.saveSourceFile( fileName );
+						} else {
+							self.buttonGroup.showModalOk( window.CPG.ProjectBarModalFileExists, window.CPG.ProjectBarModalFileExists2, function() {
+								self.isSaving = false;
+								self.save();
+							} );
+
+						}
 					}
 				} 
 			);
@@ -547,18 +555,12 @@ window.ProjectControlBar = Backbone.Model.extend( {
 					codeFile.timeStamp = message.SavedTimeStamps[ 0 ]
 					self.codeFileList.push( fileName );
 
-					for( var i = 0, found = false, afl=self.allFilesList ; i<afl.length ; i++ ) {
-						if( afl[ i ].name === fileName ) {
-							found = true;
-							break;
-						}
-					}
-
-					if( !found ) self.allFilesList.push( {
+					if( !self.checkCodeFile( fileName ) ) self.allFilesList.push( {
 						name: fileName,
 						timeStamp: codeFile.timeStamp,
 						project: codeFile.project,
 					} );
+
 					sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
 					sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
 					sessionStorage[ self.fileType + "AllFilesList" ] = JSON.stringify( self.allFilesList );

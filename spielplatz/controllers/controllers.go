@@ -172,15 +172,15 @@ func setTitleData(data map[interface{}]interface{}) {
 		Size: "lg",
 		Page: "#",
 	}, {
-		Name: T["arts_gamedesign"],
+		Name: T["arts_tutorials"],
 		Size: "lg",
 		Page: "#",
 	}, {
-		Name: T["arts_controllers"],
+		Name: T["arts_challenges"],
 		Size: "lg",
 		Page: "#",
 	}, {
-		Name: T["arts_hacking"],
+		Name: T["arts_playroom"],
 		Size: "lg",
 		Page: "#",
 	}}
