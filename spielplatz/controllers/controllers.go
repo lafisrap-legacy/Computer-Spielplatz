@@ -6,6 +6,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/session"
+	"github.com/astaxie/beego/utils"
 	"github.com/lafisrap/Computer-Spielplatz/spielplatz/models"
 	"html/template"
 	"os"
@@ -180,7 +181,7 @@ func setTitleData(data map[interface{}]interface{}) {
 		Size: "lg",
 		Page: "#",
 	}, {
-		Name: T["arts_playroom"],
+		Name: T["arts_edugames"],
 		Size: "lg",
 		Page: "#",
 	}}
@@ -240,6 +241,17 @@ func (c *LoginController) Post() {
 			s.Set("Groups", models.GetGroupsFromDatabase(u.Name))
 			s.Set("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
 			c.Ctx.Redirect(302, dest)
+
+			token := string(utils.RandomCreateBytes(32))
+
+			s.Set("WebSocketsToken", token)
+			SessionXsrfTable[token] = SessionXsrfStruct{
+				Session:   s,
+				Timestamp: time.Now(),
+			}
+
+			beego.Warning("WEBSOCKETSTOKEN:", token, "//", s)
+
 			return
 		}
 	}
@@ -481,7 +493,8 @@ func (c *LiveEditorController) Get() {
 		c.Data["LoginSignup"] = T["login_signup"]
 		c.Data["LoginLogout"] = T["login_logout"]
 
-		c.Data["WebsocketsAddress"] = "ws://" + beego.AppConfig.String("httpaddr") + ":" + beego.AppConfig.String("websockets::port") + beego.AppConfig.String("websockets::dir")
+		c.Data["WebSocketsAddress"] = "ws://" + beego.AppConfig.String("httpaddr") + ":" + beego.AppConfig.String("websockets::port") + beego.AppConfig.String("websockets::dir")
+		c.Data["WebSocketsToken"] = s.Get("WebSocketsToken")
 		c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 
 		setTitleData(c.Data)
@@ -581,18 +594,13 @@ func (c *CPGController) getSoundInfo(userName string) string {
 
 func (c *LiveEditorController) StartSession() session.Store {
 
-	if c.CruSession == nil {
-		c.CruSession = c.Ctx.Input.CruSession
+	s := c.CruSession
+
+	if s == nil {
+		s = c.Ctx.Input.CruSession
 	}
 
-	SessionXsrfTable[c.XSRFToken()] = SessionXsrfStruct{
-		Session:   c.CruSession,
-		Timestamp: time.Now(),
-	}
-
-	beego.Trace("SessionXsrfTable: ", SessionXsrfTable)
-
-	return c.CruSession
+	return s
 }
 
 //////////////////////////////////////////////////////////
@@ -650,6 +658,8 @@ func (c *GraphicsController) Get() {
 	c.Data["GraphicsColorizerSharpen"] = T["graphics_colorizer_sharpen"]
 	c.Data["GraphicsColorizerStackBlur"] = T["graphics_colorizer_stackBlur"]
 	c.Data["GraphicsColorizerSepia"] = T["graphics_colorizer_sepia"]
+	c.Data["WebSocketsAddress"] = "ws://" + beego.AppConfig.String("httpaddr") + ":" + beego.AppConfig.String("websockets::port") + beego.AppConfig.String("websockets::dir")
+	c.Data["WebSocketsToken"] = s.Get("WebSocketsToken")
 	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 
 	setTitleData(c.Data)

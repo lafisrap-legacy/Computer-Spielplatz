@@ -56,21 +56,21 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 		//////////////////////////////////////////////
 		// Connect to websocket server and load file info
-		this.connect( options.wsAdress, options.xsrfdata );
+		if( this.userName && this.userName != "" ) {
+			this.connect( options.wsAddress, options.wsToken );
+		} else {
+			self.editor.reset( self.codeFiles[ self.newFile ].code || "" );
+		}
 	},
 
 	/////////////////////////////////////////////////////////////
 	// Connect to the WebSockets server
-	connect: function( wsAddress, xsrfdata ) {
+	connect: function( wsAddress, wsToken ) {
 		var self = this;
 
-		$WS.connect( window.CPG.WebsocketsAddress, window.CPG.xsrfdata, function( ) {
+		$WS.connect( wsAddress, wsToken, function( ) {
 
-			if( self.userName === "" ) {
-				
-				self.editor.reset( self.codeFiles[ self.newFile ].code || "" );
-
-			} else if( !sessionStorage[ self.fileType + "CodeFileList" ] ) {
+			if( !sessionStorage[ self.fileType + "CodeFileList" ] ) {
 
 				self.refreshMails();
 

@@ -158,7 +158,7 @@ func translateMessages(s socket) {
 			continue
 		}
 		if sx, ok = SessionXsrfTable[message.Xsrf]; !ok {
-			fmt.Println("Invalid xsrf value.")
+			fmt.Println("Invalid xsrf value:", message.Xsrf)
 			s.done <- true
 			continue
 		}

@@ -31,8 +31,8 @@ CPG_projectControlBar = new projectControlBar( {
 								userName: window.CPG.UserName, 
 								fileType: CPG_page,
 								editor: CPG_liveEditor,
-								wsAddress: window.CPG.WebsocketsAddress, 
-								xsrfdata: window.CPG.xsrfdata,
+								wsAddress: window.CPG.WebSocketsAddress, 
+								wsToken: window.CPG.WebSocketsToken,
 								newFile: window.CPG.ProjectBarNewFile + "." + CPG_page,
 								modalContainer: $( ".container" ),
 							} );

@@ -13,7 +13,7 @@ $WS = {
         try {
             this._websocket = new WebSocket(addr);
         } catch(e) {
-            cc.log("WebSocket connection to \""+addr+"\" failed.");
+            console.error("WebSocket connection to \""+addr+"\" failed.");
             return false;
         }
 
@@ -26,8 +26,7 @@ $WS = {
 
         this._openCallback = cb;
 
-        reg = /value=\"([^\"]+)\"/g;
-        this._xsrf = reg.exec(xsrf)[1];
+        this._xsrf = xsrf;
     },
 
     onOpen: function(evt) {

@@ -50,7 +50,7 @@ var translations = {
 	"radius:(Optional) the radius of the corners, to round the rectangle": 
 		"radius: (optional) Der Radius der Ecken des Rechtecks",
 	"Draws an ellipse, using the first two parameters as the center coordinates and the last two as the width/height. For alternate ways to position, see ellipseMode.":
-		"Zeichnet ein Rechteck, wobei die ersten beiden Koordinaten die linke obere Ecke bezeichnen und die beiden anderen die Breite und die Höhe. Um die Position zu ändern, siehe rectMode().",
+		"Zeichnet eine Ellipse, wobei die ersten beiden Koordinaten die Mitte der Ellipse bezeichnen und die beiden anderen die Breite und die Höhe. Um die Position zu ändern, siehe ellipseMode().",
 	"x: the x-coordinate of the center":
 		"x: Die x-Koordinate des Mittelpunkts",
 	"y: the y-coordinate of the center":

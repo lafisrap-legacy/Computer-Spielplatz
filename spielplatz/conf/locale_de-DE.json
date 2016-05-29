@@ -15,7 +15,7 @@
 	"arts_texts"                        : "Texte & Daten",
 	"arts_tutorials"                    : "Übungsraum",
 	"arts_challenges"                   : "Aufgaben",
-	"arts_playroom"                     : "Spielraum",
+	"arts_edugames"                     : "Lernspiele",
                                         
 	"live_editor_header_pjs"			: "Processing / JavaScript",
 	"live_editor_header_html"			: "HTML / CSS",
