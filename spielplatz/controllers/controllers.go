@@ -489,6 +489,7 @@ func (c *LiveEditorController) Get() {
 		c.Data["ProjectBarSaveTemplate"] = T["project_bar_saveTemplate"]
 		c.Data["ProjectBarSave"] = T["project_bar_save"]
 		c.Data["ProjectBarTransfer"] = T["project_bar_transfer"]
+		c.Data["ProjectBarFileChanged"] = T["project_bar_file_changed"]
 		c.Data["LoginLogin"] = T["login_login"]
 		c.Data["LoginSignup"] = T["login_signup"]
 		c.Data["LoginLogout"] = T["login_logout"]

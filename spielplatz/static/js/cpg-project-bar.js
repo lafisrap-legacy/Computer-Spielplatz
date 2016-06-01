@@ -59,7 +59,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		if( this.userName && this.userName != "" ) {
 			this.connect( options.wsAddress, options.wsToken );
 		} else {
-			self.editor.reset( self.codeFiles[ self.newFile ].code || "" );
+			this.editor.reset( this.codeFiles[ this.newFile ].code || "" );
 		}
 	},
 

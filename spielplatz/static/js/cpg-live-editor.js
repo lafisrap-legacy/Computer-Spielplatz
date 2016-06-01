@@ -45,7 +45,7 @@ CPG_projectControlBar.refreshSession( window.CPG.LoginTime );
 
 window.onbeforeunload = function( ) {
 	//storeCurrentCodeFile( );
-	if( CPG_liveEditor.modified() ) return window.CPG.ControlBarModalFileChanged;
+	if( CPG_liveEditor.modified() ) return window.CPG.ProjectBarFileChanged;
 }
 
 $( window ).blur( function( e ) {
