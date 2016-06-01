@@ -133,6 +133,18 @@ func init() {
 }
 
 ///////////////////////////////////////////////////////
+// setWebSocketsToken function
+func setWebSocketsToken(s session.Store) {
+	token := string(utils.RandomCreateBytes(32))
+
+	s.Set("WebSocketsToken", token)
+	SessionXsrfTable[token] = SessionXsrfStruct{
+		Session:   s,
+		Timestamp: time.Now(),
+	}
+}
+
+///////////////////////////////////////////////////////
 // RootController functions
 //
 // Prepare is not used
@@ -242,16 +254,7 @@ func (c *LoginController) Post() {
 			s.Set("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
 			c.Ctx.Redirect(302, dest)
 
-			token := string(utils.RandomCreateBytes(32))
-
-			s.Set("WebSocketsToken", token)
-			SessionXsrfTable[token] = SessionXsrfStruct{
-				Session:   s,
-				Timestamp: time.Now(),
-			}
-
-			beego.Warning("WEBSOCKETSTOKEN:", token, "//", s)
-
+			setWebSocketsToken(s)
 			return
 		}
 	}
@@ -326,6 +329,7 @@ func (c *SignupController) Post() {
 
 				c.createUserDirectory(u, group)
 				c.Ctx.Redirect(302, dest)
+				setWebSocketsToken(s)
 				return
 			} else {
 				if err.Error() == "group code wrong" {
