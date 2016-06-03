@@ -1,8 +1,10 @@
 // Computer Playground UI Testing
 
-var name = "Tester",
+var name = casper.cli.args[1] || "Tester",
     tester = 3,
     url = "http://localhost:8080";
+
+require('utils').dump('Starting test with test users: ' + name  );
 
 
 casper.test.begin('Home page', 4, function suite(test) {
@@ -63,6 +65,7 @@ casper.test.begin('Signup', 15, function suite(test) {
             casper.fill('form', { name: name + i }, false);
             casper.fill('form', { password: name + i }, false);
             casper.fill('form', { password2: name + i }, false);
+            casper.fill('form', { groupcode: "AllesWirdGut" }, false);
         } );
 
         /////////////////////////////////////////////////////////////////77
@@ -71,7 +74,7 @@ casper.test.begin('Signup', 15, function suite(test) {
 
             if( casper.exists( "form.has-error" ) ) {
 
-                test.assert(false, "Test user is already defined? (Delete all '"+name+"*' accounts and start again.)")
+                test.assert(false, "Test user" + (name + i) + "is already defined? (Delete all '"+name+"*' accounts and start again.)")
                 test.done();
             }
 
@@ -142,7 +145,7 @@ casper.test.begin('Login', 15, function suite(test) {
 /////////////////////////////////////////////////////////////////77///////////////////////////////////////
 // Live-Editor Test
 //
-casper.test.begin('Live-Editor', 16, function suite(test) {
+casper.test.begin('Live-Editor', 18, function suite(test) {
 
     var i = 0;
 
@@ -168,32 +171,12 @@ casper.test.begin('Live-Editor', 16, function suite(test) {
 
     /////////////////////////////////////////////////////////////////77
     // Login 3: Login ok
-    casper.thenClick( "ul.kuenste a.btn-0", function() {
+    casper.thenClick( "ul.kuenste a[href='live-editor']", function() {
 
-        test.assertExists( ".scratchpad-ace-editor .ace_text-input", "Text input for Ace-Editor (JavaScript)." );
-        casper.fill(".scratchpad-ace-editor", { "text-input": "ellipse( 100, 100, 100, 101 );\n\n" }, false);
+        this.wait(100, function() {
+            test.assertExists( ".scratchpad-ace-editor .ace_text-input", "Text input for Ace-Editor (JavaScript)." );
+            casper.fill(".scratchpad-ace-editor", { "text-input": "ellipse( 100, 100, 100, 101 );\n\n" }, false);
 
-        test.assertExists( "#project-bar-save", "Save button of project bar" );
-    } );
-
-    casper.thenClick( "#project-bar-save", function() {
-
-        this.wait(500, function() {
-            this.echo("I've waited for a half second.");
-            test.assertExists( "#project-bar-string-input-modal.in input", "Input modal of filename input modal" );
-            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Input modal of filename input modal" );
-            casper.fill("#project-bar-string-input-modal.in", { "string-input": "testing01" }, false);
-        });
-    } );
-
-    casper.thenClick( "#project-bar-string-input-modal.in [type='submit']", function() {
-
-        test.assertExists( "#project-bar-new", "Input modal of filename input modal" );
-    } );
-
-    casper.thenClick( "#project-bar-new", function() {
-
-        this.wait(500, function() {
             test.assertExists( "#project-bar-save", "Save button of project bar" );
         } );
     } );
@@ -201,16 +184,42 @@ casper.test.begin('Live-Editor', 16, function suite(test) {
     casper.thenClick( "#project-bar-save", function() {
 
         this.wait(500, function() {
-            this.echo("I've waited for a half second.");
-            test.assertExists( "#project-bar-string-input-modal.in input", "Input modal of filename input modal" );
-            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Input modal of filename input modal" );
+            test.assertExists( "#project-bar-string-input-modal.in input", "Input field of filename input modal" );
+            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Submit field of filename input modal" );
+            casper.fill("#project-bar-string-input-modal.in", { "string-input": "testing01" }, false);
+        });
+    } );
+
+    casper.thenClick( "#project-bar-string-input-modal.in [type='submit']", function() {
+
+        this.wait(100, function() {
+            test.assertExists( "#project-bar-new", "Project bar new button" );
+        });
+    } );
+
+    casper.thenClick( "#project-bar-new", function() {
+
+        this.wait(500, function() {
+            test.assertEvalEquals(function() {
+                return __utils__.findOne(".big-filename .name").textContent;
+            }, "unbekannt.pjs", "'unbekannt.pjs' displayed as filename.");
+            test.assertExists( "#project-bar-save", "Save button of project bar" );
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-save", function() {
+
+        this.wait(500, function() {
+            this.echo("Can I save a file with the same filename?");
+            test.assertExists( "#project-bar-string-input-modal.in input", "Input field of filename input modal" );
+            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Submit button of filename input modal" );
             casper.fill("#project-bar-string-input-modal.in", { "string-input": "testing01" }, false);
         } );
     } );
 
     casper.thenClick( "#project-bar-string-input-modal.in [type='submit']", function() {
         this.wait(500, function() {
-            this.echo("I've waited for a half second.");
+            this.echo("Pressing the NO button.");
             test.assertExists( "#project-bar-yes-no-modal.in", "Yes-No-Modal" );
 
             test.assertExists( "#project-bar-yes-no-modal.in button.modal-no", "Yes-No-Modal: No-Button" );
@@ -220,27 +229,32 @@ casper.test.begin('Live-Editor', 16, function suite(test) {
     casper.thenClick( "#project-bar-yes-no-modal.in button.modal-no", function() { 
         casper.fill(".scratchpad-ace-editor", { "text-input": "rect( 100, 100, 100, 101 );\n\n" }, false);
     } );
+
     casper.thenClick( "#project-bar-save", function() {
 
         this.wait(500, function() {
-            this.echo("I've waited for a half second.");
-            test.assertExists( "#project-bar-string-input-modal.in input", "Input modal of filename input modal" );
-            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Input modal of filename input modal" );
+            this.echo("Can I save a file with the same filename? (again)");
+            test.assertExists( "#project-bar-string-input-modal.in input", "Input field of filename input modal" );
+            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Submit button of filename input modal" );
             casper.fill("#project-bar-string-input-modal.in", { "string-input": "testing01" }, false);
         } );
     } );
 
     casper.thenClick( "#project-bar-string-input-modal.in [type='submit']", function() {
         this.wait(500, function() {
-            this.echo("I've waited for a half second.");
+            this.echo("Pressing the YES button.");
             test.assertExists( "#project-bar-yes-no-modal.in", "Yes-No-Modal" );
-            test.assertExists( "#project-bar-yes-no-modal.in button.modal-yes", "Yes-No-Modal: No-Button" );
+            test.assertExists( "#project-bar-yes-no-modal.in button.modal-yes", "Yes-No-Modal: Yes-Button" );
         } );
     } );
 
-    casper.thenClick( "#project-bar-yes-no-modal.in button.modal-no", function() { 
+    casper.thenClick( "#project-bar-yes-no-modal.in button.modal-yes", function() { 
+        this.wait(200, function() {
+            test.assertEvalEquals(function() {
+                return __utils__.findOne(".big-filename .name").textContent;
+            }, "testing01.pjs", "'testing01.pjs' displayed as filename.");
+        } );
     } );
-
 
     casper.run(function() {
         test.done();
