@@ -226,7 +226,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 							fileName += "." + self.fileType;
 						}
 
-						if( fileName !== self.newFile && !self.checkCodeFile( fileName ) ) {
+						if( fileName !== self.newFile && (!self.checkCodeFile( fileName ) || !self.checkCodeFile( fileName ).project) ) {
 							self.saveSourceFile( fileName );
 						} else {
 							self.buttonGroup.showModalOk( window.CPG.ProjectBarModalFileExists, window.CPG.ProjectBarModalFileExists2, function() {

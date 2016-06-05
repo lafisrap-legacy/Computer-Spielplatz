@@ -13,7 +13,7 @@
 <body>
     <div class="container">
         <form class="form-login {{ if .Error }}has-error{{ end }}" action="login" method="post">
-            {{ .xsrfdata }}
+            <input type="hidden" name="websocketstoken" value="{{ .WebSocketsToken }}">
             <input type="hidden" name="_dest" value="{{ .Destination }}">
             <h2 class="form-login-heading">{{ .LoginInvitation }}</h2>
             <label for="inputName" class="sr-only">{{ .LoginInputName }}</label>

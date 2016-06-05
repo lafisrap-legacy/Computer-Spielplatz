@@ -24,7 +24,7 @@ casper.test.begin('Home page', 4, function suite(test) {
 casper.test.begin('Signup', 15, function suite(test) {
 
     var i = 0;
-
+	phantom.cookiesEnabled = true;
     (function signup() {
 
         casper.start(url, function() {
@@ -73,7 +73,6 @@ casper.test.begin('Signup', 15, function suite(test) {
         casper.thenClick( "form button", function() {
 
             if( casper.exists( "form.has-error" ) ) {
-
                 test.assert(false, "Test user" + (name + i) + "is already defined? (Delete all '"+name+"*' accounts and start again.)")
                 test.done();
             }
@@ -95,6 +94,7 @@ casper.test.begin('Signup', 15, function suite(test) {
 casper.test.begin('Login', 15, function suite(test) {
 
     var i = 0;
+	phantom.cookiesEnabled = true;
 
     (function login() {
 

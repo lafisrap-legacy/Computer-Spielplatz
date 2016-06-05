@@ -13,7 +13,7 @@
 <body>
     <div class="container">
         <form class="form-signup {{ if .Error }}has-error{{ end }}" action="signup" method="post">
-            {{ .xsrfdata }}
+            <input type="hidden" name="websocketstoken" value="{{ .WebSocketsToken }}">
             <input type="hidden" name="_dest" value="{{ .Destination }}">
             <h2 class="form-signin-heading">{{ .SignupInvitation }}</h2>
             <label for="inputName" class="sr-only">{{ .SignupInputName }}</label>

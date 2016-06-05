@@ -8,10 +8,10 @@ import (
 	"github.com/astaxie/beego/session"
 	"github.com/astaxie/beego/utils"
 	"github.com/lafisrap/Computer-Spielplatz/spielplatz/models"
-	"html/template"
 	"os"
 	"path/filepath"
 	"regexp"
+	"sync"
 	"time"
 )
 
@@ -25,11 +25,14 @@ type Session struct {
 }
 
 type SessionXsrfStruct struct {
-	Session   session.Store
+	Session   *session.Store
 	Timestamp time.Time
 }
 
-type SessionXsrf map[string]SessionXsrfStruct
+type SessionXsrf struct {
+	sync.RWMutex
+	Tokens map[string]SessionXsrfStruct
+}
 
 //////////////////////////////////////////////////
 // Global Session Variables
@@ -48,25 +51,25 @@ type RootController struct {
 //////////////////////////////
 // LoginController serves the login redirction page
 type LoginController struct {
-	beego.Controller
+	RootController
 }
 
 //////////////////////////////
 // LoginController serves the logout redirction page
 type LogoutController struct {
-	beego.Controller
+	RootController
 }
 
 //////////////////////////////
 // SignupController serves the signup redirction page
 type SignupController struct {
-	beego.Controller
+	RootController
 }
 
 //////////////////////////////
 // SignupController serves the signup redirction page
 type CPGController struct {
-	beego.Controller
+	RootController
 }
 
 //////////////////////////////
@@ -84,19 +87,19 @@ type GraphicsController struct {
 //////////////////////////////
 //
 type PtestController struct {
-	beego.Controller
+	RootController
 }
 
 //////////////////////////////
 // LiveEditorController brings the Khan-Academy Live-Editor to life
 type LiveEditorBuildController struct {
-	beego.Controller
+	RootController
 }
 
 ///////////////////////////////
 // ErrorController serves all weg errors
 type ErrorController struct {
-	beego.Controller
+	RootController
 }
 
 ///////////////////////////////
@@ -129,19 +132,31 @@ func init() {
 	globalSessions, _ = session.NewManager("memory", `{"cookieName":"computerspielplatzID", "enableSetCookie,omitempty": true, "gclifetime":3600, "maxLifetime": 3600, "secure": false, "sessionIDHashFunc": "sha1", "sessionIDHashKey": "", "cookieLifeTime": 3600, "providerConfig": ""}`)
 	go globalSessions.GC()
 
-	SessionXsrfTable = make(SessionXsrf)
+	SessionXsrfTable.Tokens = make(map[string]SessionXsrfStruct)
 }
 
 ///////////////////////////////////////////////////////
-// setWebSocketsToken function
-func setWebSocketsToken(s session.Store) {
+// getWebSocketsToken function
+func (c *RootController) getWebSocketsToken() string {
+
+	if token := c.GetSession("WebSocketsToken"); token != nil {
+		return token.(string)
+	}
+
 	token := string(utils.RandomCreateBytes(32))
 
-	s.Set("WebSocketsToken", token)
-	SessionXsrfTable[token] = SessionXsrfStruct{
-		Session:   s,
+	SessionXsrfTable.Lock()
+	defer SessionXsrfTable.Unlock()
+	s := c.StartSession()
+	SessionXsrfTable.Tokens[token] = SessionXsrfStruct{
+		Session:   &s,
 		Timestamp: time.Now(),
 	}
+
+	c.SetSession("WebSocketsToken", token)
+	beego.Warning("New WebSocketsToken:", token)
+
+	return token
 }
 
 ///////////////////////////////////////////////////////
@@ -155,12 +170,9 @@ func (c *RootController) Prepare() {
 // Get
 func (c *RootController) Get() {
 
-	s := c.StartSession()
-
 	//c.Data["Sid"] = s.SessionID()
-	c.Data["UserName"] = s.Get("UserName")
-	c.Data["LoginTime"] = s.Get("LoginTime")
-	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
+	c.Data["UserName"] = c.GetSession("UserName")
+	c.Data["LoginTime"] = c.GetSession("LoginTime")
 	c.TplName = "index.html"
 	setTitleData(c.Data)
 }
@@ -209,21 +221,16 @@ func setTitleData(data map[interface{}]interface{}) {
 //
 // Get
 func (c *LoginController) Get() {
-	///////////////////////////////////
-	// Session prefix
-	w := c.Ctx.ResponseWriter
-	r := c.Ctx.Request
-	s, _ := globalSessions.SessionStart(w, r)
-	defer s.SessionRelease(w)
 
 	T := models.T
+	token := c.getWebSocketsToken()
 
-	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 	c.Data["Destination"] = "/" + c.Ctx.Input.Param(":dest")
 	c.Data["LoginInvitation"] = T["login_invitation"]
 	c.Data["LoginInputName"] = T["login_input_name"]
 	c.Data["LoginPassword"] = T["login_input_password"]
 	c.Data["LoginLoginGo"] = T["login_login_go"]
+	c.Data["WebSocketsToken"] = token
 
 	c.TplName = "login.html"
 }
@@ -231,10 +238,8 @@ func (c *LoginController) Get() {
 ///////////////////////////////////
 // Post
 func (c *LoginController) Post() {
-	///////////////////////////////////
-	// Session prefix
-	s := c.StartSession()
 	T := models.T
+	token := c.getWebSocketsToken()
 
 	var (
 		u   models.User
@@ -246,15 +251,28 @@ func (c *LoginController) Post() {
 		dest = "/"
 	}
 	if err = c.ParseForm(&uf); err == nil {
-		if u, err = models.AuthenticateUser(&uf); err == nil {
-			s.Set("UserName", u.Name)
-			s.Set("Email", u.Email)
-			s.Set("Rights", models.GetRightsFromDatabase(u.Name))
-			s.Set("Groups", models.GetGroupsFromDatabase(u.Name))
-			s.Set("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
+		if token != uf.Token {
+			err = errors.New("Token missmatch at Login. (Restart the browser ... and inform the Admin)")
+		} else if u, err = models.AuthenticateUser(&uf); err == nil {
+			///////////////////////////////////
+			// Session init
+			//w := c.Ctx.ResponseWriter
+			//r := c.Ctx.Request
+			//s, _ := globalSessions.SessionStart(w, r)
+			//defer s.SessionRelease(w)
+
+			c.SetSession("UserName", u.Name)
+			c.SetSession("Email", u.Email)
+			c.SetSession("Rights", models.GetRightsFromDatabase(u.Name))
+			c.SetSession("Groups", models.GetGroupsFromDatabase(u.Name))
+			c.SetSession("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
 			c.Ctx.Redirect(302, dest)
 
-			setWebSocketsToken(s)
+			err := models.CreateSessionTokenDatabaseEntry(token, u.Name)
+			if err != nil {
+				beego.Error(err)
+			}
+
 			return
 		}
 	}
@@ -264,8 +282,9 @@ func (c *LoginController) Post() {
 	c.Data["LoginInputName"] = T["login_input_name"]
 	c.Data["LoginPassword"] = T["login_input_password"]
 	c.Data["LoginLoginGo"] = T["login_login_go"]
-	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 	c.Data["Destination"] = dest
+	c.Data["WebSocketsToken"] = token
+
 	c.TplName = "login.html"
 }
 
@@ -275,11 +294,12 @@ func (c *LoginController) Post() {
 // Get
 func (c *LogoutController) Get() {
 
-	s := c.StartSession()
+	token := c.getWebSocketsToken()
 
-	s.Delete("UserName")
-	s.Delete("LoginTime")
-	s.Delete("Email")
+	c.DelSession("UserName")
+	c.DelSession("LoginTime")
+	c.DelSession("Email")
+	c.Data["WebSocketsToken"] = token
 
 	c.Ctx.Redirect(302, "/")
 }
@@ -289,47 +309,54 @@ func (c *LogoutController) Get() {
 //
 // Get
 func (c *SignupController) Get() {
+
+	token := c.getWebSocketsToken()
+
 	T := models.T
 
 	if _, ok := c.Data["Destination"]; !ok {
 		c.Data["Destination"] = "/" + c.Ctx.Input.Param(":dest")
 	}
-	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 	c.Data["SignupInvitation"] = T["signup_invitation"]
 	c.Data["SignupInputName"] = T["signup_input_name"]
 	c.Data["SignupInputPassword"] = T["signup_input_password"]
 	c.Data["SignupInputPassword2"] = T["signup_input_password2"]
 	c.Data["SignupInputGroupCode"] = T["signup_input_group_code"]
 	c.Data["SignupSignupGo"] = T["signup_signup_go"]
+	c.Data["WebSocketsToken"] = token
+
 	c.TplName = "signup.html"
 }
 
 ///////////////////////////////////
 // Post
 func (c *SignupController) Post() {
-	s := c.StartSession()
+
+	T := models.T
+	token := c.getWebSocketsToken()
 
 	var (
 		u     models.User
 		group string
 		err   error
 	)
-	T := models.T
 	uf := models.UserForm{}
 	dest := c.Ctx.Input.Query("_dest")
 	if dest == "" {
 		dest = "/"
 	}
+
 	if err = c.ParseForm(&uf); err == nil {
-		if uf.Pwd == uf.Pwd2 {
+		if token != uf.Token {
+			err = errors.New("Token missmatch at Signup. (Restart the browser ... and inform the Admin)")
+		} else if uf.Pwd == uf.Pwd2 {
 			if u, group, err = models.CreateUserInDatabase(&uf); err == nil {
-				s.Set("UserName", u.Name)
-				s.Set("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
-				s.Set("Email", u.Email)
+				c.SetSession("UserName", u.Name)
+				c.SetSession("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
+				c.SetSession("Email", u.Email)
 
 				c.createUserDirectory(u, group)
 				c.Ctx.Redirect(302, dest)
-				setWebSocketsToken(s)
 				return
 			} else {
 				if err.Error() == "group code wrong" {
@@ -352,7 +379,6 @@ func (c *SignupController) Post() {
 	}
 
 	c.Data["Error"] = err.Error()
-	c.TplName = "signup.html"
 	c.Data["Destination"] = dest
 	c.Data["SignupInvitation"] = T["signup_invitation"]
 	c.Data["SignupInputName"] = T["signup_input_name"]
@@ -360,7 +386,9 @@ func (c *SignupController) Post() {
 	c.Data["SignupInputPassword2"] = T["signup_input_password2"]
 	c.Data["SignupInputGroupCode"] = T["signup_input_group_code"]
 	c.Data["SignupSignupGo"] = T["signup_signup_go"]
-	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
+	c.Data["WebSocketsToken"] = token
+
+	c.TplName = "signup.html"
 }
 
 ///////////////////////////////////////////////
@@ -400,16 +428,15 @@ func (c *SignupController) createUserDirectory(user models.User, group string) {
 // Get
 func (c *LiveEditorController) Get() {
 	T := models.T
-	s := c.StartSession()
 	userName := ""
 	userNameForImages := "Admin"
 	var rights models.RightsMap
 
-	if s.Get("UserName") != nil {
-		userName = s.Get("UserName").(string)
+	if c.GetSession("UserName") != nil {
+		userName = c.GetSession("UserName").(string)
 		userNameForImages = userName
 
-		val := s.Get("Rights")
+		val := c.GetSession("Rights")
 		if val != nil {
 			rights = *val.(*models.RightsMap)
 		}
@@ -424,7 +451,7 @@ func (c *LiveEditorController) Get() {
 		c.TplName = "external/" + c.Ctx.Input.Param(":file")
 	} else {
 		c.Data["UserName"] = userName
-		c.Data["LoginTime"] = s.Get("LoginTime")
+		c.Data["LoginTime"] = c.GetSession("LoginTime")
 		c.Data["RightInviteToGroups"] = rights["invitetogroups"]
 		c.Data["RightAddGroups"] = rights["addgroups"]
 		c.Data["LiveEditorHeaderPjs"] = T["live_editor_header_pjs"]
@@ -499,8 +526,8 @@ func (c *LiveEditorController) Get() {
 		c.Data["LoginLogout"] = T["login_logout"]
 
 		c.Data["WebSocketsAddress"] = "ws://" + beego.AppConfig.String("httpaddr") + ":" + beego.AppConfig.String("websockets::port") + beego.AppConfig.String("websockets::dir")
-		c.Data["WebSocketsToken"] = s.Get("WebSocketsToken")
-		c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
+		c.Data["WebSocketsToken"] = c.GetSession("WebSocketsToken")
+		beego.Warning("WebSocketsToken", c.Data["WebSocketsToken"], "xsrfdata", c.Data["xsrfdata"])
 
 		setTitleData(c.Data)
 
@@ -613,7 +640,6 @@ func (c *LiveEditorController) StartSession() session.Store {
 //
 // Get
 func (c *LiveEditorBuildController) Get() {
-	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
 	c.TplName = "live-editor/build/js/" + c.Ctx.Input.Param(":file")
 }
 
@@ -622,12 +648,11 @@ func (c *LiveEditorBuildController) Get() {
 // Get
 func (c *GraphicsController) Get() {
 	T := models.T
-	s := c.StartSession()
 	userName := ""
 	userNameForImages := "Admin"
 
-	if s.Get("UserName") != nil {
-		userName = s.Get("UserName").(string)
+	if c.GetSession("UserName") != nil {
+		userName = c.GetSession("UserName").(string)
 		userNameForImages = userName
 	}
 
@@ -636,7 +661,7 @@ func (c *GraphicsController) Get() {
 	c.Data["UserNameForImages"] = userNameForImages
 
 	c.Data["UserName"] = userName
-	c.Data["LoginTime"] = s.Get("LoginTime")
+	c.Data["LoginTime"] = c.GetSession("LoginTime")
 	c.Data["LoginLogin"] = T["login_login"]
 	c.Data["LoginSignup"] = T["login_signup"]
 	c.Data["LoginLogout"] = T["login_logout"]
@@ -664,8 +689,7 @@ func (c *GraphicsController) Get() {
 	c.Data["GraphicsColorizerStackBlur"] = T["graphics_colorizer_stackBlur"]
 	c.Data["GraphicsColorizerSepia"] = T["graphics_colorizer_sepia"]
 	c.Data["WebSocketsAddress"] = "ws://" + beego.AppConfig.String("httpaddr") + ":" + beego.AppConfig.String("websockets::port") + beego.AppConfig.String("websockets::dir")
-	c.Data["WebSocketsToken"] = s.Get("WebSocketsToken")
-	c.Data["xsrfdata"] = template.HTML(c.XSRFFormHTML())
+	c.Data["WebSocketsToken"] = c.GetSession("WebSocketsToken")
 
 	setTitleData(c.Data)
 	c.TplName = "graphics-animation.html"

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	_ "errors"
-	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/session"
@@ -106,7 +105,7 @@ func StartWebsockets(doneChan chan bool) {
 
 	beego.Trace("dir:", dir, "address:", address, "port:", port)
 	http.Handle(dir, websocket.Handler(func(ws *websocket.Conn) {
-		fmt.Println("New socket connection started ...")
+		beego.Trace("New socket connection started ...")
 		s := socket{ws, make(chan bool)}
 		go translateMessages(s)
 
@@ -117,14 +116,15 @@ func StartWebsockets(doneChan chan bool) {
 		encoder.Encode(&data)
 
 		<-s.done
-		fmt.Println("Socket connection gone ...")
+
+		beego.Trace("Socket connection gone ...")
 	}))
 
-	fmt.Println("--- Spielplatz connector started on ", address+":"+port, ". Listening ...")
+	beego.Trace("--- Spielplatz connector started on ", address+":"+port, ". Listening ...")
 
 	err := http.ListenAndServe(address+":"+port, nil)
 	if err != nil {
-		fmt.Println("Error: " + err.Error())
+		beego.Error(err)
 		doneChan <- true
 	}
 }
@@ -153,18 +153,22 @@ func translateMessages(s socket) {
 			return
 		}
 		if message.Xsrf == "" {
-			fmt.Println("Xsrf value missing.")
-			s.done <- true
-			continue
-		}
-		if sx, ok = SessionXsrfTable[message.Xsrf]; !ok {
-			fmt.Println("Invalid xsrf value:", message.Xsrf)
+			beego.Error("Xsrf value missing.")
 			s.done <- true
 			continue
 		}
 
+		SessionXsrfTable.RLock()
+		if sx, ok = SessionXsrfTable.Tokens[message.Xsrf]; !ok {
+			SessionXsrfTable.RUnlock()
+			beego.Error("Invalid xsrf value:", message.Xsrf)
+			s.done <- true
+			continue
+		}
+		message.Session = *sx.Session
+		SessionXsrfTable.RUnlock()
+
 		message.Xsrf = ""
-		message.Session = sx.Session
 		message.returnChan = make(chan Data)
 		go catchReturn(message.returnChan, encoder)
 

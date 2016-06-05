@@ -50,6 +50,14 @@ type Rights struct {
 	User  *User `orm:"rel(fk)"`
 }
 
+// Session Token
+type SessionToken struct {
+	Id        int
+	Token     string
+	TimeStamp time.Time `orm:"auto_now;type(datetime)"`
+	User      *User     `orm:"rel(fk)"`
+}
+
 // RightsMap
 type RightsMap map[string]string
 
@@ -102,6 +110,7 @@ type UserForm struct {
 	Pwd       string `form:"password"`
 	Pwd2      string `form:"password2"`
 	GroupCode string `form:"groupcode"`
+	Token     string `form:"websocketstoken"`
 }
 
 // ??
@@ -167,7 +176,7 @@ func init() {
 	orm.SetMaxIdleConns("default", 30)
 	orm.SetMaxOpenConns("default", 30)
 
-	orm.RegisterModel(new(User), new(Project), new(ProjectUser), new(Message), new(Star), new(Groups), new(GroupUser), new(Rights))
+	orm.RegisterModel(new(User), new(Project), new(ProjectUser), new(Message), new(Star), new(Groups), new(GroupUser), new(Rights), new(SessionToken))
 
 	// Drop all runtime tables
 	o := orm.NewOrm()
@@ -576,10 +585,12 @@ func GetProjectUsersFromDatabase(projectName string) []string {
 
 	users := make([]string, 0, MaxUserPerProject)
 
-	o.QueryTable("project_user").Filter("project__name", projectName).Values(&u, "user__name")
+	num, _ := o.QueryTable("project_user").Filter("project__name", projectName).Values(&u, "user__name")
 
-	for _, params := range u {
-		users = append(users, params["User__Name"].(string))
+	if num > 0 {
+		for _, params := range u {
+			users = append(users, params["User__Name"].(string))
+		}
 	}
 
 	return users
@@ -721,6 +732,66 @@ func CreateProjectDatabaseEntry(p *Project, u *User, rights int64) error {
 	}
 
 	return nil
+}
+
+//////////////////////////////////////////////////
+// CreateSessionTokenDatabaseEntry creates a project database entry
+func CreateSessionTokenDatabaseEntry(token string, userName string) error {
+
+	o := orm.NewOrm()
+	o.Using("default")
+	u := User{
+		Name: userName,
+	}
+
+	err := o.Read(&u, "Name")
+	if err != nil {
+		return err
+	}
+
+	t := SessionToken{
+		User:  &u,
+		Token: token,
+	}
+	_, err = o.Insert(&t)
+	if err != nil {
+		beego.Error(err.Error())
+		return err
+	}
+
+	return nil
+}
+
+//////////////////////////////////////////////////
+// GetUserFromSessionToken return the user of a session token or empty string
+func GetUserFromSessionToken(token string) (string, bool) {
+
+	o := orm.NewOrm()
+	o.Using("default")
+
+	var g []orm.Params
+
+	num, _ := o.QueryTable("session_token").Filter("token", token).Values(&g, "user__name")
+	if num > 0 {
+		return g[0]["User__Name"].(string), true
+	} else {
+		return "", false
+	}
+}
+
+//////////////////////////////////////////////////
+// RemoveSessionToken removes a session token
+func RemoveSessionToken(token string) error {
+
+	o := orm.NewOrm()
+	o.Using("default")
+
+	num, err := o.QueryTable("session_token").Filter("token", token).Delete()
+	if num == 1 {
+		return nil
+	} else {
+		return err
+	}
 }
 
 func CreateInvitationMessages(userName string, projectName string, userNames []string, subject string, message string) error {
