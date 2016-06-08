@@ -41,6 +41,8 @@
 
 	"project_bar_modal_already_open_p"	: "Die Dateien sind schon geöffnet. Willst du sie trotzdem laden?",
 	"project_bar_modal_already_open_s"	: "Die Datei ist schon geöffnet. Willst du sie trotzdem laden?",
+	"project_bar_modal_bad_connection"	: "Die Verbindung zum Server ist unterbrochen.",
+	"project_bar_modal_bad_connection_2": "Willst du warten bis der Server wieder verfügbar ist?",
 	"project_bar_modal_cancel"		    : "Abbrechen",
 	"project_bar_modal_codefile_title"  : "Deine Quell-Dateien und -Projekte",
 	"project_bar_modal_conflicts_2"     : "Jemand im Projekt hat etwas geändert, das nicht automatisch übernommen werden kann. Eventuell werden Konflikte angezeigt.<br><br>Auf jeden Fall musst du das Projekt speichern, wenn du geändert hast, was du ändern willst.",

@@ -82,11 +82,11 @@
 	{{ if .UserName }}
 	<div id="project-button-group"></div>
 	<button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ProjectBarRestart }}</button>
+	<textarea id="project-button-textarea-for-testing"></textarea>
 	{{ else }}
-	<div id="bottom-control-bar">
 		<span class="label label-info">{{ .ProjectBarNoUser }}</span>
 		<button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ProjectBarRestart }}</button>
-	</div>	
+		<textarea id="project-button-textarea-for-testing"></textarea>
 	{{ end }}
 	<ul>
 <li>
@@ -563,6 +563,8 @@
 		ProjectBarSaveTemplate: {{ .ProjectBarSaveTemplate }},
 		ProjectBarTransfer: {{ .ProjectBarTransfer }},
 		ProjectBarProject: {{ .ProjectBarProject }},
+		ProjectBarModalBadConnection: {{ .ProjectBarModalBadConnection }},
+		ProjectBarModalBadConnection2: {{ .ProjectBarModalBadConnection2 }},
 		ProjectBarModalOpenNewProject: {{ .ProjectBarModalOpenNewProject }},
 		ProjectBarModalOpenNewProject2: {{ .ProjectBarModalOpenNewProject2 }},
 		ProjectBarModalProjectExists: {{ .ProjectBarModalProjectExists }},

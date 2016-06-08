@@ -216,6 +216,8 @@ func serveMessages(messageChan chan Message) {
 			data = readNewMessages(s, message.MessageIds)
 		case "deleteMessage":
 			data = deleteMessage(s, message.MessageId)
+		case "getStatus":
+			data = getStatus(s)
 		default:
 			beego.Error("Unknown command:", message.Command)
 		}
@@ -258,7 +260,6 @@ func writeSourceFiles(s session.Store, fileNames []string, project string, fileT
 		fileStat, err := os.Stat(fileName)
 		if !overwrite {
 			if !os.IsNotExist(err) {
-				beego.Warning("no such file or directory:", fileName)
 				return Data{
 					"Error": T["websockets_file_exists"],
 				}
@@ -890,6 +891,23 @@ func deleteMessage(s session.Store, messageId int64) Data {
 	} else {
 		return Data{
 			"Error": err.Error(),
+		}
+	}
+}
+
+func getStatus(s session.Store) Data {
+
+	userName := ""
+	if s.Get("UserName") != nil {
+		userName = s.Get("UserName").(string)
+	}
+	if userName == "" {
+		return Data{
+			"Status": "No session",
+		}
+	} else {
+		return Data{
+			"Status": "Ok",
 		}
 	}
 }

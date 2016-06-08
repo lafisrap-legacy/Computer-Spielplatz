@@ -254,12 +254,6 @@ func (c *LoginController) Post() {
 		if token != uf.Token {
 			err = errors.New("Token missmatch at Login. (Restart the browser ... and inform the Admin)")
 		} else if u, err = models.AuthenticateUser(&uf); err == nil {
-			///////////////////////////////////
-			// Session init
-			//w := c.Ctx.ResponseWriter
-			//r := c.Ctx.Request
-			//s, _ := globalSessions.SessionStart(w, r)
-			//defer s.SessionRelease(w)
 
 			c.SetSession("UserName", u.Name)
 			c.SetSession("Email", u.Email)
@@ -488,6 +482,8 @@ func (c *LiveEditorController) Get() {
 		c.Data["ProjectBarModalNo"] = T["project_bar_modal_no"]
 		c.Data["ProjectBarModalOk"] = T["project_bar_modal_ok"]
 		c.Data["ProjectBarModalOpen"] = T["project_bar_modal_open"]
+		c.Data["ProjectBarModalBadConnection"] = T["project_bar_modal_bad_connection"]
+		c.Data["ProjectBarModalBadConnection2"] = T["project_bar_modal_bad_connection_2"]
 		c.Data["ProjectBarModalProjectInit2"] = T["project_bar_modal_project_init_2"]
 		c.Data["ProjectBarModalProjectInitOk"] = T["project_bar_modal_project_init_ok"]
 		c.Data["ProjectBarModalProjectInit"] = T["project_bar_modal_project_init"]

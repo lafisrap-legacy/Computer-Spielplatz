@@ -16,6 +16,11 @@ window.ProjectControlBar = Backbone.Model.extend( {
 	codeFiles: {},			// Loaded files, key is filename
 	messages: [],			// List of messages that the user received
 
+	wsAdress: null,			// Websockets address
+	wsToken: null,			// Token used to authenticate with the server
+	reconnectInterval: null,// Interval id of reconnection interval
+	reconnectCbs: [],		// Callbacks that should be called after connection is back
+
 	// Message constants
 	MSG_INVITE: 0,
 	MSG_ACCEPT: 1,
@@ -57,18 +62,26 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		//////////////////////////////////////////////
 		// Connect to websocket server and load file info
 		if( this.userName && this.userName != "" ) {
-			this.connect( options.wsAddress, options.wsToken );
+			this.wsAddress = options.wsAddress;
+			this.wsToken = options.wsToken;
+			this.connect( );
 		} else {
 			this.editor.reset( this.codeFiles[ this.newFile ].code || "" );
 		}
+
+		//////////////////////////////////////////////////
+		// For testing
+		$("#project-button-textarea-for-testing").on("change", function(e) {
+			$(this).val("Hello!");
+		});
 	},
 
 	/////////////////////////////////////////////////////////////
 	// Connect to the WebSockets server
-	connect: function( wsAddress, wsToken ) {
+	connect: function( ) {
 		var self = this;
 
-		$WS.connect( wsAddress, wsToken, function( ) {
+		$WS.connect( this.wsAddress, this.wsToken, function( cb ) { self.reconnect( cb ) }, function( ) {
 
 			if( !sessionStorage[ self.fileType + "CodeFileList" ] ) {
 
@@ -78,6 +91,10 @@ window.ProjectControlBar = Backbone.Model.extend( {
 					Command: "readDir",
 					FileType: self.fileType
 				}, function( message ) {
+					if( message.Error ) {
+						console.error("WebSockets connection error:", message.Error);
+						return
+					}
 
 					self.codeFileList = [ ];
 
@@ -126,6 +143,71 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				self.buttonGroup.showFilename();
 			}
 		});
+	},
+
+	reconnect: function( cb ) {
+		var self = this;
+
+		if( cb === false ) {
+			this.buttonGroup.hideModalWaiting();
+			return;
+		}
+
+		if( this.reconnectInterval ) {
+			// An interval is already running
+			this.reconnectCbs.push( cb );
+		}
+
+		this.buttonGroup.showModalWaiting( window.CPG.ProjectBarModalBadConnection, window.CPG.ProjectBarModalBadConnection2, function( ok ) {
+			console.log("Clearing reconnection interval after user cancel:", self.reconnectInterval);
+			clearInterval( self.reconnectInterval );
+			self.reconnectInterval = null;
+			cb( false );
+			return;
+		} );
+
+		this.reconnectInterval = setInterval( function() {
+			if( !$WS.isConnected() ) {
+
+				$WS.connect( self.wsAddress, self.wsToken, function( cb ) { self.reconnect( cb ) }, function( ) {
+
+					console.log("Clearing reconnection interval after connection is back.", self.reconnectInterval);
+					clearInterval( self.reconnectInterval );
+					self.reconnectInterval = null;
+
+					$WS.sendMessage( {
+						Command: "getStatus",
+						FileType: self.fileType
+					}, function( message ) {
+						if( message.Error === "no connection" ) {
+							console.error("WebSockets connection error:", message.Error);
+							self.buttonGroup.hideModalWaiting();
+							self.reconnect( cb );
+							return
+						} else {
+							console.error("Unknown error after getStatus call.");
+						}
+
+						if( message.Status === "Ok" ) {
+							cb( true );
+							for( var i = 0; i < self.reconnectCBs.length; i++ ) {
+								self.reconnectCBs[i]( true );
+							}
+							self.reconnectCBs = [];
+
+						} else if( message.Status === "No session" ) {
+							// Try to save current code file and filename (project?) in localStorage and reload session?
+							// After reload: Detect recovery version and fill it into the live editor
+
+							// Server side: Detect token in database and auto login
+						} else {
+							console.error( "Illegal state after calling getStatus." );
+						}
+					});
+				} );
+			}
+		}, 5000);
+		console.log("Setting reconnection interval.", self.reconnectInterval);
 	},
 
 	new: function( ) {
@@ -266,7 +348,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 						// Look if the selected name is already used (and not the current one)
 						var fileExists = false;
-						if( name !== self.currentCodeFile.substr( 0, self.newFile.length - self.fileType.length - 1 )) {
+						if( name !== self.currentCodeFile.substr( 0, self.currentCodeFile.length - self.fileType.length - 1 )) {
 							for( var i = 0; i < self.allFilesList.length ; i++ ) {
 								if( self.allFilesList[i].name === name + "." + self.fileType ) {
 									fileExists = true;
@@ -298,12 +380,18 @@ window.ProjectControlBar = Backbone.Model.extend( {
 			 					Images : [ image ], 
 							}, function( message ) {
 								if( message.Error ) {
-
 									if( message.Error === "project exists" ) {
 										self.buttonGroup.showModalOk( window.CPG.ProjectBarModalProjectExists, window.CPG.ProjectBarModalProjectExists2, function() {
 											self.isSaving = false;
 											self.saveProject();
 										} );
+									} else if( message.Error === "no connection" ) {
+										console.error("WebSockets connection error:", message.Error);
+										self.isSaving = false;
+										self.buttonGroup.showSaving( false, true );
+										return
+									} else {
+										console.error("Unknown error after getStatus call.");
 									}
 								} else {
 									// Success: Project was created
@@ -386,7 +474,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 								}, function( message ) {
 									if( message.Error ) {
 										self.isSaving = false;
-
+										self.buttonGroup.showSaving( false, true );
 										console.log( "Error writing project: ", message.Error );
 
 									} else if( message.OutdatedTimeStamps.length > 0 ) {
@@ -436,6 +524,10 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		$WS.sendMessage( {
 			Command: "readPals",
 		}, function( message ) {
+			if( message.Error ) {
+				console.error("WebSockets connection error:", message.Error);
+				return
+			}
 			var users = self.codeFiles[ self.currentCodeFile ].users;
 
 			for( var i = 0 ; users && i < users.length ; i++ ) {
@@ -453,7 +545,10 @@ window.ProjectControlBar = Backbone.Model.extend( {
 						UserNames: userNames,
 						ProjectName: self.codeFiles[ self.currentCodeFile ].project,
 					}, function( message ) {
-						// Fehlerbehandlung hinzufügen
+						if( message.Error ) {
+							console.error("WebSockets connection error:", message.Error);
+							return
+						}
 					} );
 				}
 			});
@@ -470,6 +565,11 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				ProjectNames: projectNames,
 				FileType: self.fileType,
 			}, function( message ) {
+				if( message.Error ) {
+					console.error("WebSockets connection error:", message.Error);
+					return
+				}
+
 				for( var i=0 ; i<fileNames.length ; i++ ) {
 					var fileName = fileNames[ i ],
 						codeFile = message.CodeFiles[ fileName ];
@@ -537,7 +637,12 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 				var codeFile = self.codeFiles[ self.currentCodeFile ];
 
-				if( message.Error ) {
+				if( message.Error === "no connection" ) {
+					console.error("WebSockets connection error:", message.Error);
+					self.buttonGroup.showSaving( false );
+					if( cb ) cb( false );
+					return
+				} else if ( message.Error ) {
 					self.buttonGroup.showModalYesNo( window.CPG.ProjectBarModalFileExists, message.Error, false, function( res ) {
 						if( res === "yes" ) {
 							self.currentCodeFile = fileName;
@@ -674,12 +779,17 @@ window.ProjectControlBar = Backbone.Model.extend( {
 			Command: "readNewMessages",
 			MessageIds: messages,
 		}, function( message ) {
+			if( message.Error === "no connection" ) {
+				console.error("WebSockets connection error:", message.Error);
+				return
+			}
+
 			var m = message.Messages;
 			for( var i=0 ; i<m.length ; i++ ) {
 	            self.buttonGroup.addMessage( m[i] );
 			}
             self.messages = self.messages.concat( m );
-		});
+		}, true);
 
 		if( this.refreshMailsTimeout ) clearTimeout( this.refreshMailsTimeout );
 
@@ -713,7 +823,10 @@ window.ProjectControlBar = Backbone.Model.extend( {
 									Command: "cloneProject",
 									ProjectName: element.ProjectName,
 								}, function( message ) {
-									console.log( "SUCCESS! " + message );
+									if( message.Error === "no connection" ) {
+										console.error("WebSockets connection error:", message.Error);
+										return
+									}
 
 									// Look if a filename with the new project name already exists
 									var fileExists = false,
@@ -758,7 +871,10 @@ window.ProjectControlBar = Backbone.Model.extend( {
 			Command: "deleteMessage",
 			MessageId: id,
 		}, function( message ) {
-			// Maybe add error handling
+			if( message.Error === "no connection" ) {
+				console.error("WebSockets connection error:", message.Error);
+				return
+			}
 		} );		
 	},
 
@@ -972,6 +1088,27 @@ var ButtonGroup = Backbone.View.extend( {
 			"</div><!-- /.modal -->	"
 		);
 		this.inviteModal = $( "#project-bar-invite-modal" );
+
+		container.append(
+			"<div id='project-bar-waiting-modal' class='modal fade'>" +
+				"<div class='modal-dialog'>" +
+				"<div class='modal-content'>" +
+					"<div class='modal-header'>" +
+					"<button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times,</span></button>" +
+					"<h4 class='modal-title'>Title was not set.</h4>" +
+					"</div>" +
+					"<div class='modal-body'>" +
+						"<p>Body text was not set.</p>" +
+						"<span class='glyphicon glyphicon-cd'></span>" +
+					"</div>" +
+					"<div class='modal-footer'>" +
+					"<button type='button' class='modal-cancel btn btn-default pull-left' data-dismiss='modal'>" + window.CPG.ProjectBarModalCancel + "</button>" +
+					"</div>" +
+				"</div><!-- /.modal-content -->" +
+				"</div><!-- /.modal-dialog -->" +
+			"</div><!-- /.modal -->	"
+		);
+		this.waitingModal = $( "#project-bar-waiting-modal" );
 	},
 
 	/////////////////////////////////////////////
@@ -1275,7 +1412,7 @@ var ButtonGroup = Backbone.View.extend( {
 		$( ".modal-action", modal ).off( "click" ).on( "click", function( e ) {
 
 			var value = input.val(),
-				filteredValue = value.replace(/[^a-z0-9\ \.\,\!\+\-\(\)]/gi, "");
+				filteredValue = value.replace(/[^a-z0-9äöüß\ \.\,\!\+\-\(\)]/gi, "");
 
 			if( value === "" || value !== filteredValue ) {
 				input.val( filteredValue ).focus();
@@ -1309,6 +1446,62 @@ var ButtonGroup = Backbone.View.extend( {
 		modal.off( 'hidden.bs.modal' ).one( 'hidden.bs.modal', function( e ) {
 			if( cb ) cb( false );
 		} );
+	},
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+	// showModalWaiting displays a waiting dialog
+	showModalWaiting: function( title, body, cb ) {
+		var self = this,
+			modal = this.waitingModal;
+
+		$( ".modal-title", modal ).text( title );
+		$( ".modal-body p", modal ).text( body );
+		$( ".modal-cancel", modal ).off( "click" ).one( "click", function( e ) {
+			if( this.waitingModal.interval ) {
+				clearInterval( this.waitingModal.interval );
+				this.waitingModal.interval = null;
+			}
+
+			var lcb = cb;
+			cb = null;
+			modal.modal( 'hide' );
+			if( lcb ) lcb( false );
+		} );
+
+		modal.off( 'hidden.bs.modal' ).one( 'hidden.bs.modal', function( e ) {
+			if( self.waitingModal.interval ) {
+				clearInterval( self.waitingModal.interval );
+				self.waitingModal.interval = null;
+			}
+			if( cb ) cb( false );
+		} );
+
+		this.waitingModal.interval = setInterval( function() {
+			$( ".glyphicon-cd", modal ).css( {
+				textIndent: 0,
+				transform: "rotate(0deg)"
+			}).animate( {  textIndent: 1 }, {
+				step: function(now,fx) {
+					$(this).css('transform','rotate('+(now*720)+'deg)');
+				},
+				duration: 1200
+			}, 'linear' );
+		}, 1250);
+
+		modal.modal( "show" );
+	},
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+	// hideModalWaiting closes the current waiting dialog
+	hideModalWaiting: function( ) {
+		var modal = this.waitingModal;
+
+		if( this.waitingModal.interval ) {
+			clearInterval( this.waitingModal.interval );
+			this.waitingModal.interval = null;
+		}
+
+		modal.modal( "hide" );
 	},
 
 	showSaving: function( show, project ) {
