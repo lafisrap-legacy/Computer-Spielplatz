@@ -154,9 +154,38 @@ func (c *RootController) getWebSocketsToken() string {
 	}
 
 	c.SetSession("WebSocketsToken", token)
-	beego.Warning("New WebSocketsToken:", token)
 
 	return token
+}
+
+///////////////////////////////////////////////////////
+// setUserSessionData function
+func (c *RootController) setUserSessionData(userName string) string {
+	c.SetSession("UserName", userName)
+	c.SetSession("Rights", models.GetRightsFromDatabase(userName))
+	c.SetSession("Groups", models.GetGroupsFromDatabase(userName))
+	c.SetSession("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
+
+	token := c.getWebSocketsToken()
+	err := models.CreateSessionTokenDatabaseEntry(token, userName)
+	if err != nil {
+		beego.Error(err)
+	}
+
+	return token
+}
+
+///////////////////////////////////////////////////////
+// recoverUserSession function
+func (c *RootController) recoverUserSession(wstoken string) string {
+	userName := ""
+	var ok bool
+
+	if userName, ok = models.GetUserFromSessionToken(wstoken); ok {
+		c.setUserSessionData(userName)
+	}
+
+	return userName
 }
 
 ///////////////////////////////////////////////////////
@@ -170,7 +199,6 @@ func (c *RootController) Prepare() {
 // Get
 func (c *RootController) Get() {
 
-	//c.Data["Sid"] = s.SessionID()
 	c.Data["UserName"] = c.GetSession("UserName")
 	c.Data["LoginTime"] = c.GetSession("LoginTime")
 	c.TplName = "index.html"
@@ -225,6 +253,7 @@ func (c *LoginController) Get() {
 	T := models.T
 	token := c.getWebSocketsToken()
 
+	beego.Warning("Dest:", c.Ctx.Input.Param(":wstoken"))
 	c.Data["Destination"] = "/" + c.Ctx.Input.Param(":dest")
 	c.Data["LoginInvitation"] = T["login_invitation"]
 	c.Data["LoginInputName"] = T["login_input_name"]
@@ -251,23 +280,17 @@ func (c *LoginController) Post() {
 		dest = "/"
 	}
 	if err = c.ParseForm(&uf); err == nil {
+		beego.Warning("Login by", uf.Name, "with token", uf.Token, "and destination", dest)
 		if token != uf.Token {
-			err = errors.New("Token missmatch at Login. (Restart the browser ... and inform the Admin)")
+			err = errors.New("Token missmatch at Login. (Restart the browser ... and inform the Admin) Token1:" + token + "Token2:" + uf.Token)
 		} else if u, err = models.AuthenticateUser(&uf); err == nil {
 
-			c.SetSession("UserName", u.Name)
-			c.SetSession("Email", u.Email)
-			c.SetSession("Rights", models.GetRightsFromDatabase(u.Name))
-			c.SetSession("Groups", models.GetGroupsFromDatabase(u.Name))
-			c.SetSession("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
+			token = c.setUserSessionData(u.Name)
+
 			c.Ctx.Redirect(302, dest)
-
-			err := models.CreateSessionTokenDatabaseEntry(token, u.Name)
-			if err != nil {
-				beego.Error(err)
-			}
-
 			return
+		} else {
+			err = errors.New(T["login_password_incorrect"])
 		}
 	}
 
@@ -292,7 +315,7 @@ func (c *LogoutController) Get() {
 
 	c.DelSession("UserName")
 	c.DelSession("LoginTime")
-	c.DelSession("Email")
+	c.DestroySession()
 	c.Data["WebSocketsToken"] = token
 
 	c.Ctx.Redirect(302, "/")
@@ -345,11 +368,10 @@ func (c *SignupController) Post() {
 			err = errors.New("Token missmatch at Signup. (Restart the browser ... and inform the Admin)")
 		} else if uf.Pwd == uf.Pwd2 {
 			if u, group, err = models.CreateUserInDatabase(&uf); err == nil {
-				c.SetSession("UserName", u.Name)
-				c.SetSession("LoginTime", time.Now().UnixNano()/int64(time.Millisecond))
-				c.SetSession("Email", u.Email)
 
 				c.createUserDirectory(u, group)
+
+				token = c.setUserSessionData(u.Name)
 				c.Ctx.Redirect(302, dest)
 				return
 			} else {
@@ -424,14 +446,23 @@ func (c *LiveEditorController) Get() {
 	T := models.T
 	userName := ""
 	userNameForImages := "Admin"
+
 	var rights models.RightsMap
 
 	if c.GetSession("UserName") != nil {
 		userName = c.GetSession("UserName").(string)
+	}
+
+	// Session recovery
+	wsToken := c.GetString("wstoken")
+	if userName == "" && wsToken != "" {
+		userName = c.recoverUserSession(wsToken)
+	}
+
+	if userName != "" {
 		userNameForImages = userName
 
-		val := c.GetSession("Rights")
-		if val != nil {
+		if val := c.GetSession("Rights"); val != nil {
 			rights = *val.(*models.RightsMap)
 		}
 	}
@@ -484,6 +515,8 @@ func (c *LiveEditorController) Get() {
 		c.Data["ProjectBarModalOpen"] = T["project_bar_modal_open"]
 		c.Data["ProjectBarModalBadConnection"] = T["project_bar_modal_bad_connection"]
 		c.Data["ProjectBarModalBadConnection2"] = T["project_bar_modal_bad_connection_2"]
+		c.Data["ProjectBarModalNewSession"] = T["project_bar_modal_new_session"]
+		c.Data["ProjectBarModalNewSession2"] = T["project_bar_modal_new_session_2"]
 		c.Data["ProjectBarModalProjectInit2"] = T["project_bar_modal_project_init_2"]
 		c.Data["ProjectBarModalProjectInitOk"] = T["project_bar_modal_project_init_ok"]
 		c.Data["ProjectBarModalProjectInit"] = T["project_bar_modal_project_init"]
@@ -523,7 +556,6 @@ func (c *LiveEditorController) Get() {
 
 		c.Data["WebSocketsAddress"] = "ws://" + beego.AppConfig.String("httpaddr") + ":" + beego.AppConfig.String("websockets::port") + beego.AppConfig.String("websockets::dir")
 		c.Data["WebSocketsToken"] = c.GetSession("WebSocketsToken")
-		beego.Warning("WebSocketsToken", c.Data["WebSocketsToken"], "xsrfdata", c.Data["xsrfdata"])
 
 		setTitleData(c.Data)
 
@@ -646,15 +678,31 @@ func (c *GraphicsController) Get() {
 	T := models.T
 	userName := ""
 	userNameForImages := "Admin"
+	var rights models.RightsMap
 
 	if c.GetSession("UserName") != nil {
 		userName = c.GetSession("UserName").(string)
+	}
+
+	// Session recovery
+	wsToken := c.GetString("wstoken")
+	if userName == "" && wsToken != "" {
+		userName = c.recoverUserSession(wsToken)
+	}
+
+	if userName != "" {
 		userNameForImages = userName
+
+		if val := c.GetSession("Rights"); val != nil {
+			rights = *val.(*models.RightsMap)
+		}
 	}
 
 	c.Data["AllImages"] = c.getImageInfo(userNameForImages)
 	c.Data["OutputSounds"] = c.getSoundInfo(userNameForImages)
 	c.Data["UserNameForImages"] = userNameForImages
+	c.Data["RightInviteToGroups"] = rights["invitetogroups"]
+	c.Data["RightAddGroups"] = rights["addgroups"]
 
 	c.Data["UserName"] = userName
 	c.Data["LoginTime"] = c.GetSession("LoginTime")

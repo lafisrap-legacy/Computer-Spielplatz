@@ -58,9 +58,9 @@ $( window ).on( 'hashchange', function( e ){
 	// do something...
 } );
 
-setInterval( CPG_liveEditor.storeCurrentCodeFile, 30000 )
+setInterval( CPG_liveEditor.storeCurrentCodeFile, 5000 )
 
 // Addon for ACE editor for testing with casper.js
-var a = $( ".scratchpad-ace-editor textarea.ace_text-input" ).attr( "name", "text-input" );
+$( ".scratchpad-ace-editor textarea.ace_text-input" ).attr( "name", "text-input" );
 
 } );

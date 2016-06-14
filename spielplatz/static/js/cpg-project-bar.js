@@ -31,6 +31,8 @@ window.ProjectControlBar = Backbone.Model.extend( {
     STATUS_UNCOMMITTED: 1,
 
 	initialize: function( options ) {
+		var self = this;
+
 		options.projectBar = this;
 		this.buttonGroup = new ButtonGroup( options );
 		this.el = options.el;
@@ -71,8 +73,11 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 		//////////////////////////////////////////////////
 		// For testing
-		$("#project-button-textarea-for-testing").on("change", function(e) {
-			$(this).val("Hello!");
+		$("#project-button-textarea-for-testing").on("set-live-editor", function(e) {
+			self.editor.reset( $(this).val() );
+		});
+		$("#project-button-textarea-for-testing").on("get-live-editor", function(e) {
+			$(this).val( self.editor.text() );
 		});
 	},
 
@@ -180,26 +185,33 @@ window.ProjectControlBar = Backbone.Model.extend( {
 						FileType: self.fileType
 					}, function( message ) {
 						if( message.Error === "no connection" ) {
-							console.error("WebSockets connection error:", message.Error);
 							self.buttonGroup.hideModalWaiting();
+							console.error("WebSockets connection error:", message.Error);
 							self.reconnect( cb );
 							return
-						} else {
+						} else if( message.Error ) {
 							console.error("Unknown error after getStatus call.");
 						}
 
 						if( message.Status === "Ok" ) {
+							self.buttonGroup.hideModalWaiting();
 							cb( true );
-							for( var i = 0; i < self.reconnectCBs.length; i++ ) {
-								self.reconnectCBs[i]( true );
+							for( var i = 0; i < self.reconnectCbs.length; i++ ) {
+								self.reconnectCbs[i]( true );
 							}
-							self.reconnectCBs = [];
+							self.reconnectCbs = [];
 
-						} else if( message.Status === "No session" ) {
-							// Try to save current code file and filename (project?) in localStorage and reload session?
-							// After reload: Detect recovery version and fill it into the live editor
+						} else if( message.Status === "no session" ) {
+							self.codeFiles[ self.currentCodeFile ].code = self.editor.text();
+							sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
+							sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile;
+							self.editor.setClean();
 
-							// Server side: Detect token in database and auto login
+							setTimeout( function() {
+								self.buttonGroup.hideModalWaiting();
+								var href = window.location.href;
+								window.location.href = href.substr( 0, href.search( "\\?" ) ) + "?wstoken=" + self.wsToken;								
+							}, 5000);
 						} else {
 							console.error( "Illegal state after calling getStatus." );
 						}
@@ -277,6 +289,11 @@ window.ProjectControlBar = Backbone.Model.extend( {
 						} );
 					} else {
 						self.readSourceFiles( selFiles, selProjects );
+						$("#project-button-textarea-for-testing").trigger("get-live-editor");
+						setTimeout( function() {
+							console.log( "Textarea:", $("#project-button-textarea-for-testing").val() );
+
+						}, 100)
 					}
 					break;
 
@@ -754,7 +771,9 @@ window.ProjectControlBar = Backbone.Model.extend( {
 	refreshSession: function( loginTime ) {
 
 		// If User changed: clear everything from sessionStorage
-		if( sessionStorage.ĈPG_loginTime !== loginTime ) {
+		var recover = window.location.href.search("wstoken=") >= 0;
+
+		if( sessionStorage.ĈPG_loginTime !== loginTime && !recover ) {
 			var fileList = sessionStorage[ this.fileType + "CodeFileList" ] && JSON.parse( sessionStorage[ this.fileType + "CodeFileList" ] ) || [ ];
 			for( var i=0 ; i<fileList.length ; i++ ) sessionStorage.removeItem( fileList[ i ] );
 			sessionStorage.removeItem( this.fileType + "CodeFileList" );
@@ -1103,6 +1122,7 @@ var ButtonGroup = Backbone.View.extend( {
 					"</div>" +
 					"<div class='modal-footer'>" +
 					"<button type='button' class='modal-cancel btn btn-default pull-left' data-dismiss='modal'>" + window.CPG.ProjectBarModalCancel + "</button>" +
+					"<button type='button' class='modal-ok btn btn-primary pull-left' data-dismiss='modal'>" + window.CPG.ProjectBarModalCancel + "</button>" +
 					"</div>" +
 				"</div><!-- /.modal-content -->" +
 				"</div><!-- /.modal-dialog -->" +
@@ -1456,7 +1476,8 @@ var ButtonGroup = Backbone.View.extend( {
 
 		$( ".modal-title", modal ).text( title );
 		$( ".modal-body p", modal ).text( body );
-		$( ".modal-cancel", modal ).off( "click" ).one( "click", function( e ) {
+		$( ".modal-ok", modal ).hide();
+		$( ".modal-cancel", modal ).show().off( "click" ).one( "click", function( e ) {
 			if( this.waitingModal.interval ) {
 				clearInterval( this.waitingModal.interval );
 				this.waitingModal.interval = null;
@@ -1487,6 +1508,31 @@ var ButtonGroup = Backbone.View.extend( {
 				duration: 1200
 			}, 'linear' );
 		}, 1250);
+
+		modal.modal( "show" );
+	},
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+	// showModalWaiting displays a waiting dialog
+	showModalWaitingOk: function( title, body, cb ) {
+		var self = this,
+			modal = this.waitingModal;
+
+		$( ".modal-title", modal ).text( title );
+		$( ".modal-body p", modal ).text( body );
+		$( ".modal-cancel", modal ).hide();
+		$( ".glyphicon-cd", modal ).hide();
+		$( ".modal-ok", modal ).show().off( "click" ).one( "click", function( e ) {
+
+			var lcb = cb;
+			cb = null;
+			modal.modal( 'hide' );
+			if( lcb ) lcb( true );
+		} );
+
+		modal.off( 'hidden.bs.modal' ).one( 'hidden.bs.modal', function( e ) {
+			if( cb ) cb( false );
+		} );
 
 		modal.modal( "show" );
 	},

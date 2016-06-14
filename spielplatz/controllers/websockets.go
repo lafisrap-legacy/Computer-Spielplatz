@@ -161,7 +161,11 @@ func translateMessages(s socket) {
 		SessionXsrfTable.RLock()
 		if sx, ok = SessionXsrfTable.Tokens[message.Xsrf]; !ok {
 			SessionXsrfTable.RUnlock()
-			beego.Error("Invalid xsrf value:", message.Xsrf)
+			data := Data{
+				"Status": "no session",
+			}
+			data["Id"] = message.Id
+			encoder.Encode(&data)
 			s.done <- true
 			continue
 		}
@@ -370,15 +374,12 @@ func readSourceFiles(s session.Store, fileNames []string, fileProjects []string,
 			_, err := fetchProject(s, project)
 
 			if err != nil {
-				beego.Warning("Error message:", err.Error())
 				switch err.Error() {
 				case "uncommitted changes":
-					beego.Warning("Uncommitted changes detected!", err)
+					beego.Warning("Uncommitted changes detected with project", "for user", name)
 					status = STATUS_UNCOMMITTED
 				}
 			}
-
-			beego.Warning("Fetching result: ", err)
 		}
 
 		/////////////////////////////////////////
@@ -519,8 +520,6 @@ func deleteSourceFiles(s session.Store, fileNames []string, projectNames []strin
 		if err := os.Remove(fileName); err != nil {
 			beego.Error("Cannot remove file", fileName, "(", err.Error(), ")")
 		}
-
-		beego.Warning("Removing file", fileName)
 	}
 	return Data{}
 }
@@ -640,6 +639,7 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 
 	// Add all rights as return values
 	data["Rights"] = models.PRR_NAMES
+	data["Users"] = []string{userName}
 
 	// Create database entry
 	user, _ := models.GetUser(userName)
@@ -777,8 +777,6 @@ func fetchProject(s session.Store, projectName string) (Data, error) {
 
 	userDir := beego.AppConfig.String("userdata::location") + userName
 	projectDir := userDir + "/" + beego.AppConfig.String("userdata::projects") + "/" + projectName
-
-	beego.Warning("Doing git fetch with", projectDir)
 
 	// 1 Open repository
 	repo, err := git.OpenRepository(projectDir)
