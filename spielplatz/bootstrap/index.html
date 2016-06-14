@@ -35,7 +35,6 @@
             processing.mouseX = e.pageX - ($(window).width() - 1280)/2;
             processing.mouseY = e.pageY;
         }).on("mousemove touchmove", function(e) {
-            console.log(e.pageX, $(window).width());
             processing.mouseX = e.pageX - ($(window).width() - 1280)/2;
             processing.mouseY = e.pageY;
         });
@@ -98,6 +97,8 @@
 
 var img = getImage("Spielplatz/Alfred");
 
+var startTime = millis();
+
 var y = 0,
     dy = 5,
     angle = 0,
@@ -158,16 +159,16 @@ alfons.face = function(command) {
 
 alfons.leftPupil = {
     x1:  6,
-    x2:  4,
+    x2:  2,
     y1:  2.5,
-    y2:  3,
+    y2:  2,
 };
 
 alfons.rightPupil = {
     x1:  2.5,
-    x2:  5,
+    x2:  3,
     y1:  2.5,
-    y2:  2.5,
+    y2:  2,
 };
 
 alfons.eyeDim = function(lookAt, left) {
@@ -370,11 +371,19 @@ var draw = function() {
     translate(90, 180);
     rotate(angle);
     //scale(sc);
-    alfons(0,0,200,200, {
-        lookAt: { x: (mouseX-90)/3, y: (mouseY-180)/3 },
-        raiseEyeBrow: mouseIsPressed? true : false,
-        smile: (500-abs(constrain(mouseY,0,1000)-300))/50,
-    });
+    if( millis() - 3000 < startTime ) {
+        alfons(0,0,200,200, {
+            lookAt: { x: 0, y: 0 },
+            raiseEyeBrow: mouseIsPressed? true : false,
+            smile: (500-abs(constrain(mouseY,0,1000)-300))/50,
+        });        
+    } else {
+        alfons(0,0,200,200, {
+            lookAt: { x: (mouseX-90)/3, y: (mouseY-180)/3 },
+            raiseEyeBrow: mouseIsPressed? true : false,
+            smile: (500-abs(constrain(mouseY,0,1000)-300))/50,
+        });        
+    }
 
     //speechBubble("Hallo Welt! dies ist ein bisschen mehr Text, der in mehrere Zeilen gehen sollte. Noch mehr text!!!", 200, 100, 300, 280, 25, 190, 270, 232, 219, mouseIsPressed);
     if( sbShow || speechBubble.scaleX ) speechBubble(sbText, sbX, sbY, sbW, sbH, sbFS, sbX1, sbY1, sbX2, sbY2, sbShow);
