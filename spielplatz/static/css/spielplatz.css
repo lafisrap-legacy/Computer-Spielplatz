@@ -103,6 +103,17 @@ body {
   background-color: #fff;
 }
 
+#live-editor-throbber {
+  position: absolute;
+
+  box-sizing: border-box; /* So we don't have to think about border/padding */
+  width: 97px;
+    /* height: 160px; */ /* You don't have to set the height - but it won't be 100% centered vertically */
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -48px 0 0 -48px; /* 50px = half of height, 140px = half of width */
+}
 
 .form-login, .form-signup {
 	width: 480px;

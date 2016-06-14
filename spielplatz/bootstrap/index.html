@@ -13,28 +13,30 @@
 </head>
 <body>
 <div class="container" style="height: 1024px;">
-    <canvas id="canvas" style="position: absolute; top: 0px; left:0; z-index: 10; pointer-events:none;"></canvas>
+    <canvas id="canvas" style="position: absolute; box-sizing: border-box; width: 1280px; height: 400px; left: 50%; top: 0;
+    margin: 0px 0 0 -640px; z-index: 10; pointer-events:none;"></canvas>
   <script>
-    //refreshSession("{{ .LoginTime }}");
     
     var canvas = document.getElementById("canvas");
     var processing = new Processing(canvas, function(processing) {
-        processing.size(1140, 800);
+        processing.size(1280, 400);
         processing.background(0,0,0,0);
         processing.sbShow = false;
+
 
         var mouseIsPressed = false;
         $(".container").on("mousedown touchstart", function(e) {
             mouseIsPressed = true;
-            processing.mouseX = e.pageX;
+            processing.mouseX = e.pageX - ($(window).width() - 1280)/2;
             processing.mouseY = e.pageY;
             processing.sbShow = false;
         }).on("mouseup touchend", function(e) {
             mouseIsPressed = false;
-            processing.mouseX = e.pageX;
+            processing.mouseX = e.pageX - ($(window).width() - 1280)/2;
             processing.mouseY = e.pageY;
         }).on("mousemove touchmove", function(e) {
-            processing.mouseX = e.pageX;
+            console.log(e.pageX, $(window).width());
+            processing.mouseX = e.pageX - ($(window).width() - 1280)/2;
             processing.mouseY = e.pageY;
         });
         processing.mousePressed = function () { mouseIsPressed = true; };
@@ -49,7 +51,7 @@
         processing.keyReleased = function () { keyIsPressed = false; };
 
         function getSound(s) {
-            var url = "http://c2064.org/schm9/sounds/" + s + ".mp3";
+            var url = "static/userdata/Admin/images/" + s + ".mp3";
             return new Audio(url);
         }
 
@@ -66,7 +68,7 @@
         }
 
         function getImage(s) {
-            var url = "http://c2064.org/schm9/bilder/" + s + ".png";
+            var url = "static/userdata/Admin/images/" + s + ".png";
             //processing.externals.sketch.imageCache.add(url);
             return processing.loadImage(url);
         }
@@ -93,19 +95,22 @@
         }
         
         with (processing) {
+
+var img = getImage("Spielplatz/Alfred");
+
 var y = 0,
     dy = 5,
     angle = 0,
     sc = 0,
     dsc = 0.01;
 
+imageMode(CENTER);
 rectMode(CENTER);
 textMode(CENTER);
 textAlign(CENTER, BOTTOM);
 frameRate(20);
 
-////////////////////////////////////////////////////////
-// ALFONS
+
 var alfons = function(x, y, width, height, command) {
     var self = alfons;
     
@@ -122,21 +127,23 @@ var alfons = function(x, y, width, height, command) {
     resetMatrix();
 };
 
-///////////////////////////
-// Alfons Gesicht
+
 alfons.face = function(command) {
     var self = alfons;
 
+    pushMatrix();
+    scale(0.5);
+    fill(212, 247, 227);
+    beginShape();
+    vertex(-10, 94);
+    bezierVertex(-70, 87,-81,-120,2,-123);
+    bezierVertex(124,-120,39,110,-10,94);
+    endShape();
+    image( img, 0, 0 );
+    popMatrix();
+
     stroke(100);
     strokeWeight(1);
-    fill(230, 247, 250);
-    beginShape();
-    vertex(0, 49.75);
-    bezierVertex(-20.66,51,-29.33,24,-26.99,-1.67);
-    bezierVertex(-24,-24,-23.66,-40.67,5.34,-49);
-    bezierVertex(31.34,-49.67,37.67,-35.67,32,6.67);
-    bezierVertex(29.34,36.67,15.01,52,-1.66,50.08);
-    endShape();
     translate(0,0);
     self.leftEye(command.lookAt, command.smile);
     translate(0,0);
@@ -146,19 +153,9 @@ alfons.face = function(command) {
     translate(0,0);
     self.rightBrow(command.raiseEyeBrow);
     translate(0,0);
-    self.nose();
-    translate(0,0);
     self.mouth(command.smile);
-    translate(0,0);
-    self.leftEar();
-    translate(0,0);
-    self.rightEar();
-    translate(0,0);
-    self.hair();
 };
 
-///////////////////////////
-// Alfons Augen
 alfons.leftPupil = {
     x1:  6,
     x2:  4,
@@ -173,33 +170,15 @@ alfons.rightPupil = {
     y2:  2.5,
 };
 
-alfons.leftEyeBall = function() {
-    beginShape();
-    vertex(-1.9, -4.51);
-    bezierVertex(-8.98,-4.51,-17.05,-4.23,-17.76,-9.19);
-    bezierVertex(-18.6,-10.46,-15.92,-13.72,-12,-14);
-    bezierVertex(-9,-16.33,-3.18,-16.12,1.21,-14.7);
-    bezierVertex(3.48,-10.74,1.92,-6.21,-1.9,-4.51);
-    endShape();
-};
-
-alfons.rightEyeBall = function() {
-    beginShape();
-    vertex(12.15, -2.7);
-    bezierVertex(18.5,-2.48,21.59,-4.71,25.57,-7.38);
-    bezierVertex(27.97,-9.32,24.37,-11.31,20.9,-11.75);
-    bezierVertex(15.9,-13.49,12.32,-12.45,8.37,-11.93);
-    bezierVertex(7.04,-8.79,8.2,-4.71,12.15,-2.7);
-    endShape();
-};
-
 alfons.eyeDim = function(lookAt, left) {
 
     var x = lookAt? constrain(lookAt.x,-100,100) : 0,
         y = lookAt? constrain(lookAt.y,-100,100) : 0,
         p = left? alfons.leftPupil : alfons.rightPupil;
 
-    if( abs(x) < 20 ) x = left? x += 80 - abs(x) * 4 : x -= 80 - abs(x) * 4;
+    if( abs(x) < 20 ) {
+        x = left? x += 80 - abs(x) * 4 : x -= 80 - abs(x) * 4;
+    }
 
     x = x/100 * p[x<0?"x1":"x2"];
     y = y/100 * p[y<0?"y1":"y2"];
@@ -217,18 +196,10 @@ alfons.leftEye = function(lookAt, smile) {
 
     noStroke();
 
-    fill(255);
-    alfons.leftEyeBall();
-
     fill(115, 130, 230);
-    ellipse(-6+sin(dim.angle)*dim.radius,-10+cos(dim.angle)*dim.radius,7+w,5+w);
+    ellipse(-12+sin(dim.angle)*dim.radius,-18+cos(dim.angle)*dim.radius,5+w,4+w);
     fill(0);
-    ellipse(-6+sin(dim.angle)*dim.radius,-10+cos(dim.angle)*dim.radius,4+w,3+w);
-    
-    stroke(100);
-    strokeWeight(1);
-    noFill();
-    alfons.leftEyeBall();
+    ellipse(-12+sin(dim.angle)*dim.radius,-18+cos(dim.angle)*dim.radius,3+w,2+w);
 };
 
 alfons.rightEye = function(lookAt, smile) {
@@ -236,19 +207,10 @@ alfons.rightEye = function(lookAt, smile) {
     var dim = alfons.eyeDim(lookAt, false),
         w = smile? smile/9 : 0;
 
-    noStroke();
-    fill(255);
-    alfons.rightEyeBall();
-
     fill(115, 130, 230);
-    ellipse(14+sin(dim.angle)*dim.radius,-8+cos(dim.angle)*dim.radius,7+w,5+w);
+    ellipse(12+sin(dim.angle)*dim.radius,-17+cos(dim.angle)*dim.radius,5+w,4+w);
     fill(0);
-    ellipse(14+sin(dim.angle)*dim.radius,-8+cos(dim.angle)*dim.radius,4+w,3+w);
-
-    noFill();
-    stroke(100);
-    strokeWeight(1);
-    alfons.rightEyeBall();
+    ellipse(12+sin(dim.angle)*dim.radius,-17+cos(dim.angle)*dim.radius,3+w,2+w);
 };
 
 alfons.browMax = 5;
@@ -263,9 +225,9 @@ alfons.leftBrow = function(raise) {
     }
     
     stroke(50);
-    strokeWeight(1.5);
+    strokeWeight(2.2);
     noFill();
-    bezier(-19,-16,-10,-23-alfons.browY,-9,-22,-1,-21);
+    bezier(-21,-26,-14,-30-alfons.browY,-13,-30,-4,-29);
 };
 
 alfons.rightBrow = function(raise) {
@@ -276,24 +238,17 @@ alfons.rightBrow = function(raise) {
     }
     
     stroke(50);
-    strokeWeight(1.5);
+    strokeWeight(2.0);
     noFill();
-    bezier(8,-17,16,-24-alfons.browY,17,-23,25,-23);
-};
-
-alfons.nose = function() {
-    stroke(50);
-    strokeWeight(1.5);
-    noFill();
-    bezier(-2,11,-9,26,-3,23,4,21);
+    bezier(7,-26,14,-28-alfons.browY,17,-28,23,-26);
 };
 
 alfons.mouth = function(smile) {
     smile = constrain(smile || 0, 0, 10);
     stroke(50);
-    strokeWeight(1.6);
+    strokeWeight(2.1);
     noFill();
-    bezier(-8,35,1,33+smile,4,37,5,37);
+    bezier(-11,30,-2,28+smile,2,32,3,32);
 };
 
 alfons.leftEar = function() {
@@ -325,6 +280,7 @@ alfons.hair = function() {
     bezier(1,-43,-30,-63,33,-25,16,-48);
     bezier(20,-43,-30,-63,33,-33,28,-41);
 };
+
 
 
 
@@ -419,7 +375,6 @@ var draw = function() {
         raiseEyeBrow: mouseIsPressed? true : false,
         smile: (500-abs(constrain(mouseY,0,1000)-300))/50,
     });
-    console.log(mouseX+", "+mouseY);
 
     //speechBubble("Hallo Welt! dies ist ein bisschen mehr Text, der in mehrere Zeilen gehen sollte. Noch mehr text!!!", 200, 100, 300, 280, 25, 190, 270, 232, 219, mouseIsPressed);
     if( sbShow || speechBubble.scaleX ) speechBubble(sbText, sbX, sbY, sbW, sbH, sbFS, sbX1, sbY1, sbX2, sbY2, sbShow);

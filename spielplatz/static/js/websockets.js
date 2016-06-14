@@ -153,4 +153,4 @@ $WS = {
     isConnected: function() {
         return this._connected;
     },
-}
+};

@@ -34,7 +34,9 @@
 <script src="static/js/websockets.js"></script>
 </head>
 <body>
-<div class="container">
+
+<div class="container .container-table">
+	<div id="live-editor-throbber"><img src="static/img/live-editor-throbber-full.gif" /></div>
 	<div id="control-bar-sound-modal" class="modal fade">
 		<div class="modal-dialog">
 		<div class="modal-content">
@@ -51,8 +53,6 @@
 		</div><!-- /.modal-content -->
 		</div><!-- /.modal-dialog -->
 	</div><!-- /.modal -->	
-
-
 	<div class="login-area">
 		{{if not .UserName }}
 			<a href="/login/live-editor" class="btn btn-info btn-sm pull-right">{{ .LoginLogin }} <span class="glyphicon glyphicon-share-alt"></span></a>
