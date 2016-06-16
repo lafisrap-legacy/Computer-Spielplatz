@@ -1,514 +1,477 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
+
 <head>
-<title>{{ .Title }}</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="static/css/bootstrap.min.css">
-<link rel="stylesheet" href="static/css/bootstrap-theme.min.css">
-<link rel="stylesheet" href="static/css/spielplatz.css">
-<script src="static/js/jquery-2.1.4.min.js"></script>
-<script src="static/js/bootstrap.min.js"></script>
-<script src="static/js/processing.js"></script>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>{{ .Title }}</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="static/themes/startbootstrap-creative-1.0.4/css/bootstrap.min.css" type="text/css">
+
+    <!-- Custom Fonts -->
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Merriweather:400,300,300italic,400italic,700,700italic,900,900italic' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="static/themes/startbootstrap-creative-1.0.4/font-awesome/css/font-awesome.min.css" type="text/css">
+
+    <!-- Plugin CSS -->
+    <link rel="stylesheet" href="static/themes/startbootstrap-creative-1.0.4/css/magnific-popup.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="static/themes/startbootstrap-creative-1.0.4/css/creative.css" type="text/css">
+
+    <!-- Spielplatz CSS -->
+    <link rel="stylesheet" href="static/css/spielplatz.css">
+
+
 </head>
-<body>
-<div class="container" style="height: 1024px;">
-    <canvas id="canvas" style="position: absolute; box-sizing: border-box; width: 1280px; height: 400px; left: 50%; top: 0;
-    margin: 0px 0 0 -640px; z-index: 10; pointer-events:none;"></canvas>
-  <script>
-    
-    var canvas = document.getElementById("canvas");
-    var processing = new Processing(canvas, function(processing) {
-        processing.size(1280, 400);
-        processing.background(0,0,0,0);
-        processing.sbShow = false;
-
-
-        var mouseIsPressed = false;
-        $(".container").on("mousedown touchstart", function(e) {
-            mouseIsPressed = true;
-            processing.mouseX = e.pageX - ($(window).width() - 1280)/2;
-            processing.mouseY = e.pageY;
-            processing.sbShow = false;
-        }).on("mouseup touchend", function(e) {
-            mouseIsPressed = false;
-            processing.mouseX = e.pageX - ($(window).width() - 1280)/2;
-            processing.mouseY = e.pageY;
-        }).on("mousemove touchmove", function(e) {
-            processing.mouseX = e.pageX - ($(window).width() - 1280)/2;
-            processing.mouseY = e.pageY;
-        });
-        processing.mousePressed = function () { mouseIsPressed = true; };
-        processing.mouseReleased = function () { mouseIsPressed = false; };
-
-        var keyIsPressed = false;
-        processing.keyPressed = function () { keyIsPressed = true; };
-        processing.keyReleased = function () { keyIsPressed = false; };
-
-        var keyIsPressed = false;
-        processing.keyPressed = function () { keyIsPressed = true; };
-        processing.keyReleased = function () { keyIsPressed = false; };
-
-        function getSound(s) {
-            var url = "static/userdata/Admin/images/" + s + ".mp3";
-            return new Audio(url);
-        }
-
-        function playSound(s) {
-            s.play();
-        }
-
-        function stopSound(s) {
-            s.pause();
-            sound.currentTime = 0;
-        }
-
-        function debug() {
-        }
-
-        function getImage(s) {
-            var url = "static/userdata/Admin/images/" + s + ".png";
-            //processing.externals.sketch.imageCache.add(url);
-            return processing.loadImage(url);
-        }
-
-        var rotateFn = processing.rotate;
-        processing.rotate = function(angle) {
-            rotateFn(processing.radians(angle));
-        }
-        var cosFn = processing.cos;
-        processing.cos = function(angle) {
-            return cosFn(processing.radians(angle));
-        }
-        var sinFn = processing.sin;
-        processing.sin = function(angle) {
-            return sinFn(processing.radians(angle));
-        }
-        var atan2Fn = processing.atan2;
-        processing.atan2 = function(y, x) {
-            return processing.degrees(atan2Fn(y,x));
-        }
-        var arcFn = processing.arc;
-        processing.arc = function(x,y,w,h,a1,a2) {
-            return arcFn(x,y,w,h,processing.radians(a1), processing.radians(a2));
-        }
-        
-        with (processing) {
-
-var img = getImage("Spielplatz/Alfred");
-
-var startTime = millis();
-
-var y = 0,
-    dy = 5,
-    angle = 0,
-    sc = 0,
-    dsc = 0.01;
-
-imageMode(CENTER);
-rectMode(CENTER);
-textMode(CENTER);
-textAlign(CENTER, BOTTOM);
-frameRate(20);
-
-
-var alfons = function(x, y, width, height, command) {
-    var self = alfons;
-    
-    translate(x,y);
-    scale(width/100, height/100);
-    rotate(angle);
-    if( !command ) {
-        self.face();
-    } else {
-        switch( command ) {
-        default: self.face(command);
-        }
-    }
-    resetMatrix();
-};
-
-
-alfons.face = function(command) {
-    var self = alfons;
-
-    pushMatrix();
-    scale(0.5);
-    fill(212, 247, 227);
-    beginShape();
-    vertex(-10, 94);
-    bezierVertex(-70, 87,-81,-120,2,-123);
-    bezierVertex(124,-120,39,110,-10,94);
-    endShape();
-    image( img, 0, 0 );
-    popMatrix();
-
-    stroke(100);
-    strokeWeight(1);
-    translate(0,0);
-    self.leftEye(command.lookAt, command.smile);
-    translate(0,0);
-    self.rightEye(command.lookAt, command.smile);
-    translate(0,0);
-    self.leftBrow(command.raiseEyeBrow);
-    translate(0,0);
-    self.rightBrow(command.raiseEyeBrow);
-    translate(0,0);
-    self.mouth(command.smile);
-};
-
-alfons.leftPupil = {
-    x1:  6,
-    x2:  2,
-    y1:  2.5,
-    y2:  2,
-};
-
-alfons.rightPupil = {
-    x1:  2.5,
-    x2:  3,
-    y1:  2.5,
-    y2:  2,
-};
-
-alfons.eyeDim = function(lookAt, left) {
-
-    var x = lookAt? constrain(lookAt.x,-100,100) : 0,
-        y = lookAt? constrain(lookAt.y,-100,100) : 0,
-        p = left? alfons.leftPupil : alfons.rightPupil;
-
-    if( abs(x) < 20 ) {
-        x = left? x += 80 - abs(x) * 4 : x -= 80 - abs(x) * 4;
-    }
-
-    x = x/100 * p[x<0?"x1":"x2"];
-    y = y/100 * p[y<0?"y1":"y2"];
-  
-    return {
-        angle: atan2(x,y),
-        radius: sqrt(x*x+y*y),
-    };
-};
-
-alfons.leftEye = function(lookAt, smile) {
-
-    var dim = alfons.eyeDim(lookAt, true),
-        w = smile? smile/9 : 0;
-
-    noStroke();
-
-    fill(115, 130, 230);
-    ellipse(-12+sin(dim.angle)*dim.radius,-18+cos(dim.angle)*dim.radius,5+w,4+w);
-    fill(0);
-    ellipse(-12+sin(dim.angle)*dim.radius,-18+cos(dim.angle)*dim.radius,3+w,2+w);
-};
-
-alfons.rightEye = function(lookAt, smile) {
-
-    var dim = alfons.eyeDim(lookAt, false),
-        w = smile? smile/9 : 0;
-
-    fill(115, 130, 230);
-    ellipse(12+sin(dim.angle)*dim.radius,-17+cos(dim.angle)*dim.radius,5+w,4+w);
-    fill(0);
-    ellipse(12+sin(dim.angle)*dim.radius,-17+cos(dim.angle)*dim.radius,3+w,2+w);
-};
-
-alfons.browMax = 5;
-alfons.browY = 0;
-alfons.browSpeed = 0.3;
-alfons.leftBrow = function(raise) {
-    
-    if( raise ) {
-        alfons.browY = min(alfons.browMax, alfons.browY + alfons.browSpeed);
-    } else {
-        alfons.browY = max(0, alfons.browY - alfons.browSpeed);
-    }
-    
-    stroke(50);
-    strokeWeight(2.2);
-    noFill();
-    bezier(-21,-26,-14,-30-alfons.browY,-13,-30,-4,-29);
-};
-
-alfons.rightBrow = function(raise) {
-    if( raise ) {
-        alfons.browY = min(alfons.browMax, alfons.browY + alfons.browSpeed);
-    } else {
-        alfons.browY = max(0, alfons.browY - alfons.browSpeed);
-    }
-    
-    stroke(50);
-    strokeWeight(2.0);
-    noFill();
-    bezier(7,-26,14,-28-alfons.browY,17,-28,23,-26);
-};
-
-alfons.mouth = function(smile) {
-    smile = constrain(smile || 0, 0, 10);
-    stroke(50);
-    strokeWeight(2.1);
-    noFill();
-    bezier(-11,30,-2,28+smile,2,32,3,32);
-};
-
-alfons.leftEar = function() {
-    stroke(50);
-    fill(230, 247, 250);
-    strokeWeight(1);
-    bezier(-26.5,0,-32,29,-40,-21,-26,-16);
-};
-
-alfons.rightEar = function() {
-    stroke(50);
-    fill(230, 247, 250);
-    strokeWeight(1);
-    bezier(33,0,41,18,42,-25,34,-16);
-};
-
-alfons.hair = function() {
-    stroke(50);
-    noFill();
-    strokeWeight(0.7);
-    bezier(33,-25,15,-70,42,-25,26,-37);
-    bezier(21,-41,15,-67,42,-25,9,-51);
-    bezier(-3,-42,-5,-70,35,-25,-3,-51);
-    bezier(-16,-33,-6,-67,15,-33,-23,-34);
-    bezier(-23,-19,-15,-65,14,-32,-20,-36);
-    bezier(-19,-25,-15,-65,0,-35,-8,-36);
-    bezier(-20,-23,-33,-17,-11,-60,-8,-39);
-    bezier(-9,-34,-30,-63,33,-25,1,-52);
-    bezier(1,-43,-30,-63,33,-25,16,-48);
-    bezier(20,-43,-30,-63,33,-33,28,-41);
-};
-
-
-
-
-////////////////////////////////////////////////////
-// SPEECH BUBBLE
-var speechBubble = function(message, x, y, width, height, tSize, bx1, by1, bx2, by2, show) {
-
-    translate(x,y);
-    strokeWeight(1.3);
-    
-    var sx = speechBubble.scaleX,
-        sy = speechBubble.scaleY;
-    if( !show ) {
-        speechBubble.scaleX = max(sx - speechBubble.hideSpeed, 0); 
-        speechBubble.scaleY = max(sy - speechBubble.hideSpeed*height/width, 0);
-    } else {
-        speechBubble.scaleX = min(sx + speechBubble.showSpeed, width/100); 
-        speechBubble.scaleY = min(sy + speechBubble.showSpeed*height/width, height/100); 
-    }
-    scale(speechBubble.scaleX, speechBubble.scaleY);
-    fill(255);
-    beginShape();
-    vertex(-36.67, 24.67);
-    bezierVertex(-56,18,-59.15,11.47,-50.33,-9);
-    bezierVertex(-51,-28.33,-41.33,-30.33,-25.35,-34.7);
-    bezierVertex(-15.39,-42.55,0.6,-41.64,16.3,-35.61);
-    bezierVertex(32.89,-36.21,43.76,-31.69,45.26,-22.93);
-    bezierVertex(57.33,-15.99,56.43,-5.13,50.67,5);
-    bezierVertex(50.39,28.06,41.04,27.76,35,29.33);
-    bezierVertex(29.33,36.67,21,37.33,11,32.67);
-    bezierVertex(-10.33,42,-20,36.33,-36.67,24.67);
-    endShape();
-    resetMatrix();
-
-    strokeWeight(1.0);
-    translate(bx2, by2);
-    scale(speechBubble.scaleX, speechBubble.scaleY);
-    if( speechBubble.scaleX >= width/100 ) {
-        scale(0);
-    }
-    beginShape();
-    vertex(-3.33, 7.33);
-    bezierVertex(-12.33,13.67,-15.33,0.67,-8,-0.33);
-    bezierVertex(-8.66,-6.33,-2,-9,0,-1.67);
-    bezierVertex(10.95,-1.67,11.67,1,4.67,5.67);
-    bezierVertex(4.72,10.05,0.34,11.67,-3.33,7.33);
-    endShape();
-    resetMatrix();
-    
-    strokeWeight(1.0);
-    translate(bx1, by1);
-    scale(speechBubble.scaleX, speechBubble.scaleY);
-    if( speechBubble.scaleX >= width/100 ) {
-        scale(0);
-    }
-    beginShape();
-    vertex(-4, 4.2);
-    bezierVertex(-7.8,5.8,-12.4,-0.4,-5.53,-1.53);
-    bezierVertex(-7,-7,2.6,-6.6,0.13,-1.2);
-    bezierVertex(7,-3,4.4,1.8,1.8,4.13);
-    bezierVertex(3.6,7.8,-2.6,9.2,-4,4.2);
-    endShape();
-    resetMatrix();
-
-    fill(0, 0, 0);
-    textSize(tSize/width*100*speechBubble.scaleX);
-    var w = 90*speechBubble.scaleX,
-        h = 60*speechBubble.scaleY;
-    text(message, x-w/2, y-h/2, w, h);
-};
-
-speechBubble.showSpeed = 0.6;
-speechBubble.hideSpeed = 1.2;
-speechBubble.scaleX = 0;
-speechBubble.scaleY = 0;
-
-
-////////////////////////////////////////////////////////
-// Website specific
-sbText = "";
-sbX = sbY = sbW = sbH = sbFS = sbX1 = sbY1 = sbX2 = sbY2 = 0;
-
-var angle = -5;
-var draw = function() {
-    background(255,255,255,0);
-    
-    translate(90, 180);
-    rotate(angle);
-    //scale(sc);
-    if( millis() - 3000 < startTime ) {
-        alfons(0,0,200,200, {
-            lookAt: { x: 0, y: 0 },
-            raiseEyeBrow: mouseIsPressed? true : false,
-            smile: (500-abs(constrain(mouseY,0,1000)-300))/50,
-        });        
-    } else {
-        alfons(0,0,200,200, {
-            lookAt: { x: (mouseX-90)/3, y: (mouseY-180)/3 },
-            raiseEyeBrow: mouseIsPressed? true : false,
-            smile: (500-abs(constrain(mouseY,0,1000)-300))/50,
-        });        
-    }
-
-    //speechBubble("Hallo Welt! dies ist ein bisschen mehr Text, der in mehrere Zeilen gehen sollte. Noch mehr text!!!", 200, 100, 300, 280, 25, 190, 270, 232, 219, mouseIsPressed);
-    if( sbShow || speechBubble.scaleX ) speechBubble(sbText, sbX, sbY, sbW, sbH, sbFS, sbX1, sbY1, sbX2, sbY2, sbShow);
-
-    angle+=0.0;
-    sc+=dsc;
-    if( sc > 3 || sc <= 0 ) {
-        dsc = -dsc;
-    }
-};
-
-        };
-        if (typeof draw !== 'undefined') processing.draw = draw;
-    });
-    
-    setTimeout(function() {
-        $(".btn-2").on("click", function(e) {
-            processing.sbText = "Demnächst hier ...";
-            processing.sbX = 600;
-            processing.sbY = 120;
-            processing.sbW = 450;
-            processing.sbH = 240;
-            processing.sbFS = 25;
-            processing.sbX1 = 210;
-            processing.sbY1 = 90;
-            processing.sbX2 = 320;
-            processing.sbY2 = 50;
-            processing.sbShow = true;
-
-            e.stopPropagation();
-            e.preventDefault();
-        });        
-
-        $(".btn-3").on("click", function(e) {
-            processing.sbText = "Das ist noch nicht fertig!";
-            processing.sbX = 650;
-            processing.sbY = 120;
-            processing.sbW = 450;
-            processing.sbH = 240;
-            processing.sbFS = 25;
-            processing.sbX1 = 230;
-            processing.sbY1 = 90;
-            processing.sbX2 = 360;
-            processing.sbY2 = 50;
-            processing.sbShow = true;
-
-            e.stopPropagation();
-            e.preventDefault();
-        });        
-
-        $(".btn-4").on("click", function(e) {
-            processing.sbText = "Ist noch in Arbeit.";
-            processing.sbX = 700;
-            processing.sbY = 120;
-            processing.sbW = 450;
-            processing.sbH = 240;
-            processing.sbFS = 25;
-            processing.sbX1 = 250;
-            processing.sbY1 = 90;
-            processing.sbX2 = 400;
-            processing.sbY2 = 50;
-            processing.sbShow = true;
-
-            e.stopPropagation();
-            e.preventDefault();
-        });        
-
-        $(".btn-5").on("click", function(e) {
-            processing.sbText = "Kommt bald.";
-            processing.sbX = 750;
-            processing.sbY = 120;
-            processing.sbW = 450;
-            processing.sbH = 240;
-            processing.sbFS = 25;
-            processing.sbX1 = 270;
-            processing.sbY1 = 90;
-            processing.sbX2 = 440;
-            processing.sbY2 = 50;
-            processing.sbShow = true;
-
-            e.stopPropagation();
-            e.preventDefault();
-        });        
-
-        $(".btn-6").on("click", function(e) {
-            processing.sbText = "...";
-            processing.sbX = 800;
-            processing.sbY = 120;
-            processing.sbW = 450;
-            processing.sbH = 240;
-            processing.sbFS = 25;
-            processing.sbX1 = 300;
-            processing.sbY1 = 90;
-            processing.sbX2 = 480;
-            processing.sbY2 = 50;
-            processing.sbShow = true;
-
-            e.stopPropagation();
-            e.preventDefault();
-        });        
-    },1)
-
-    </script>
-    <div class="login-area">
-        {{if not .UserName }}
-            <a href="/login/" class="btn btn-info btn-sm pull-right">{{ .LoginLogin }} <span class="glyphicon glyphicon-share-alt"></span></a>
-            <a href="/signup/" class="btn btn-info btn-sm pull-right">{{ .LoginSignup }} <span class="glyphicon glyphicon-book"></span></a>
-        {{else}}
-            <a href="/logout" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>        
-        {{end}}
-    </div>
-    <div class="jumbotron">
-        <h1>{{ .Title }}</h1> 
-        <p class="text-center">{{ .Subtitle }}</p> 
-        <a href="#" class="btn btn-info btn-lg pull-right">Suche <span class="glyphicon glyphicon-search"></span></a>
-    </div>
-    <ul class="nav nav-tabs kuenste">
-        {{range $i, $art := .Arts}}
-            <li><a href="{{$art.Page}}" class="btn btn-default btn-{{$art.Size}} btn-{{ $i }}">{{$art.Name}}</a></li>
-        {{end}}                       
-    </ul>
-    {{if .UserId }}
-        <a href="#" class="btn btn-info btn-lg pull-right">Gruppen <span class="glyphicon glyphicon-search"></span></a>
-    {{end}}
-
-</div>
+
+<body id="page-top">
+
+    <nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand page-scroll" href="#page-top" style="font-size: 3em;">&#x2302;</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a class="page-scroll" href="#about">Was ist das?</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#spielplatz">Zum Spielplatz</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#galerie">Galerie</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#services">Angebot</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#contact">Kontakt</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container-fluid -->
+    </nav>
+
+    <header>
+        <canvas id="canvas" style="position: absolute; box-sizing: border-box; width: 1280px; height: 600px; left: 50%; top: 50%;
+    margin: -300px 0 0 -640px; z-index: 10; pointer-events:none;"></canvas>
+
+        <div class="header-content">
+            <div class="header-content-inner">
+                <h1>{{ .Title }}</h1>
+                <hr>
+                <p>Lesen und Schreiben lernen im 21. Jahrundert.</p>
+                <a href="#about" class="btn btn-primary btn-xl page-scroll">Mehr erfahren ...</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="bg-primary" id="about">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 text-center">
+                    <h2 class="section-heading">Was ist ein Computer-Spielplatz?</h2>
+                    <hr class="light">
+                    <p class="text-faded">Ein Computer-Spielplatz ist eine Live-Coding Entwicklungsumgebung, mit der kleine Teams gemeinsam Spiele und Lernprogramme entwicklen können. In einem Team macht zum Beispiel ein Schüler den Sound, eine Schülerin die Grafik und zwei weitere programmieren, andere testen oder spielen, und alle sehen unmittelbar, was entsteht.</p>
+
+                    <p class="text-faded">Ziel eines Computer-Spielplatzes ist es einen spielerischen, humorvollen Lernprozess zu starten, getrieben vom Interesse der Schüler und Schülerinnen. Sie können Lernstoff in eigene Lernspiele umsetzen, mit eigenen Fotos, Zeichnungen, Texten und Sound füllen. So kann Schulstoff auf kreative Weise verarbeitet und dann auf Computern oder Smartphones „gespielt“ werden.</p>
+
+                    <p class="text-faded">Der Computer-Spielplatz ist Freie Software, das heißt, man kann ihn nicht nur frei kopieren, sondern auch in allen Einzelheiten nachschauen, wie er programmiert ist, Dinge hinzufügen, ändern, erweitern, sich ganz zu eigen machen (GitHub). Der Fantasie sind (fast) keine Grenzen gesetzt. Die Schüler können den Spielplatz mit der Zeit komplett zu ihrem eigenen machen.</p>
+                    <a href="#spielplatz" class="page-scroll btn btn-default btn-xl sr-button">Zum Spielplatz</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="spielplatz">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2 class="section-heading">Der Computer-Spielplatz</h2>
+                    <hr class="primary">
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 text-center">
+                    <a href="live-editor.html">
+                        <div class="service-box">
+                            <i class="fa fa-4x fa-edit text-primary sr-icons"></i>
+                            <h3>Programmieren</h3>
+                        </div>
+                    </a>
+                    <p class="text-muted">Künstlerisch programmieren, mit JavaScript/Processing und HTML 5.</p>
+                </div>
+                <div class="col-lg-3 col-md-6 text-center">
+                    <a href="graphics-animation.html">
+                        <div class="service-box">
+                            <i class="fa fa-4x fa-image text-primary sr-icons"></i>
+                            <h3>Grafik (& Animation)</h3>
+                        </div>
+                    </a>
+                    <p class="text-muted">Fotos, Zeichnungen importieren und für den Spielplatz zurecht machen.</p>
+                </div>
+                <div class="col-lg-3 col-md-6 text-center">
+                    <div class="service-box">
+                        <i class="fa fa-4x fa-headphones text-primary sr-icons"></i>
+                        <h3>Sound & Musik</h3>
+                    </div>
+                    <p class="text-muted">Noch in Vorbereitung ...</p>
+                </div>
+                <div class="col-lg-3 col-md-6 text-center">
+                    <div class="service-box">
+                        <i class="fa fa-4x fa-bar-chart text-primary sr-icons"></i>
+                        <h3>Texte & Daten</h3>
+                    </div>
+                    <p class="text-muted">Noch in Vorbereitung ...</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 col-md-6 text-center">
+                    <div class="service-box">
+                        <i class="fa fa-4x fa-paper-plane text-primary sr-icons"></i>
+                        <h3>Übungsraum</h3>
+                    </div>
+                    <p class="text-muted">Konzipiert ;-)</p>
+                </div>
+                <div class="col-lg-4 col-md-6 text-center">
+                    <div class="service-box">
+                        <i class="fa fa-4x fa-institution text-primary sr-icons"></i>
+                        <h3>Aufgaben</h3>
+                    </div>
+                    <p class="text-muted">Konzipiert.</p>
+                </div>
+                <div class="col-lg-4 col-md-12 text-center">
+                    <div class="service-box">
+                        <i class="fa fa-4x fa-heart text-primary sr-icons"></i>
+                        <h3>Lernspiele</h3>
+                    </div>
+                    <p class="text-muted">In Vorbereitung ...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <section class="bg-primary no-padding" id="galerie">
+        <div class="container-fluid">
+            <div class="row no-gutter popup-gallery">
+                <div class="col-lg-3 col-sm-4">
+                    <a href="static/img/pjs/13.png" target="_blank" class="portfolio-box">
+                        <div class="center-block" style="width: 222px">
+                            <img src="static/img/pjs/13.png" class="img-responsive" alt="cpg/alfred.html">
+                        </div>
+                        <div class="portfolio-box-caption">
+                            <div class="portfolio-box-caption-content">
+                                <div class="project-category text-faded">
+                                    Computer-Spielplatz
+                                </div>
+                                <div class="project-name">
+                                    Alfred
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-sm-4">
+                    <a href="#" class="portfolio-box">
+                        <div class="center-block" style="width: 222px">
+                            <img src="static/img/pjs/1.png" class="img-responsive center-block" alt="boswag2/pong.html">
+                        </div>
+                        <div class="portfolio-box-caption">
+                            <div class="portfolio-box-caption-content">
+                                <div class="project-category text-faded">
+                                    Computer-Spielplatz
+                                </div>
+                                <div class="project-name">
+                                    P.O.N.G.
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-sm-4">
+                    <a href="static/img/pjs/2.png" target="_blank" class="portfolio-box">
+                        <div class="center-block" style="width: 222px">
+                            <img src="static/img/pjs/2.png" class="img-responsive center-block" alt="schm9/michael/sprichwort.html">
+                        </div>
+                        <div class="portfolio-box-caption">
+                            <div class="portfolio-box-caption-content">
+                                <div class="project-category text-faded">
+                                    Computer-Spielplatz
+                                </div>
+                                <div class="project-name">
+                                    Wort.Spiel!
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-sm-4">
+                    <a href="static/img/pjs/3.png" target="_blank" class="portfolio-box">
+                        <div class="center-block" style="width: 222px">
+                            <img src="static/img/pjs/3.png" class="img-responsive center-block" alt="boswag2/schlangenspiel.html">
+                        </div>
+                        <div class="portfolio-box-caption">
+                            <div class="portfolio-box-caption-content">
+                                <div class="project-category text-faded">
+                                    9. Klasse
+                                </div>
+                                <div class="project-name">
+                                    Schlagenspiel
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="row no-gutter popup-gallery">
+                <div class="col-lg-3 col-sm-4">
+                    <a href="static/img/pjs/4.png" target="_blank" class="portfolio-box">
+                        <div class="center-block" style="width: 222px">
+                            <img src="static/img/pjs/4.png" class="img-responsive center-block" alt="maesch2/finasmaskottchen.html">
+                        </div>
+                        <div class="portfolio-box-caption">
+                            <div class="portfolio-box-caption-content">
+                                <div class="project-category text-faded">
+                                    9. Klasse
+                                </div>
+                                <div class="project-name">
+                                    Fina's Maskottchen
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-sm-4">
+                    <a href="static/img/pjs/5.png" target="_blank" class="portfolio-box">
+                        <div class="center-block" style="width: 222px">
+                            <img src="static/img/pjs/5.png" class="img-responsive center-block" alt="schm9/michael/ludmilla.html">
+                        </div>
+                        <div class="portfolio-box-caption">
+                            <div class="portfolio-box-caption-content">
+                                <div class="project-category text-faded">
+                                    Computer-Spielplatz
+                                </div>
+                                <div class="project-name">
+                                    Ludmilla
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-sm-4">
+                    <a href="static/img/pjs/6.png" target="_blank" class="portfolio-box">
+                        <div class="center-block" style="width: 222px">
+                            <img src="static/img/pjs/6.png" class="img-responsive center-block" alt="schm9/planetart.html">
+                        </div>
+                        <div class="portfolio-box-caption">
+                            <div class="portfolio-box-caption-content">
+                                <div class="project-category text-faded">
+                                    9. Klasse
+                                </div>
+                                <div class="project-name">
+                                    Planet-Art
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-sm-4">
+                    <a href="static/img/pjs/7.png" target="_blank" class="portfolio-box">
+                        <div class="center-block" style="width: 222px">
+                            <img src="static/img/pjs/7.png" class="img-responsive center-block" alt="boswag2/ka.html">
+                        </div>
+                        <div class="portfolio-box-caption">
+                            <div class="portfolio-box-caption-content">
+                                <div class="project-category text-faded">
+                                    9. Klasse
+                                </div>
+                                <div class="project-name">
+                                    KA
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="row no-gutter popup-gallery">
+                <div class="col-lg-3 col-sm-4">
+                    <a href="static/img/pjs/8.png" target="_blank" class="portfolio-box">
+                        <div class="center-block" style="width: 222px">
+                            <img src="static/img/pjs/8.png" class="img-responsive center-block" alt="schm9/planetensystem2.html">
+                        </div>
+                        <div class="portfolio-box-caption">
+                            <div class="portfolio-box-caption-content">
+                                <div class="project-category text-faded">
+                                    9. Klasse
+                                </div>
+                                <div class="project-name">
+                                    Planetensystem
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-sm-4">
+                    <a href="static/img/pjs/9.png" target="_blank" class="portfolio-box">
+                        <div class="center-block" style="width: 222px">
+                            <img src="static/img/pjs/9.png" class="img-responsive center-block" alt="schm9/planetensystem3.html">
+                        </div>
+                        <div class="portfolio-box-caption">
+                            <div class="portfolio-box-caption-content">
+                                <div class="project-category text-faded">
+                                    9. Klasse
+                                </div>
+                                <div class="project-name">
+                                    Planetensystem
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-sm-4">
+                    <a href="static/img/pjs/10.png" target="_blank" class="portfolio-box">
+                        <div class="center-block" style="width: 222px">
+                            <img src="static/img/pjs/10.png" class="img-responsive center-block" alt="schm9/planetensystem.html">
+                        </div>
+                        <div class="portfolio-box-caption">
+                            <div class="portfolio-box-caption-content">
+                                <div class="project-category text-faded">
+                                    9. Klasse
+                                </div>
+                                <div class="project-name">
+                                    Planetensystem
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-sm-4">
+                    <a href="static/img/pjs/11.png" target="_blank" class="portfolio-box">
+                        <div class="center-block" style="width: 222px">
+                            <img src="static/img/pjs/11.png" class="img-responsive center-block" alt="maesch1/vielekreise.html">
+                        </div>
+                        <div class="portfolio-box-caption">
+                            <div class="portfolio-box-caption-content">
+                                <div class="project-category text-faded">
+                                    9. Klasse
+                                </div>
+                                <div class="project-name">
+                                    Viele Kreise
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="services">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2 class="section-heading">Angebote</h2>
+                    <hr class="primary">
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 text-center">
+                    <div class="service-box">
+                        <i class="fa fa-4x fa-book text-primary sr-icons"></i>
+                        <h3>Für Lehrer</h3>
+                        <p class="text-muted">Seminar-Angebote für Lehrer: Programmierung, Technologien, Computer-Philosophie</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 text-center">
+                    <div class="service-box">
+                        <i class="fa fa-4x fa-group text-primary sr-icons"></i>
+                        <h3>Für Schüler</h3>
+                        <p class="text-muted">Angebote für Schüler: Schupperkurse, Basiskurse, Aufbaukurse</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 text-center">
+                    <div class="service-box">
+                        <i class="fa fa-4x fa-plug text-primary sr-icons"></i>
+                        <h3>Einen Spielplatz bauen</h3>
+                        <p class="text-muted">Wir kommen und richten bei Ihnen einen Computer-Spielplatz ein.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 text-center">
+                    <div class="service-box">
+                        <i class="fa fa-4x fa-github text-primary sr-icons"></i>
+                        <h3>Mitmachen bei Github</h3>
+                        <p class="text-muted">Programmieren ist Zusammenarbeiten</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-dark" id="contact">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 text-center">
+                    <h2 class="section-heading">Melde dich!</h2>
+                    <hr class="primary">
+                    <p>Wenn du das Thema spannend findest, schreib eine E-Mail, ruf an oder gib es weiter.<br />
+                        Ich freue mich über jeden Kontakt.</p>
+                </div>
+                <div class="col-lg-4 col-lg-offset-2 text-center">
+                    <i class="fa fa-twitter fa-3x sr-contact"></i>
+                    <p>Twitter @lafisrap</p>
+                    <p><small>OTR lavisrap-mint@jabber.ccc.de
+                        <br />36:14:65:50:18:0F:0D:FC:8E:DF<br />48:7A:81:0A:F3:DB:AB:B4:E6:CF
+                    </small></p>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <i class="fa fa-envelope-o fa-3x sr-contact"></i>
+                    <p><a href="mailto:spielplatz@c2064.org">spielplatz@c2064.org</a></p>
+                    <p><small>PGP Fingerprint<br />3946 51B0 A7A5 77C3 E656<br />DECD 1E02 80E6 282C B9E9</small></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- jQuery -->
+    <script src="static/themes/startbootstrap-creative-1.0.4/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="static/themes/startbootstrap-creative-1.0.4/js/bootstrap.min.js"></script>
+
+    <!-- Plugin JavaScript -->
+    <script src="static/themes/startbootstrap-creative-1.0.4/js/scrollreveal.min.js"></script>
+    <script src="static/themes/startbootstrap-creative-1.0.4/js/jquery.easing.min.js"></script>
+    <script src="static/themes/startbootstrap-creative-1.0.4/js/jquery.fittext.js"></script>
+    <script src="static/themes/startbootstrap-creative-1.0.4/js/jquery.magnific-popup.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="static/themes/startbootstrap-creative-1.0.4/js/creative.js"></script>
+    <script src="static/js/processing.js"></script>
+    <script src="static/js/cpg-index.js"></script>
 </body>
+
 </html>

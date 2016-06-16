@@ -103,6 +103,10 @@ body {
   background-color: #fff;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Exo", Helvetica, Arial, sans-serif;  
+}
+
 #live-editor-throbber {
   position: absolute;
 
@@ -548,6 +552,11 @@ body {
     background: white;
     cursor: inherit;
     display: block;
+}
+
+
+
+#cpg-index-navbar {
 }
 
 
