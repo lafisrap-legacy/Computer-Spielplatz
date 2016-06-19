@@ -42,7 +42,7 @@
         processing.keyReleased = function () { keyIsPressed = false; };
 
         function getSound(s) {
-            var url = "static/userdata/Admin/images/" + s + ".mp3";
+            var url = "static/userdata/Admin/sounds/" + s + ".mp3";
             return new Audio(url);
         }
 
@@ -283,7 +283,7 @@ var draw = function() {
 
 
 
-    // Alfred
+    // Ka
     var canvas = document.getElementById("canvas_about"),
         canvasWidth = Math.min( $(window).width(), 1140 );
     $( "#canvas_about" ).css( "margin-left", (-canvasWidth/2)+"px")
@@ -319,7 +319,7 @@ var draw = function() {
         processing.keyReleased = function () { keyIsPressed = false; };
 
         function getSound(s) {
-            var url = "static/userdata/Admin/images/" + s + ".mp3";
+            var url = "static/userdata/Admin/sounds/" + s + ".mp3";
             return new Audio(url);
         }
 
@@ -716,6 +716,283 @@ var draw = function() {
         text( "x", width - 29 , height - 10 );      
     }
 };
+        };
+        if (typeof draw !== 'undefined') processing.draw = draw;
+    });
+
+
+
+
+    // Schlange
+    var canvas = document.getElementById("canvas_spielplatz"),
+        canvasWidth = Math.min( $(window).width(), 1140 );
+    $( "#canvas_spielplatz" ).css( "margin-left", (-canvasWidth/2)+"px")
+
+    new Processing(canvas, function(processing) {
+        processing.size(canvasWidth, 600);
+        processing.background(0,0,0,0);
+
+        var mouseIsPressed = false;
+        $("section#spielplatz").on("mousedown touchstart", function(e) {
+            mouseIsPressed = true;
+            processing.mouseX = e.pageX - ($(window).width() - canvasWidth)/2;
+            processing.mouseY = e.pageY - ($("#canvas_spielplatz").offset().top);
+            processing.sbShow = false;
+        }).on("mouseup touchend", function(e) {
+            mouseIsPressed = false;
+            processing.mouseX = e.pageX - ($(window).width() - canvasWidth)/2;
+            processing.mouseY = e.pageY - ($("#canvas_spielplatz").offset().top);
+        }).on("mousemove touchmove", function(e) {
+            processing.mouseX = e.pageX - ($(window).width() - canvasWidth)/2;
+            processing.mouseY = e.pageY - ($("#canvas_spielplatz").offset().top);
+        });
+        processing.mousePressed = function () { mouseIsPressed = true; };
+        processing.mouseReleased = function () { mouseIsPressed = false; };
+
+        var keyIsPressed = false;
+        processing.keyPressed = function () { keyIsPressed = true; };
+        processing.keyReleased = function () { keyIsPressed = false; };
+
+        var keyIsPressed = false;
+        processing.keyPressed = function () { keyIsPressed = true; };
+        processing.keyReleased = function () { keyIsPressed = false; };
+
+        function getSound(s) {
+            var url = "static/userdata/Admin/sounds/" + s + ".mp3";
+            return new Audio(url);
+        }
+
+        function playSound(s) {
+            s.play();
+        }
+
+        function stopSound(s) {
+            s.pause();
+            sound.currentTime = 0;
+        }
+
+        function debug() {
+        }
+
+        function getImage(s) {
+            var url = "static/userdata/Admin/images/" + s + ".png";
+            //processing.externals.sketch.imageCache.add(url);
+            return processing.loadImage(url);
+        }
+
+        var rotateFn = processing.rotate;
+        processing.rotate = function(angle) {
+            rotateFn(processing.radians(angle));
+        }
+        var cosFn = processing.cos;
+        processing.cos = function(angle) {
+            return cosFn(processing.radians(angle));
+        }
+        var sinFn = processing.sin;
+        processing.sin = function(angle) {
+            return sinFn(processing.radians(angle));
+        }
+        var atan2Fn = processing.atan2;
+        processing.atan2 = function(y, x) {
+            return processing.degrees(atan2Fn(y,x));
+        }
+        var arcFn = processing.arc;
+        processing.arc = function(x,y,w,h,a1,a2) {
+            return arcFn(x,y,w,h,processing.radians(a1), processing.radians(a2));
+        }
+        
+        with (processing) {
+
+var color1 = color(255, 0, 0),
+    color2 = color(60, 99, 41),
+    color3 = color(57, 219, 211);
+
+imageMode(CENTER);
+rectMode(CENTER);
+textMode(CENTER);
+textAlign(CENTER, BOTTOM);
+frameRate(60);
+
+
+// Schlangen-Spiel (#1 Besserer Name) 
+
+var Schlange = [],
+    Elastizität = 6,   // (#2 Elastizität der Schlange ändern)
+    n = 22,             // (#3 Länge der Schlange)
+    Käfer = [],
+    SchlangeAktiv = false,
+    KäferMax = 5,       // (#4 Anzahl der möglichen Käfer zu Beginn, auch unten)
+    GeschwMax = 0.5,    // (#5 Geschwindigkeit der Käfer)
+    ZeitZumNächstenKäfer = 2000,   // (#6 Zeit bis zum nächsten Käfer, auch unten)
+    MultZeit = 0.95,    // (#7 Beschleunigung der Zeit zum nächsten Käfer)
+    Zeit = 0,
+    Punktzahl = 0,
+    GameOver = false,
+    StopGame = false;
+
+for( var i=0 ; i<n ; i++ ) {
+    Schlange.push({
+        x: 200,
+        y: 200,
+    });
+}
+
+textAlign(CENTER, CENTER);
+rectMode(CENTER);
+
+
+var gesicht = function() {
+
+    fill(0);stroke(0);strokeWeight(1);ellipse(0,0,300,300);
+    fill(255);ellipse(-66,-11,100,100);ellipse(69,-11,100,100);
+    fill(0);ellipse(-66,-11,40,40);ellipse(69,-11,40,40);
+    fill(255);ellipse(-56,-19,15,15);ellipse(80,-18,15,15);
+    strokeWeight(7);
+    stroke(color1);line(0,-132,-20,-184);
+    stroke(color2);line(0,-132,0,-183);
+    stroke(color3);line(0,-132,20,-187);
+    stroke(255, 0, 0);strokeWeight(17);noFill();arc(0,59,145,101,30,150);
+};
+
+
+var offsetTop = $("section#spielplatz").offset().top,
+    offsetHeight = $("section#spielplatz").height();
+
+var draw = function() {
+    var scrollTop = $("body").scrollTop();
+    if( scrollTop < offsetTop - 80 || scrollTop > offsetTop + offsetHeight - 200 ) return;
+
+
+    background(0, 0, 0, 0);    // (#10 Hintergrundfarbe)
+
+    if( StopGame ) {
+        return;
+    }
+
+    var s;
+    if( !GameOver ) {
+        for( var i=0 ; i<n ; i++ ) {
+            s = Schlange[i];
+            
+            if( i===0 ) {
+                s.x += (mouseX - s.x)/Elastizität;
+                s.y += (mouseY - s.y)/Elastizität;
+            } else {
+                s.x += (Schlange[i-1].x - s.x)/Elastizität;
+                s.y += (Schlange[i-1].y - s.y)/Elastizität;
+            }
+            
+            noStroke();
+            fill(132, 31, 145, 255-i*10);  // (#11 Füllfarbe der Schlange)
+            var Größe = 30;             // (#12 Max. Größe eines Kreises)
+            
+            if( i === n-1 ) {
+                if( dist(s.x, s.y, Schlange[i-1].x, Schlange[i-1].y) > 30-i ) {    
+                    fill(227, random(80,130), 211);  // (#13 Aktiver Schwanz der Schlange)
+                    Größe = 50;                     //   ...
+                    SchlangeAktiv = true;           //   ...
+                } else {
+                    SchlangeAktiv = false;
+                }            
+            }
+
+            ellipse(s.x, s.y, Größe-i, Größe-i); // (#14 Form eines Schlangenkreises)
+            fill(182, 195, 50, 255-i*10);
+            rect(s.x, s.y, 4, 4);
+        }
+
+        s = Schlange[0];
+        translate(s.x, s.y);
+        scale(0.12);
+        gesicht();
+        resetMatrix();       
+    }
+    
+    if( !GameOver && millis() - Zeit > ZeitZumNächstenKäfer ) {
+        Zeit = millis();
+        ZeitZumNächstenKäfer -= 1;
+        
+        var dx = random(-GeschwMax, GeschwMax),
+            dy = random(-GeschwMax, GeschwMax);
+            
+        if( abs(dx+dy) < GeschwMax/2 ) {
+            dx += GeschwMax/2;
+        }
+         
+        if( Käfer.length < KäferMax ) {
+            Käfer.push({
+                x: random(100, width - 100),                 // (#17 Ort wo Käfer erscheinen)
+                y: 600,                 //  dito y
+                dx: dx,
+                dy: dy,
+                Größe: random(15,30),   // (#18 Zufällige Größe der Käfer)
+            });
+        }
+    }
+    
+    for( var i=0 ; i<Käfer.length ; i++ ) {
+        var k = Käfer[i];
+        
+        k.x += k.dx;
+        k.y += k.dy;
+        strokeWeight(1);
+        stroke(50, 100, 155, 70);
+        noFill();
+        triangle(k.x, k.y, canvasWidth / 2, 790, canvasWidth / 2, 800);
+        noStroke();
+        fill(184, 174, 70);
+        ellipse(k.x, k.y, 12, 15);
+        fill(60, 0, 255);
+        ellipse(k.x-3,k.y-5,3,3);
+        ellipse(k.x+3,k.y-5,3,3);
+        pushMatrix();
+        fill(50, 160, 255, 130);
+        translate(k.x, k.y);
+        rotate(35);
+        ellipse(7,0,20,8);
+        rotate(-70);
+        ellipse(-7,0,20,8);
+        popMatrix();
+        
+        if( k.x < -k.Größe/2 || k.x > 600+k.Größe/2 ) {
+            k.dx = -k.dx;
+        }
+        if( k.y < -k.Größe/2 || k.y > 600+k.Größe/2 ) {
+            k.dy = -k.dy;
+        }
+        
+        if( !GameOver &&
+            dist( k.x, k.y, Schlange[0].x, Schlange[0].y ) < (k.Größe + 20)/2 ) {
+            
+            Käfer.splice(i,1);
+            KäferMax+=0.33;
+            Punktzahl++;
+        }
+    }
+
+    if( GameOver ) {
+        Käfer = [];
+        KäferMax = 5;               // (#4 Anzahl der möglichen Käfer zu Beginn, 
+        Punktzahl = 0;
+        ZeitZumNächstenKäfer = 2000; // (#6 Zeit zum nächsten Käfer)
+        GameOver = false;
+    }
+
+    if( mouseIsPressed && mouseX > width - 41 && mouseX < width - 14 && mouseY > height - 30 && mouseY < height -5 ) {
+        StopGame = true;    
+    }
+
+    noFill();
+    stroke(255);
+    strokeWeight(1);
+    rect( width - 30, height - 20, 15, 15 );
+    textSize( 18 );
+    fill( 255 );
+    text( "x", width - 29 , height - 20 );      
+};
+
+
+
         };
         if (typeof draw !== 'undefined') processing.draw = draw;
     });
