@@ -578,11 +578,15 @@ var jobjects = {
 var mouseDown = false,
     maxJumps = 10,
     jumps = maxJumps - 5,
-    headerHeight = $("header").height();
+    offsetTop = $("section#about").offset().top,
+    offsetHeight = $("section#about").height(),
+    windowHeight = $(window).height();
+
 
 var draw = function() {
-    var scrollTop = $("body").scrollTop();
-    if( scrollTop < headerHeight - 80 || scrollTop > headerHeight + 540 ) return;
+    var scrollTop = $(window).scrollTop();
+    if( scrollTop < offsetTop - offsetHeight || scrollTop > offsetTop - offsetHeight + windowHeight ) return;
+    //if( scrollTop < headerHeight - 80 || scrollTop > headerHeight + 540 ) return;
 
     background(0,0,0,0);
 
@@ -821,9 +825,9 @@ var Schlange = [],
     n = 22,             // (#3 Länge der Schlange)
     Käfer = [],
     SchlangeAktiv = false,
-    KäferMax = 5,       // (#4 Anzahl der möglichen Käfer zu Beginn, auch unten)
+    KäferMax = 1,       // (#4 Anzahl der möglichen Käfer zu Beginn, auch unten)
     GeschwMax = 0.5,    // (#5 Geschwindigkeit der Käfer)
-    ZeitZumNächstenKäfer = 2000,   // (#6 Zeit bis zum nächsten Käfer, auch unten)
+    ZeitZumNächstenKäfer = 5000,   // (#6 Zeit bis zum nächsten Käfer, auch unten)
     MultZeit = 0.95,    // (#7 Beschleunigung der Zeit zum nächsten Käfer)
     Zeit = 0,
     Punktzahl = 0,
@@ -856,11 +860,12 @@ var gesicht = function() {
 
 
 var offsetTop = $("section#spielplatz").offset().top,
-    offsetHeight = $("section#spielplatz").height();
+    offsetHeight = $("section#spielplatz").height(),
+    windowHeight = $(window).height();
 
 var draw = function() {
-    var scrollTop = $("body").scrollTop();
-    if( scrollTop < offsetTop - 80 || scrollTop > offsetTop + offsetHeight - 200 ) return;
+    var scrollTop = $(window).scrollTop();
+    if( scrollTop < offsetTop - offsetHeight || scrollTop > offsetTop - offsetHeight + windowHeight ) return;
 
 
     background(0, 0, 0, 0);    // (#10 Hintergrundfarbe)
@@ -935,10 +940,6 @@ var draw = function() {
         
         k.x += k.dx;
         k.y += k.dy;
-        strokeWeight(1);
-        stroke(50, 100, 155, 70);
-        noFill();
-        triangle(k.x, k.y, canvasWidth / 2, 790, canvasWidth / 2, 800);
         noStroke();
         fill(184, 174, 70);
         ellipse(k.x, k.y, 12, 15);
@@ -992,6 +993,415 @@ var draw = function() {
 };
 
 
+
+        };
+        if (typeof draw !== 'undefined') processing.draw = draw;
+    });
+
+
+    // Planeten
+    var canvas = document.getElementById("canvas_planets"),
+        canvasWidth = Math.min( $(window).width(), 1140 );
+    $( "#canvas_planets" ).css( "margin-left", (-canvasWidth/2)+"px")
+
+    new Processing(canvas, function(processing) {
+        processing.size(canvasWidth, 600);
+        processing.background(0,0,0,0);
+
+        var mouseIsPressed = false;
+        $("section#contact").on("mousedown touchstart", function(e) {
+            mouseIsPressed = true;
+            processing.mouseX = e.pageX - ($(window).width() - canvasWidth)/2;
+            processing.mouseY = e.pageY - ($("#canvas_spielplatz").offset().top);
+            processing.sbShow = false;
+        }).on("mouseup touchend", function(e) {
+            mouseIsPressed = false;
+            processing.mouseX = e.pageX - ($(window).width() - canvasWidth)/2;
+            processing.mouseY = e.pageY - ($("#canvas_spielplatz").offset().top);
+        }).on("mousemove touchmove", function(e) {
+            processing.mouseX = e.pageX - ($(window).width() - canvasWidth)/2;
+            processing.mouseY = e.pageY - ($("#canvas_spielplatz").offset().top);
+        });
+        processing.mousePressed = function () { mouseIsPressed = true; };
+        processing.mouseReleased = function () { mouseIsPressed = false; };
+
+        var keyIsPressed = false;
+        processing.keyPressed = function () { keyIsPressed = true; };
+        processing.keyReleased = function () { keyIsPressed = false; };
+
+        var keyIsPressed = false;
+        processing.keyPressed = function () { keyIsPressed = true; };
+        processing.keyReleased = function () { keyIsPressed = false; };
+
+        function getSound(s) {
+            var url = "static/userdata/Admin/sounds/" + s + ".mp3";
+            return new Audio(url);
+        }
+
+        function playSound(s) {
+            s.play();
+        }
+
+        function stopSound(s) {
+            s.pause();
+            sound.currentTime = 0;
+        }
+
+        function debug() {
+        }
+
+        function getImage(s) {
+            var url = "static/userdata/Admin/images/" + s + ".png";
+            //processing.externals.sketch.imageCache.add(url);
+            return processing.loadImage(url);
+        }
+
+        var rotateFn = processing.rotate;
+        processing.rotate = function(angle) {
+            rotateFn(processing.radians(angle));
+        }
+        var cosFn = processing.cos;
+        processing.cos = function(angle) {
+            return cosFn(processing.radians(angle));
+        }
+        var sinFn = processing.sin;
+        processing.sin = function(angle) {
+            return sinFn(processing.radians(angle));
+        }
+        var atan2Fn = processing.atan2;
+        processing.atan2 = function(y, x) {
+            return processing.degrees(atan2Fn(y,x));
+        }
+        var arcFn = processing.arc;
+        processing.arc = function(x,y,w,h,a1,a2) {
+            return arcFn(x,y,w,h,processing.radians(a1), processing.radians(a2));
+        }
+        
+        with (processing) {
+
+var scaleX = 1,
+    scaleY = 1,
+    zoom = 0.1,
+    posX = width - 200,
+    posY = 280,
+    Geschwindigkeit = 1;
+
+var scaleXPerMillis = 0,
+    scaleYPerMillis = 0,
+    zoomPerMillis = 0,
+    posXPerMillis = 0,
+    posYPerMillis = 0,
+    GeschwindigkeitPerMillis = 0,
+    letzteMillis = 0;
+
+var animationList = [ {
+        time: 10,
+        zoom: 0.4,
+    }, {
+        time: 5,
+    },{
+        time: 5,
+        scaleX: 2,
+        scaleY: 0.4,
+        zoom: 0.6,
+        posX: width - 200,
+        posY: 280,
+    }, {
+        time: 5,
+    }, {
+        time: 30,
+        scaleX: 2,
+        scaleY: 0.25,
+        zoom: 4,
+        posX: width - 120,
+        posY: 150,
+        Geschwindigkeit: 0.2,
+    }, {
+        time: 30,
+        posX: width - 120,
+        posY: -50,
+    }, {
+        time: 30,
+        scaleX: 1,
+        scaleY: 1,
+        zoom: 0.1,
+        posX: width - 200,
+        posY: 280,
+        Geschwindigkeit: 1,
+    }, {
+        time: 30,
+        posX: width - 200,
+        posY: 280,
+    } ],
+    animationPointer = 0,
+    animationTimer = null;
+
+var Gesicht = function() {
+
+    fill(0);stroke(255);strokeWeight(1);ellipse(0,0,300,300);
+    stroke(0);fill(255);ellipse(-66,-11,100,100);ellipse(69,-11,100,100);
+    fill(0);ellipse(-66,-11,40,40);ellipse(69,-11,40,40);
+    fill(255);ellipse(-56,-19,15,15);ellipse(80,-18,15,15);
+    strokeWeight(7);
+    stroke(163, 33, 163);line(0,-132,-20,-184);
+    stroke(122, 20, 122);line(0,-132,0,-183);
+    stroke(113, 58, 176);line(0,-132,20,-187);
+    stroke(255, 0, 0);strokeWeight(17);noFill();arc(0,59,145,101,30,150);
+};
+
+var Sonne = {
+    Durchmesser : 50,
+    Mutter      : null,
+    Farbe       : color(204, 172, 14),
+    Umlaufbahn  : 0,
+    Winkel      : 0,
+    schweif     :false,
+
+};
+
+var Erde = {
+    Durchmesser : 12,
+    Mutter      : Sonne,
+    Farbe       : color(38, 38, 224),
+    Umlaufbahn  : 90,
+    Geschwindigkeit: 1.2,
+    Winkel      : 0,
+    schweif     :false,
+    Name        :"Erde",
+}; 
+
+var Mond = {
+    Durchmesser : 3,
+    Mutter      : Erde,
+    Farbe       : color(133, 133, 133),
+    Umlaufbahn  : 10,
+    Geschwindigkeit: -2.5,
+    Winkel      : 0,
+    schweif     :false,
+    Name        :"Mond",
+};
+
+var Mars = {
+    Durchmesser : 17,
+    Mutter      : Sonne,
+    Farbe       : color(143, 90, 89),
+    Umlaufbahn  : 123,
+    Geschwindigkeit: 0.9,
+    Winkel      : 0,
+    schweif     :false,
+    Name        :"Mars",
+};
+    
+var Jupiter = {
+    Durchmesser : 30,
+    Mutter      : Sonne,
+    Farbe       : color(84, 80, 80),
+    Umlaufbahn  : 160,
+    Geschwindigkeit: 0.4,
+    Winkel      : 0,
+    schweif     :false,
+    Name        :"Jupiter",
+};
+
+var Ganimed = {
+    Durchmesser : 4,
+    Mutter      : Jupiter,
+    Farbe       : color(81, 79, 82),
+    Umlaufbahn  : 23,
+    Geschwindigkeit: 2.9,
+    Winkel      : 0,
+    schweif     :false,
+    Name        :"Ganimed",
+};
+
+var Europa = {
+    Durchmesser : 2,
+    Mutter      : Jupiter,
+    Farbe       : color(20, 168, 131),
+    Umlaufbahn  : 21,
+    Geschwindigkeit: 3.2,
+    Winkel      : 0,
+    schweif     : false,
+    Name        : "Europa",
+};
+
+var Io = {
+    Durchmesser : 2,
+    Mutter      : Jupiter,
+    Farbe       : color(219, 40, 40),
+    Umlaufbahn  : 20,
+    Geschwindigkeit: 1.7,
+    Winkel      : 0,
+    schweif     : false,
+    Name        : "Io",
+};
+
+var Titan = {
+    Durchmesser : 3,
+    Mutter      : Jupiter,
+    Farbe       : color(47, 196, 77),
+    Umlaufbahn  : 18,
+    Geschwindigkeit: 4,
+    Winkel      : 0,
+    schweif     : false,
+    Name        : "Ka",
+    Gesicht     : Gesicht, 
+};
+
+var Venus = {
+    Durchmesser : 15,
+    Mutter      : Sonne,
+    Farbe       : color(232, 126, 14),
+    Umlaufbahn  : 60,
+    Geschwindigkeit: 1.8,
+    Winkel      : 0,
+    schweif     :false,
+    Name        :"Venus",
+};
+var Merkur = {
+    Durchmesser : 9,
+    Mutter      : Sonne,
+    Farbe       : color(128, 125, 123),
+    Umlaufbahn  : 43,
+    Geschwindigkeit: 1.9,
+    Winkel      : 0,
+    schweif     :false,
+    Name        :"Merkur",
+};
+
+var Saturn = {
+    Durchmesser : 20,
+    Mutter      : Sonne,
+    Farbe       : color(247, 207, 8),
+    Umlaufbahn  : 195,
+    Geschwindigkeit: 0.3,
+    Winkel      : 0,
+    schweif     :true,
+    Name        :"Saturn",
+};
+
+var Neptun = {
+    Durchmesser : 9,
+    Mutter      : Sonne,
+    Farbe       : color(245, 92, 10),
+    Umlaufbahn  : 225,
+    Geschwindigkeit: 0.2,
+    Winkel      : 0,
+    schweif     :false,
+    Name        :"Neptun",
+};
+
+var Uranus = {
+    Durchmesser : 12,
+    Mutter      : Sonne,
+    Farbe       : color(79, 98, 117),
+    Umlaufbahn  : 255,
+    Geschwindigkeit: 0.1,
+    Winkel      : 0,
+    schweif     :false,
+    Name        :"Uranus",
+};
+
+var Planet = [Sonne, Erde, Mond, Mars, Jupiter, Venus, Merkur, Saturn, Uranus, Neptun, Ganimed, Io, Europa, Titan];
+
+textAlign(CENTER,CENTER);
+
+var offsetTop = $("section#contact").offset().top,
+    offsetHeight = $("section#contact").height(),
+    windowHeight = $(window).height();
+
+var draw = function() {
+    var scrollTop = $(window).scrollTop();
+    if( scrollTop < offsetTop - offsetHeight || scrollTop > offsetTop - offsetHeight + windowHeight + 100 ) return;
+
+    background(0, 0, 0, 0);
+    
+    resetMatrix();
+    translate(posX, posY);
+    scale(zoom);
+    for( var i=0 ; i<14 ; i++ ) {
+        var planet = Planet[i];
+        
+        planet.x = 0;
+        planet.y = 0;
+
+        noStroke();        
+        if ( planet.Mutter !== null ) {
+            planet.x = planet.Mutter.x +
+                    cos(planet.Winkel)*planet.Umlaufbahn*scaleX;
+           planet.y = planet.Mutter.y +
+                    sin(planet.Winkel)*planet.Umlaufbahn*scaleY;
+        }
+        
+        fill(planet.Farbe);
+        if( planet.Gesicht && zoom > 1 ) {
+            pushMatrix();
+            translate(planet.x, planet.y);
+            scale(0.02);
+            planet.Gesicht();
+            popMatrix();
+            noStroke();
+        } else {
+            ellipse(planet.x, planet.y,planet.Durchmesser, planet.Durchmesser);
+        }
+        if( zoom > 2 ) {
+            textSize(4);
+            fill(128);
+            text( planet.Name,planet.x,planet.y + max( planet.Durchmesser * 0.7, 5 ) );
+        }
+
+        planet.Winkel += planet.Geschwindigkeit * Geschwindigkeit;
+    }
+
+
+    if(Saturn.schweif === true){
+        fill (204, 187, 112);
+        ellipse (Saturn.x,Saturn.y, 32, 5);
+    }
+    
+    noStroke();
+    fill(Sonne.Farbe);
+    arc(Sonne.x, Sonne.y, Sonne.Durchmesser, Sonne.Durchmesser, 180, 360);
+    fill(Jupiter.Farbe);
+    arc(Jupiter.x, Jupiter.y, Jupiter.Durchmesser, Jupiter.Durchmesser, 180, 360);
+
+    if( mouseIsPressed ) {
+        posX += (mouseX - posX) / 50;
+        posY += (mouseY - posY) / 50;
+    }
+
+    if( !animationTimer || animationTimer <= 0 ) {
+        letzteMillis = millis();
+
+        var anim = animationList[ animationPointer++ ];
+        animationPointer = animationPointer % animationList.length;
+
+        animationTimer = anim.time * 1000;
+
+        println("Animationstep " + animationPointer);
+
+        scaleXPerMillis = anim.scaleX? (anim.scaleX - scaleX) / animationTimer : 0;
+        scaleYPerMillis = anim.scaleY? (anim.scaleY - scaleY) / animationTimer : 0;
+        zoomPerMillis = anim.zoom? (anim.zoom - zoom) / animationTimer : 0;
+        posXPerMillis = anim.posX? (anim.posX - posX) / animationTimer : 0;
+        posYPerMillis = anim.posY? (anim.posY - posY) / animationTimer : 0;
+        GeschwindigkeitPerMillis = anim.Geschwindigkeit? (anim.Geschwindigkeit - Geschwindigkeit) / animationTimer : 0;
+
+    } else {
+
+        var dieseMillis = millis() - letzteMillis;
+        letzteMillis = millis();
+        animationTimer -= dieseMillis;
+
+        scaleX += scaleXPerMillis * dieseMillis;
+        scaleY += scaleYPerMillis * dieseMillis;
+        zoom += zoomPerMillis  * dieseMillis;
+        posX += posXPerMillis * dieseMillis;
+        posY += posYPerMillis * dieseMillis;
+        Geschwindigkeit += GeschwindigkeitPerMillis * dieseMillis;
+        
+    }
+};
 
         };
         if (typeof draw !== 'undefined') processing.draw = draw;
