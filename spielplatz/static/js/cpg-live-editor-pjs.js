@@ -56,7 +56,7 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 	},
 
 	getScreenshot: function( cb ) {
-		cb( "Each editor has to reset in it's own way." );
+		cb( "Each editor has to getScreenshot in it's own way." );
 	},
 
 	restart: function() {

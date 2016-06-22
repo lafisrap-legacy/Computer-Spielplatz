@@ -1,0 +1,67 @@
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// Live Editor page logic currently with Processing/Javascript ( Khan-Flavour ) and HTML ( also Khan )
+$( function fn( ) {
+
+
+	/////////////////////////////////////////////////////////////////
+	// Initiate the live editor that fits to the current page ( tab )
+	var CPG_page = sessionStorage[ "CPG_page" ] || "svg",  
+		CPG_options = {
+			el: $( "#cpg-graphics-editor-pages" ),
+			page: CPG_page
+		};
+
+// Wait till paper page is loaded
+	$( "#page-" + CPG_page ).one( "paper-loaded", function() {
+
+		CPG_graphicsEditor =( CPG_page === "svg" ) ? new window.GraphicsEditorFrameSvg( CPG_options ) : 
+							( CPG_page === "anim" ) ? new window.GraphicsEditorFrameAnim( CPG_options ) :
+
+							console.error ( "No valid CPG_page specified" );
+
+
+	var projectControlBar = window.ProjectControlBar.extend( {
+
+		openNewProject: function( projectName, cb ) {
+
+			this.readSourceFiles( [ projectName + "." + this.fileType ], [ projectName ], function() {
+				if( cb ) cb()
+			} );
+		},
+	} );
+
+	CPG_projectControlBar = new projectControlBar( {
+									el: $( "#project-button-group" ),
+									userName: window.CPG.UserName, 
+									fileType: CPG_page,
+									editor: CPG_graphicsEditor,
+									wsAddress: window.CPG.WebSocketsAddress, 
+									wsToken: window.CPG.WebSocketsToken,
+									newFile: window.CPG.ProjectBarNewFile + "." + CPG_page,
+									modalContainer: $( ".container" ),
+								} );
+
+	// Start integration functions AFTER live-editor has loaded
+	$( window ).trigger( "live-editor-late-integration" );
+
+	CPG_projectControlBar.refreshSession( window.CPG.LoginTime );
+
+});
+
+window.onbeforeunload = function() {
+	//if( CPG_graphicsEditor.modified() ) return window.CPG.ProjectBarFileChanged;
+}
+
+$( window ).blur( function( e ) {
+	//console.log( "Going away to next tab" );
+	// Do Blur Actions Here
+} );
+
+$( window ).on( 'hashchange', function( e ){
+	console.log( "URL changed." );
+	// do something...
+} );
+
+//setInterval( CPG_graphicsEditor.storeCurrentCodeFile, 5000 );
+
+} );

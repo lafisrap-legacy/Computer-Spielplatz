@@ -82,11 +82,11 @@
 	{{ if .UserName }}
 	<div id="project-button-group"></div>
 	<button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ProjectBarRestart }}</button>
-	<textarea id="project-button-textarea-for-testing"></textarea>
+	<textarea id="project-button-textarea-for-testing" style="opacity: 0;"></textarea>
 	{{ else }}
 		<span class="label label-info">{{ .ProjectBarNoUser }}</span>
 		<button id="control-bar-restart" class="btn btn-primary btn-sm" style="float: right">{{ .ProjectBarRestart }}</button>
-		<textarea id="project-button-textarea-for-testing"></textarea>
+		<textarea id="project-button-textarea-for-testing" style="opacity: 0;"></textarea>
 	{{ end }}
 	<ul>
 <li>

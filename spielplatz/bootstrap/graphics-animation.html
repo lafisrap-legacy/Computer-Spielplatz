@@ -13,7 +13,6 @@
 <script src="static/js/paper.js"></script>
 <script src="static/js/caman.full.js"></script>
 <script src="static/js/caman-for-paper.js"></script>
-<script src="static/js/cpg-graphics-animation.js"></script>
 </head>
 <body>
 <div class="container" style="height: 1024px;">
@@ -94,11 +93,12 @@
         {{end}}                       
     </div>
     <ul class="nav nav-tabs">
-        <li id="nav-bar-paper" rel="page-paper" class="nav-bar-page"><a href="#">{{ .GraphicsHeaderGraphics }}</a></li>
-        <li id="nav-bar-animation" rel="page-animation" class="nav-bar-page"><a href="#">{{ .GraphicsHeaderAnimations }}</a></li>
+        <li id="nav-bar-paper" rel="svg" class="nav-bar-page"><a href="#">{{ .GraphicsHeaderGraphics }}</a></li>
+        <li id="nav-bar-animation" rel="anim" class="nav-bar-page"><a href="#">{{ .GraphicsHeaderAnimations }}</a></li>
     </ul>
-    <div class="pages">
-        <div id="page-paper" class="page active">
+    <div class="clearfix"></div>
+    <div id="cpg-graphics-editor-pages">
+        <div id="page-svg" class="page active">
             <div id="paperCanvasWrapper">
                 <canvas id="paperCanvas"></canvas>
             </div>
@@ -188,17 +188,22 @@
                 </div>
             </div>
         </div>
-        <div id="page-animation" class="page">
+        <div id="page-anim" class="page">
             Animation-Mode
         </div>
     </div>
+    {{ if .UserName }}
+    <div id="project-button-group" class="graphics-animation"></div>
+    {{ else }}
+        <span class="label label-info">{{ .ProjectBarNoUser }}</span>
+    {{ end }}
 </div>
 <script>
 (function() {
     window.AllImages = JSON.parse({{ .AllImages }});
     window.UserNameForImages = "{{ .UserNameForImages }}";
-    window.CPGLocale = {
-        User: "{{ .UserName }}",
+    window.CPG = {
+        UserName: "{{ .UserName }}",
         Colorizer: {
             hue: "{{ .GraphicsColorizerHue }}",
             brightness: "{{ .GraphicsColorizerBrightness }}",
@@ -211,10 +216,87 @@
         Modals: {
             login1: "{{ .GraphicsCommandsModalLogin1 }}",
             login2: "{{ .GraphicsCommandsModalLogin2 }}"
-        }
+        },
+        ProjectBarFileChanged: {{ .ProjectBarFileChanged }},
+        ProjectBarNewFile: {{ .ProjectBarNewFile }},
+        WebSocketsAddress: {{ .WebSocketsAddress }},
+        WebSocketsToken: {{ .WebSocketsToken }},
+        ProjectBarNewFile: {{ .ProjectBarNewFile }},
+        ProjectBarAllFiles: {{ .ProjectBarAllFiles }},
+        ProjectBarAdministrate: {{ .ProjectBarAdministrate }},
+        ProjectBarDisinvite: {{ .ProjectBarDisinvite }},
+        ProjectBarGalleryOff: {{ .ProjectBarGalleryOff }},
+        ProjectBarGalleryOn: {{ .ProjectBarGalleryOn }},
+        ProjectBarGalleryOn: {{ .ProjectBarGalleryOn }},
+        ProjectBarInvite: {{ .ProjectBarInvite }},
+        ProjectBarMail: {{ .ProjectBarMail }},
+        ProjectBarMessage: {{ .ProjectBarMessage }},
+        ProjectBarModalProjectInit: {{ .ProjectBarModalProjectInit }},
+        ProjectBarModalProjectInit2: {{ .ProjectBarModalProjectInit2 }},
+        ProjectBarModalProjectInitOk: {{ .ProjectBarModalProjectInitOk }},
+        ProjectBarModalProjectSave: {{ .ProjectBarModalProjectSave }},
+        ProjectBarModalProjectSave2: {{ .ProjectBarModalProjectSave2 }},
+        ProjectBarModalProjectSaveOk: {{ .ProjectBarModalProjectSaveOk }},
+        ProjectBarModalAlreadyOpenP: {{ .ProjectBarModalAlreadyOpenP }},
+        ProjectBarModalAlreadyOpenS: {{ .ProjectBarModalAlreadyOpenS }},
+        ProjectBarModalOk: {{ .ProjectBarModalOk }},
+        ProjectBarOtherVersion: {{ .ProjectBarOtherVersion }}, 
+        ProjectBarModalConflicts: {{ .ProjectBarModalConflicts }},
+        ProjectBarModalConflicts2: {{ .ProjectBarModalConflicts2 }},
+        ProjectBarModalYes: {{ .ProjectBarModalYes }},
+        ProjectBarModalNo: {{ .ProjectBarModalNo }},
+        ProjectBarModalCancel: {{ .ProjectBarModalCancel }},
+        ProjectBarModalSave: {{ .ProjectBarModalSave }},
+        ProjectBarModalFilename: {{ .ProjectBarModalFilename }},
+        ProjectBarModalSaveFilename: {{ .ProjectBarModalSaveFilename }},
+        ProjectBarModalSaveFilename2: {{ .ProjectBarModalSaveFilename2 }},
+        ProjectBarModalCodefileTitle: {{ .ProjectBarModalCodefileTitle }},
+        ProjectBarModalDelete: {{ .ProjectBarModalDelete }},
+        ProjectBarModalFileChanged2: {{ .ProjectBarModalFileChanged2 }},
+        ProjectBarModalFileChanged: {{ .ProjectBarModalFileChanged }},
+        ProjectBarModalFileDeleteP: {{ .ProjectBarModalFileDeleteP }},
+        ProjectBarModalFileDeleteS: {{ .ProjectBarModalFileDeleteS }},
+        ProjectBarModalFileExists: {{ .ProjectBarModalFileExists }},
+        ProjectBarModalFileExists2: {{ .ProjectBarModalFileExists2 }},
+        ProjectBarModalFileOutdated: {{ .ProjectBarModalFileOutdated }},
+        ProjectBarModalInvite: {{ .ProjectBarModalInvite }},
+        ProjectBarModalInvite2: {{ .ProjectBarModalInvite2 }},
+        ProjectBarModalInviteOk: {{ .ProjectBarModalInviteOk }},
+        ProjectBarModalOpen: {{ .ProjectBarModalOpen }},
+        ProjectBarModalRestartEditor: {{ .ProjectBarModalRestartEditor }},
+        ProjectBarModalRestartEditor2: {{ .ProjectBarModalRestartEditor2 }},
+        ProjectBarNew: {{ .ProjectBarNew }},
+        ProjectBarOpen: {{ .ProjectBarOpen }},
+        ProjectBarOrganize: {{ .ProjectBarOrganize }},
+        ProjectBarRename: {{ .ProjectBarRename }},
+        ProjectBarSave: {{ .ProjectBarSave }},
+        ProjectBarSaved: {{ .ProjectBarSaved }},
+        ProjectBarSaveAs: {{ .ProjectBarSaveAs }},
+        ProjectBarSaveProject: {{ .ProjectBarSaveProject }},
+        ProjectBarSaveTemplate: {{ .ProjectBarSaveTemplate }},
+        ProjectBarTransfer: {{ .ProjectBarTransfer }},
+        ProjectBarProject: {{ .ProjectBarProject }},
+        ProjectBarModalBadConnection: {{ .ProjectBarModalBadConnection }},
+        ProjectBarModalBadConnection2: {{ .ProjectBarModalBadConnection2 }},
+        ProjectBarModalNewSession: {{ .ProjectBarModalNewSession }},
+        ProjectBarModalNewSession2: {{ .ProjectBarModalNewSession2 }},
+        ProjectBarModalOpenNewProject: {{ .ProjectBarModalOpenNewProject }},
+        ProjectBarModalOpenNewProject2: {{ .ProjectBarModalOpenNewProject2 }},
+        ProjectBarModalProjectExists: {{ .ProjectBarModalProjectExists }},
+        ProjectBarModalProjectExists2: {{ .ProjectBarModalProjectExists2 }},
+        ProjectBarModalAlreadyMember: {{ .ProjectBarModalAlreadyMember }},
+        ProjectBarModalAlreadyMember2: {{ .ProjectBarModalAlreadyMember2 }},
+        ProjectBarFileChanged: {{ .ProjectBarFileChanged }},
     };
 })();
 </script>
-<script src="static/js/cpg-graphics-animation.ps" type="text/paperscript" canvas="paperCanvas"></script>
+<script src="static/js/underscore-min.js"></script>
+<script src="static/js/backbone-min.js"></script>
+<script src="static/js/websockets.js"></script>
+<script src="static/js/cpg-graphics-editor-paper.js" type="text/paperscript" canvas="paperCanvas"></script>
+<script src="static/js/cpg-project-bar.js"></script>
+<script src="static/js/cpg-graphics-editor.js"></script>
+<script src="static/js/cpg-graphics-editor-svg.js"></script>
+<script src="static/js/cpg-graphics-editor-anim.js"></script>
 </body>
 </html>

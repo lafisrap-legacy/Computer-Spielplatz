@@ -260,8 +260,22 @@ func writeSourceFiles(s session.Store, fileNames []string, project string, fileT
 		fileName := dir + fileNames[i]
 
 		/////////////////////////////////////////
-		// Don't overwrite if file exists
+		// Check if directory is there and create if not
+		//
 		fileStat, err := os.Stat(fileName)
+		if os.IsNotExist(err) {
+			if err = os.MkdirAll(dir, os.ModePerm); err != nil {
+				beego.Error("Cannot create directory", dir)
+				return Data{}
+			}
+		} else if err != nil {
+			beego.Error("Error while checking for directory", dir)
+			return Data{}
+		}
+
+		/////////////////////////////////////////
+		// Don't overwrite if file exists
+		fileStat, err = os.Stat(fileName)
 		if !overwrite {
 			if !os.IsNotExist(err) {
 				return Data{

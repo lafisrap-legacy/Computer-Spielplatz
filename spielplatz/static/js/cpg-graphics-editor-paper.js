@@ -3,6 +3,31 @@
 //
 
 ////////////////////////////////////////////////////////////////////////
+// Define the editor API
+//
+var baseLayer, cropperBounds, drawingLayer, baseCropper, baseViewer, baseCommands;
+
+paper.editor = $( "#page-svg" );
+paper.EditorAPI = {
+	text: function() {
+		return project.exportJSON( { 
+			embedImages: true,
+			asString: true,
+		} );
+	},
+
+	reset: function( code ) {
+		reset( code );
+	},
+
+	getScreenshot: function( cb ) {
+		cb( drawingLayer.rasterize().toDataURL() );
+	},
+}
+
+Editor = paper.editor;
+
+////////////////////////////////////////////////////////////////////////
 // Cropper is the cropping tool for the editor. It's part of the BaseLayer
 //
 var CropperTopLeft = new Point( 100, 100 );		// Upper left corner of maximum cropper
@@ -46,7 +71,7 @@ var Cropper = Base.extend( {
 		this._rect.onMouseMove = function( event ) { self.onMouseMove( event ); };
 		this._rect.onMouseLeave = function( event ) { self.onMouseLeave( event ); };
 		this._rect.onMouseDrag = function( event ) { self.onMouseDrag( event ); };
-		$( "#page-paper" ).on( "mouseup", function( event ) {
+		$( "#page-svg" ).on( "mouseup", function( event ) {
 			var offset = $( "#paperCanvasWrapper" ).offset();
 
 			event.point = new Point( event.pageX - offset.left, event.pageY - offset.top );
@@ -537,7 +562,7 @@ var Colorizer = Base.extend( {
 		var children = [];
 		for ( var i = 0 ; i < sliders.length ; i++ ) {
 			children.push( new Slider( {
-				name: window.CPGLocale.Colorizer[ sliders[ i ].filter ],
+				name: window.CPG.Colorizer[ sliders[ i ].filter ],
 				filter: sliders[ i ].filter,
 				startValue: sliders[ i ].startValue,
 				bounds: new Rectangle( this.point + new Point( 0, sliders[ i ].yPos ), this.size ),
@@ -561,17 +586,17 @@ var Colorizer = Base.extend( {
 		this.item.visible = true;
 
 		// Enable the colorizers if an item is selected
-		$( "#page-paper" ).on( "itemSelected", function( event, options ) {
+		Editor.on( "itemSelected", function( event, options ) {
 			self.enable( options.item, options.join );
 		} );
 
 		// Disable the colorizers if an item is deselected
-		$( "#page-paper" ).on( "itemDeselected", function( event, options ) {
+		Editor.on( "itemDeselected", function( event, options ) {
 			self.disable( options.item, options.join );
 		} );
 
 		// React on undo and redo events
-		$( "#page-paper" ).on( "undoUpdate redoUpdate", function( event, item ) {
+		Editor.on( "undoUpdate redoUpdate", function( event, item ) {
 			if ( !item || item.className !== "Raster" ) return;
 
 			if ( item === self._orgItem ) {
@@ -593,10 +618,10 @@ var Colorizer = Base.extend( {
 		this.disable( this.item );
 
 		// Off all event listeners
-		$( "#page-paper" ).off( "itemSelected" );
-		$( "#page-paper" ).off( "itemDeselected" );
-		$( "#page-paper" ).off( "undoUpdate" );
-		$( "#page-paper" ).off( "redoUpdate" );
+		Editor.off( "itemSelected" );
+		Editor.off( "itemDeselected" );
+		Editor.off( "undoUpdate" );
+		Editor.off( "redoUpdate" );
 	},
 
 	/////////////////////////////////////////////////////////////////////
@@ -775,7 +800,7 @@ var Slider = Base.extend( {
 			value = ( slider.position.x - point.x - margin ) / width;
 		};
 
-		$( "#page-paper" ).on( "mouseup", function( event ) {
+		Editor.on( "mouseup", function( event ) {
 			if ( !options.parent.enabled() || xOffset === null ) return;
 
 			options.parent.update();
@@ -988,9 +1013,9 @@ var Commands = Base.extend( {
 		// Menü-Command: Export images
 		//
 		$( ".command-export" ).on( "click tap", function( event ) {
-			if ( window.CPGLocale.User === "" ) {
-				showModalYesNo( window.CPGLocale.Modals.login1,
-								window.CPGLocale.Modals.login2,
+			if ( window.CPG.UserName === "" ) {
+				showModalYesNo( window.CPG.Modals.login1,
+								window.CPG.Modals.login2,
 								function( yes ) {
 					if ( yes ) {
 						window.location.href = "/login/graphics-animation";
@@ -1110,7 +1135,7 @@ var Commands = Base.extend( {
 		$( ".command-clone" ).on( "click tap", function( event ) {
 			Base.each( project.selectedItems, function( item ) {
 				item.joinDirty = false; // Attribute joinDirty may be set by a triggered function
-				$( "#page-paper" ).trigger( "itemDeselected", { item: item, join: false } );
+				Editor.trigger( "itemDeselected", { item: item, join: false } );
 
 				// Clone item
 				var newItem = Do.execute( {
@@ -1120,7 +1145,7 @@ var Commands = Base.extend( {
 				} );
 
 				setTimeout( function() {
-					$( "#page-paper" ).trigger( "itemSelected", { item: newItem, join: true } );
+					Editor.trigger( "itemSelected", { item: newItem, join: true } );
 				}, 5 );
 			} );
 
@@ -1954,6 +1979,9 @@ var UndoManager = Base.extend( {
 		this._actions.length = this._actionPointer;
 		this._reverseActions.length = this._actionPointer;
 
+		// Trigger change event
+		Editor.trigger( "change" );
+
 		return res;
 	},
 
@@ -2012,7 +2040,7 @@ var UndoManager = Base.extend( {
 
 			// Play reverse action
 			var item = this._reverseActions[ this._actionPointer ]();
-			$( "#page-paper" ).trigger( "undoUpdate", item );
+			Editor.trigger( "undoUpdate", item );
 
 			if ( this._reverseActions[ this._actionPointer ].join ) this.undo();
 		}
@@ -2025,7 +2053,7 @@ var UndoManager = Base.extend( {
 
 			// Play action
 			var item = this._actions[ this._actionPointer++ ]();
-			$( "#page-paper" ).trigger( "redoUpdate", item );
+			Editor.trigger( "redoUpdate", item );
 
 			if ( this._actionPointer < this._actions.length &&
 					this._actions[ this._actionPointer ].join ) {
@@ -2149,7 +2177,7 @@ function onMouseDown( event ) {
 		if ( baseCropper.getRect().contains( event.point ) ) {
 			setTimeout( function() {
 				Base.each( project.selectedItems, function( item ) {
-					$( "#page-paper" ).trigger( "itemDeselected", { item: item, join: false } );
+					Editor.trigger( "itemDeselected", { item: item, join: false } );
 				} );
 			}, 0 );
 
@@ -2176,7 +2204,7 @@ function onMouseDown( event ) {
 		} );
 
 		// Tell the world, what we just did
-		$( "#page-paper" ).trigger( "itemSelected", { item: item } );
+		Editor.trigger( "itemSelected", { item: item } );
 	}
 
 	///////////////////////////////////////////////////////
@@ -2380,7 +2408,7 @@ function onMouseUp( event ) {
 	if ( moveItem === "Not moved" && item.hasBeenSelected ) {
 
 		project.deselectAll();
-		$( "#page-paper" ).trigger( "itemDeselected", { item: item, join: false } );
+		Editor.trigger( "itemDeselected", { item: item, join: false } );
 
 		// Look for item below
 		var next = item;
@@ -2388,7 +2416,7 @@ function onMouseUp( event ) {
 			if ( next.hitTest( event.point ) ) {
 				next.selected = true;
 				setTimeout( function() {
-					$( "#page-paper" ).trigger( "itemSelected", { item: next, join: true } );
+					Editor.trigger( "itemSelected", { item: next, join: true } );
 				}, 5 );
 				return;
 			}
@@ -2398,7 +2426,7 @@ function onMouseUp( event ) {
 		if ( hitResult = project.hitTest( event.point ) && hitResult && hitResult.item !== item ) {
 			hitResult.item.selected = true;
 			setTimeout( function() {
-				$( "#page-paper" ).trigger( "itemSelected", { item: hitResult.item, join: true } );
+				Editor.trigger( "itemSelected", { item: hitResult.item, join: true } );
 			}, 5 );
 			return;
 		}
@@ -2425,48 +2453,54 @@ window.paperOnbeforeunload = function() {
 	sessionStorage.paperProject = project.exportJSON();
 };
 
-////////////////////////////////////////////////////////
-// Program startup
+var reset = function( code ) {
+	///////////////////////////////////////////////////
+	// Loading a specific code file
+	if ( code && code !== "" ) {
 
-///////////////////////////////////////////////////
-// If a session is active, we reload everything
-if ( sessionStorage.paperProject ) {
+		// New start anyways
+		project.clear();
+		project.importJSON( code );
 
-	// New start anyways
-	project.clear();
-	project.importJSON( sessionStorage.paperProject );
-
-	// Of the the baseLayer we only need the current bounds
-	var baseLayer = project.layers[ project.layers.length - 1 ],
+		// Of the the baseLayer we only need the current bounds
+		baseLayer = project.layers[ project.layers.length - 1 ];
 		cropperBounds = baseLayer.children[ 0 ].children[ 1 ].bounds;
-	cropperBounds.point -= CropperTopLeft;
-	baseLayer.removeChildren();
 
-	// Same drawing layer as before
-	var drawingLayer = project.layers[ project.layers.length - 2 ];
+		cropperBounds.point -= CropperTopLeft;
+		baseLayer.removeChildren();
 
-//////////////////////////////////////////////////////
-// New session (new browser tab or window)
-} else {
+		// Same drawing layer as before
+		drawingLayer = project.layers[ project.layers.length - 2 ];
 
-	// Set the default folders for importing and exporting images
-	sessionStorage.importFolder = window.AllImages[ 0 ].groupName;
-	sessionStorage.exportFolder = "/";
+	//////////////////////////////////////////////////////
+	// Create a new file
+	} else {
 
-	// Take the first layer as base layer
-	var baseLayer = project.activeLayer;
+		// Set the default folders for importing and exporting images
+		sessionStorage.importFolder = window.AllImages[ 0 ].groupName;
+		sessionStorage.exportFolder = "/";
 
-	// Make a new drawing layer
-	var drawingLayer = new Layer();
+		project.clear();
+
+		// Take the first layer as base layer
+		baseLayer = project.activeLayer;
+
+		// Make a new drawing layer
+		drawingLayer = new Layer();
+	}
+
+	/////////////////////////////////////////////////77
+	// Preparing the base layer (viewer, cropper, commands)
+	baseLayer.activate();
+
+	baseCropper = new Cropper( cropperBounds );
+	baseViewer = new Viewer( baseCropper );
+	baseCommands = new Commands( baseCropper );
 }
 
-/////////////////////////////////////////////////77
-// Preparing the base layer (viewer, cropper, commands)
-baseLayer.activate();
-
-var baseCropper = new Cropper( cropperBounds );
-var baseViewer = new Viewer( baseCropper );
-var baseCommands = new Commands( baseCropper );
+////////////////////////////////////////////////////////
+// Program startup
+reset();
 
 // Initialize the first colorizer (for brightness, saturation and hue)
 var baseColorizer1 = new Colorizer( [ {
@@ -2514,3 +2548,5 @@ baseLayer.bringToFront();
 
 // Let's draw ...
 drawingLayer.activate();
+
+$( ".page" ).trigger( "paper-loaded" );

@@ -1365,11 +1365,6 @@ var draw = function() {
     fill(Jupiter.Farbe);
     arc(Jupiter.x, Jupiter.y, Jupiter.Durchmesser, Jupiter.Durchmesser, 180, 360);
 
-    if( mouseIsPressed ) {
-        posX += (mouseX - posX) / 50;
-        posY += (mouseY - posY) / 50;
-    }
-
     if( !animationTimer || animationTimer <= 0 ) {
         letzteMillis = millis();
 
