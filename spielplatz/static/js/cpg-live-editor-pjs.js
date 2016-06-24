@@ -71,6 +71,9 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 		return "Each editor has it's own way to move resources into a project environment."		
 	},
 
+	alternateType: function() {
+		return "Editors may have alternate file types (paper/png, sounds/mp3)."				
+	} 
 
 	// End of interface methods
 	////////////////////////////////////////////////////////////////////////

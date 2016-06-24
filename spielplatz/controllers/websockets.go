@@ -50,21 +50,23 @@ type Message struct {
 	Command    string
 	returnChan chan Data
 
-	CodeFiles     []string
-	Commit        string
-	FileNames     []string
-	FileName      string
-	FileType      string
-	Images        []string
-	MessageId     int64
-	MessageIds    []int64
-	Overwrite     bool
-	ProjectNames  []string
-	ProjectName   string
-	ResourceFiles []string
-	TimeStamps    []int64
-	UserName      string
-	UserNames     []string
+	CodeFiles      []string
+	Commit         string
+	FileNames      []string
+	FileName       string
+	FileType       string
+	Images         []string
+	MessageId      int64
+	MessageIds     []int64
+	Overwrite      bool
+	ProjectNames   []string
+	ProjectName    string
+	ResourceFiles  []string
+	TimeStamps     []int64
+	UserName       string
+	UserNames      []string
+	AlternateFiles []string
+	AlternateType  string
 }
 
 type SourceFile struct {
@@ -199,7 +201,7 @@ func serveMessages(messageChan chan Message) {
 		case "readSourceFiles":
 			data = readSourceFiles(s, message.FileNames, message.ProjectNames, message.FileType)
 		case "writeSourceFiles":
-			data = writeSourceFiles(s, message.FileNames, message.ProjectName, message.FileType, message.CodeFiles, message.TimeStamps, message.Images, message.Overwrite)
+			data = writeSourceFiles(s, message.FileNames, message.ProjectName, message.FileType, message.CodeFiles, message.TimeStamps, message.Images, message.AlternateFiles, message.AlternateType, message.Overwrite)
 		case "renameSourceFile":
 			data = renameSourceFile(s, message.FileNames, message.FileType)
 		case "deleteSourceFiles":
@@ -232,7 +234,7 @@ func serveMessages(messageChan chan Message) {
 	}
 }
 
-func writeSourceFiles(s session.Store, fileNames []string, project string, fileType string, codeFiles []string, timeStamps []int64, Images []string, overwrite bool) Data {
+func writeSourceFiles(s session.Store, fileNames []string, project string, fileType string, codeFiles []string, timeStamps []int64, Images []string, alternateFiles []string, alternateType string, overwrite bool) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -293,6 +295,29 @@ func writeSourceFiles(s session.Store, fileNames []string, project string, fileT
 		}
 
 		/////////////////////////////////////////
+		// Also check if alternate file type (png, mp3) would be overwritten
+		altSubDir := ""
+		switch alternateType {
+		case "png":
+			altSubDir = beego.AppConfig.String("userdata::imagefiles")
+		case "mp3":
+			altSubDir = beego.AppConfig.String("userdata::soundfiles")
+		}
+		altDir := dir[:len(dir)-len(fileType)-1] + altSubDir + "/"
+		altFileName := altDir + fileNames[i][:len(fileNames[i])-len(fileType)] + alternateType
+		if alternateType != "" {
+			fileStat, err = os.Stat(altFileName)
+			if !overwrite {
+				if !os.IsNotExist(err) {
+					return Data{
+						"Error": T["websockets_file_exists"],
+					}
+				}
+			}
+		}
+		beego.Warning("altDir:", altDir, "altFileName:", altFileName)
+
+		/////////////////////////////////////////
 		// Create/overwrite file
 		if file, err = os.Create(fileName); err != nil {
 			beego.Error("Cannot create or overwrite file", fileName)
@@ -315,6 +340,11 @@ func writeSourceFiles(s session.Store, fileNames []string, project string, fileT
 		////////////////////////////////////////
 		// Create image file
 		createImageFile(Images[i], fileName)
+		if alternateType == "png" {
+			createImageFile(alternateFiles[i], altFileName)
+		} else if alternateType == "mp3" {
+			// create sound file
+		}
 	}
 
 	return Data{
@@ -593,7 +623,7 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 	// Write source files to new project directory
 	timeStamps := []int64{0}
 	fileName := []string{projectName + "." + fileType}
-	data := writeSourceFiles(s, fileName, projectName, fileType, codeFiles, timeStamps, images, false)
+	data := writeSourceFiles(s, fileName, projectName, fileType, codeFiles, timeStamps, images, []string{}, "", false)
 
 	// Create .gitignore file with .spielplatz/project in it
 	models.CreateTextFile(projectDir+"/"+".gitignore", beego.AppConfig.String("userdata::spielplatzdir")+"/rights")
@@ -708,7 +738,7 @@ func writeProject(s session.Store, projectName string, fileType string, fileName
 
 	// Write source files to new project directory
 	fileName := []string{projectName + "." + fileType}
-	data := writeSourceFiles(s, fileName, projectName, fileType, codeFiles, timeStamps, images, true)
+	data := writeSourceFiles(s, fileName, projectName, fileType, codeFiles, timeStamps, images, []string{}, "", true)
 
 	if len(data["OutdatedFiles"].([]string)) > 0 {
 		return data
@@ -949,6 +979,8 @@ func copyFileContents(src, dst string) (err error) {
 
 func createImageFile(img string, fileName string) error {
 
+	// Resize image before: https://github.com/nfnt/resize
+	//
 	////////////////////////////////////////
 	// Write image file
 	var imgFile *os.File
@@ -956,6 +988,7 @@ func createImageFile(img string, fileName string) error {
 	pngImage, _, err := image.Decode(imageReader)
 	if err != nil {
 		beego.Error(err)
+		return err
 	}
 	if imgFile, err = os.Create(fileName[0:strings.LastIndex(fileName, ".")] + ".png"); err != nil {
 		beego.Error("Cannot create or overwrite file (", err, ")")

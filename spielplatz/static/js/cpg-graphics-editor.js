@@ -5,7 +5,7 @@ $( function fn( ) {
 
 	/////////////////////////////////////////////////////////////////
 	// Initiate the live editor that fits to the current page ( tab )
-	var CPG_page = sessionStorage[ "CPG_page" ] || "svg",  
+	var CPG_page = sessionStorage[ "CPG_page" ] || "paper",  
 		CPG_options = {
 			el: $( "#cpg-graphics-editor-pages" ),
 			page: CPG_page
@@ -14,7 +14,7 @@ $( function fn( ) {
 // Wait till paper page is loaded
 	$( "#page-" + CPG_page ).one( "paper-loaded", function() {
 
-		CPG_graphicsEditor =( CPG_page === "svg" ) ? new window.GraphicsEditorFrameSvg( CPG_options ) : 
+		CPG_graphicsEditor =( CPG_page === "paper" ) ? new window.GraphicsEditorFramePaper( CPG_options ) : 
 							( CPG_page === "anim" ) ? new window.GraphicsEditorFrameAnim( CPG_options ) :
 
 							console.error ( "No valid CPG_page specified" );

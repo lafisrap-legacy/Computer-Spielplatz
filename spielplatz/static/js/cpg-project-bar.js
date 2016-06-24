@@ -639,7 +639,8 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		this.editor.getScreenshot( function ( data ) {
 
 			// remove BASE64-HTML header
-			var image = data.substr( data.search( "," )+1 );
+			var image = data.substr( data.search( "," )+1 )
+				alternate = self.editor.alternateType();
 
 			$WS.sendMessage( {
 				Command: "writeSourceFiles",
@@ -649,7 +650,9 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				TimeStamps: self.codeFiles[ fileName ] && [ self.codeFiles[ fileName ].timeStamp ] || null,
 				CodeFiles: [ code ],
 				Overwrite: self.currentCodeFile === fileName,
-				Images : [ image ], 
+				Images : [ image ],
+				AlternateFiles : alternate? [ alternate.file.substr( data.search( "," )+1 ) ] : undefined,
+				AlternateType: alternate? alternate.type : ""
 			}, function( message ) {
 
 				var codeFile = self.codeFiles[ self.currentCodeFile ];
@@ -879,7 +882,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 	},
 
 	openNewProject: function( projectName ) {
-		// This should be overwritten by the project bar client (live-editor, graphics-editor ...)
+		// This may be overwritten by the project bar client (live-editor, graphics-editor ...)
 	},
 
 	removeMessage: function( id, index ) {

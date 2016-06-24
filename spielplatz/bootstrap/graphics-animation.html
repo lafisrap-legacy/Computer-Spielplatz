@@ -93,12 +93,12 @@
         {{end}}                       
     </div>
     <ul class="nav nav-tabs">
-        <li id="nav-bar-paper" rel="svg" class="nav-bar-page"><a href="#">{{ .GraphicsHeaderGraphics }}</a></li>
+        <li id="nav-bar-paper" rel="paper" class="nav-bar-page"><a href="#">{{ .GraphicsHeaderGraphics }}</a></li>
         <li id="nav-bar-animation" rel="anim" class="nav-bar-page"><a href="#">{{ .GraphicsHeaderAnimations }}</a></li>
     </ul>
     <div class="clearfix"></div>
     <div id="cpg-graphics-editor-pages">
-        <div id="page-svg" class="page active">
+        <div id="page-paper" class="page active">
             <div id="paperCanvasWrapper">
                 <canvas id="paperCanvas"></canvas>
             </div>
@@ -293,10 +293,10 @@
 <script src="static/js/underscore-min.js"></script>
 <script src="static/js/backbone-min.js"></script>
 <script src="static/js/websockets.js"></script>
-<script src="static/js/cpg-graphics-editor-paper.js" type="text/paperscript" canvas="paperCanvas"></script>
+<script src="static/js/cpg-graphics-editor-paperjs.js" type="text/paperscript" canvas="paperCanvas"></script>
 <script src="static/js/cpg-project-bar.js"></script>
 <script src="static/js/cpg-graphics-editor.js"></script>
-<script src="static/js/cpg-graphics-editor-svg.js"></script>
+<script src="static/js/cpg-graphics-editor-paper.js"></script>
 <script src="static/js/cpg-graphics-editor-anim.js"></script>
 </body>
 </html>
