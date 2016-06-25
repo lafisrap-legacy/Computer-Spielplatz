@@ -73,7 +73,7 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 
 	alternateType: function() {
 		return "Editors may have alternate file types (paper/png, sounds/mp3)."				
-	} 
+	},
 
 	// End of interface methods
 	////////////////////////////////////////////////////////////////////////

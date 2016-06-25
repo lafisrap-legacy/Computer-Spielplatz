@@ -73,7 +73,6 @@ window.GraphicsEditorFrame = Backbone.View.extend ( {
 		return "Editors may have alternate file types (paper/png, sounds/mp3)."				
 	},
 
-
 	// End of interface methods
 	////////////////////////////////////////////////////////////////////////
 
@@ -84,8 +83,6 @@ window.GraphicsEditorFrame = Backbone.View.extend ( {
 	setClean: function( ) {
 		this._dirty = false;
 	},
-
-
 } );
 
 //////////////////////////////////////////////////////////////////////////

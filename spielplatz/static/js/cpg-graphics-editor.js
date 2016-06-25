@@ -11,7 +11,7 @@ $( function fn( ) {
 			page: CPG_page
 		};
 
-// Wait till paper page is loaded
+	// Wait till paper page is loaded
 	$( "#page-" + CPG_page ).one( "paper-loaded", function() {
 
 		CPG_graphicsEditor =( CPG_page === "paper" ) ? new window.GraphicsEditorFramePaper( CPG_options ) : 
@@ -20,48 +20,48 @@ $( function fn( ) {
 							console.error ( "No valid CPG_page specified" );
 
 
-	var projectControlBar = window.ProjectControlBar.extend( {
+		var projectControlBar = window.ProjectControlBar.extend( {
 
-		openNewProject: function( projectName, cb ) {
+			openNewProject: function( projectName, cb ) {
 
-			this.readSourceFiles( [ projectName + "." + this.fileType ], [ projectName ], function() {
-				if( cb ) cb()
-			} );
-		},
+				this.readSourceFiles( [ projectName + "." + this.fileType ], [ projectName ], function() {
+					if( cb ) cb()
+				} );
+			},
+		} );
+
+		if( $( "#project-button-group" ).length ) {
+			CPG_projectControlBar = new projectControlBar( {
+											el: $( "#project-button-group" ),
+											userName: window.CPG.UserName, 
+											fileType: CPG_page,
+											editor: CPG_graphicsEditor,
+											wsAddress: window.CPG.WebSocketsAddress, 
+											wsToken: window.CPG.WebSocketsToken,
+											newFile: window.CPG.ProjectBarNewFile + "." + CPG_page,
+											modalContainer: $( ".container" ),
+										} );		
+
+			CPG_projectControlBar.refreshSession( window.CPG.LoginTime );
+		}
+	});
+
+	window.onbeforeunload = function() {
+		if( window.CPG_projectControlBar ) {
+			console.log( "Storing code file in project control bar!" );
+			CPG_projectControlBar.storeCurrentCodeFile();			
+		}
+
+		if( window.CPG_graphicsEditor.modified() ) return window.CPG.ProjectBarFileChanged;
+	}
+
+	$( window ).blur( function( e ) {
+		//console.log( "Going away to next tab" );
+		// Do Blur Actions Here
 	} );
 
-	CPG_projectControlBar = new projectControlBar( {
-									el: $( "#project-button-group" ),
-									userName: window.CPG.UserName, 
-									fileType: CPG_page,
-									editor: CPG_graphicsEditor,
-									wsAddress: window.CPG.WebSocketsAddress, 
-									wsToken: window.CPG.WebSocketsToken,
-									newFile: window.CPG.ProjectBarNewFile + "." + CPG_page,
-									modalContainer: $( ".container" ),
-								} );
-
-	// Start integration functions AFTER live-editor has loaded
-	$( window ).trigger( "live-editor-late-integration" );
-
-	CPG_projectControlBar.refreshSession( window.CPG.LoginTime );
-
-});
-
-window.onbeforeunload = function() {
-	//if( CPG_graphicsEditor.modified() ) return window.CPG.ProjectBarFileChanged;
-}
-
-$( window ).blur( function( e ) {
-	//console.log( "Going away to next tab" );
-	// Do Blur Actions Here
-} );
-
-$( window ).on( 'hashchange', function( e ){
-	console.log( "URL changed." );
-	// do something...
-} );
-
-//setInterval( CPG_graphicsEditor.storeCurrentCodeFile, 5000 );
-
+	$( window ).on( 'hashchange', function( e ){
+		console.log( "URL changed." );
+		// do something...
+	} );
 } );

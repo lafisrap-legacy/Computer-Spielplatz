@@ -7,22 +7,57 @@
 //
 var baseLayer, cropperBounds, drawingLayer, baseCropper, baseViewer, baseCommands;
 
-paper.editor = $( "#page-svg" );
+paper.editor = $( "#page-paper" );
 paper.EditorAPI = {
 	text: function() {
-		return project.exportJSON( { 
+		var activeLayer = project.activeLayer;
+		drawingLayer.activate();
+
+		// Add the cropper rect as transparent grey backround
+		var rect = new Path.Rectangle( baseLayer.children[ 0 ].children[ 1 ].bounds );
+		rect.strokeWidth = 0;
+		rect.fillColor = new Color( 0, 0, 0, 40 );
+		rect.sendToBack();
+
+		JSONDrawingLayer = drawingLayer.exportJSON( { 
 			embedImages: true,
 			asString: true,
 		} );
+
+		rect.remove();
+		project.activeLayer = activeLayer;
+
+		return JSONDrawingLayer;
 	},
 
 	reset: function( code ) {
-		reset( code );
+		var activeLayer = project.activeLayer;
+		drawingLayer.activate();
+
+		// Remove all children and import new
+		drawingLayer.removeChildren();
+
+		if( !code || code === "" ) {
+			baseCropper.set( );
+		} else {
+			drawingLayer.importJSON( code );
+
+			// Set the cropper rect
+			var rect = drawingLayer.firstChild;
+			baseCropper.set( rect.bounds );
+			rect.remove();
+
+			project.deselectAll();
+		}
+
+		project.activeLayer = activeLayer;
 	},
 
 	getScreenshot: function( cb ) {
-		var rect = new Path.Rectangle( baseCropper.getInnerRect() );
+		var activeLayer = project.activeLayer;
+		drawingLayer.activate();
 
+		var rect = new Path.Rectangle( baseCropper.getInnerRect() );
 		rect.strokeWidth = 0;
 		rect.fillColor = new Color(0, 0, 0, 0);
 
@@ -32,9 +67,14 @@ paper.EditorAPI = {
 
 		rect.remove();
 		image.remove();
+
+		project.activeLayer = activeLayer;
 	},
 
 	getImage: function( ) {
+		var activeLayer = project.activeLayer;
+		drawingLayer.activate();
+
 		var rect = new Path.Rectangle( baseCropper.getInnerRect() );
 
 		rect.strokeWidth = 0;
@@ -46,6 +86,8 @@ paper.EditorAPI = {
 		rect.remove();
 		image.remove();
 
+		project.activeLayer = activeLayer;
+
 		return data;
 	},
 }
@@ -55,11 +97,11 @@ Editor = paper.editor;
 ////////////////////////////////////////////////////////////////////////
 // Cropper is the cropping tool for the editor. It's part of the BaseLayer
 //
-var CropperTopLeft = new Point( 100, 100 );		// Upper left corner of maximum cropper
+var CropperTopLeft = new Point( 140, 16 );		// Upper left corner of maximum cropper
 var Cropper = Base.extend( {
 	_class: "Cropper",
 	_minSize: new Size( 40, 40 ),				// Minimum cropper size
-	_maxSize: new Size( 400, 400 ),				// Maximum cropper size ( max: 580 )
+	_maxSize: new Size( 320, 568 ),				// Maximum cropper size ( max: 580 )
 	_areaRect: new Rectangle( 0, 0, 600, 600 ),	// Complete area
 	_topLeft: CropperTopLeft,					// Upper left corner
 	_tintedArea: null,							// Surrounding tinted area
@@ -96,6 +138,7 @@ var Cropper = Base.extend( {
 		this._rect.onMouseMove = function( event ) { self.onMouseMove( event ); };
 		this._rect.onMouseLeave = function( event ) { self.onMouseLeave( event ); };
 		this._rect.onMouseDrag = function( event ) { self.onMouseDrag( event ); };
+		this._rect.onMouseUp = function( event ) { self.onMouseUp( event ); };
 		$( "#page-svg" ).on( "mouseup", function( event ) {
 			var offset = $( "#paperCanvasWrapper" ).offset();
 
@@ -112,7 +155,15 @@ var Cropper = Base.extend( {
 			max = this._maxSize;
 
 		// Handle Rectangle parameter
-		if ( x1 instanceof Rectangle ) {
+
+		if ( !x1 ) {
+			
+			x1 = 0;
+			y1 = 0;
+			x2 = max.width;
+			y2 = max.height;
+
+		} else if ( x1 instanceof Rectangle ) {
 			var rect = x1.clone();
 			rect.point -= CropperTopLeft;
 
@@ -239,6 +290,7 @@ var Cropper = Base.extend( {
 	//
 	onMouseDrag: function( event ) {
 
+		console.log( "Cropper: onMouseDrag" );
 		if ( baseCommands.cursorMode === "bounds" || moveItem ) return;
 
 		if ( !this.isDragging ) this._oldRect = this.getInnerRect();
@@ -252,6 +304,7 @@ var Cropper = Base.extend( {
 	// Method onMouseUp
 	//
 	onMouseUp: function( event ) {
+		console.log( "Cropper: onMouseUp" );
 		if ( baseCommands.cursorMode === "bounds" || moveItem || !this.isDragging ) return;
 
 		Do.execute( {
@@ -2060,6 +2113,9 @@ var UndoManager = Base.extend( {
 		// Shorten the actions and reverse actions array if necessary
 		this._actions.length = this._actionPointer;
 		this._reverseActions.length = this._actionPointer;
+
+		// Trigger change event
+		Editor.trigger( "change" );
 	},
 
 	////////////////////////////////////////////////////
@@ -2073,6 +2129,9 @@ var UndoManager = Base.extend( {
 			Editor.trigger( "undoUpdate", item );
 
 			if ( this._reverseActions[ this._actionPointer ].join ) this.undo();
+
+			// Trigger change event
+			Editor.trigger( "change" );
 		}
 	},
 
@@ -2089,6 +2148,9 @@ var UndoManager = Base.extend( {
 					this._actions[ this._actionPointer ].join ) {
 				this.redo();
 			}
+
+			// Trigger change event
+			Editor.trigger( "change" );
 		}
 	}
 } );
@@ -2128,6 +2190,8 @@ function onMouseMove( event ) {
 		return;
 	}
 
+	console.log("onMouseMove: hitResult", hitResult.type );
+
 	// Are we hovering over some grab points from selected items
 	if ( hitResult.type === "bounds" ) {
 		var c = baseCommands.resizeMode === COMMAND_ROTATE ?
@@ -2146,6 +2210,7 @@ function onMouseMove( event ) {
 /////////////////////////////////////////////////////////////
 // onMouseDown handles click events of drawing layer
 function onMouseDown( event ) {
+		debugger;
 
 	// Nothing happend so far ...
 	segment = item = moveItem = startRotation = null;
@@ -2482,58 +2547,24 @@ function onMouseUp( event ) {
 	}
 };
 
-window.paperOnbeforeunload = function() {
-	sessionStorage.paperProject = project.exportJSON();
-};
-
-var reset = function( code ) {
-	///////////////////////////////////////////////////
-	// Loading a specific code file
-	if ( code && code !== "" ) {
-
-		// New start anyways
-		project.clear();
-		project.importJSON( code );
-
-		// Of the the baseLayer we only need the current bounds
-		baseLayer = project.layers[ 0 ];
-		cropperBounds = baseLayer.children[ 0 ].children[ 1 ].bounds;
-
-		cropperBounds.point -= CropperTopLeft;
-		baseLayer.removeChildren();
-
-		// Same drawing layer as before
-		drawingLayer = project.layers[ project.layers.length - 2 ];
-
-	//////////////////////////////////////////////////////
-	// Create a new file
-	} else {
-
-		// Set the default folders for importing and exporting images
-		sessionStorage.importFolder = window.AllImages[ 0 ].groupName;
-		sessionStorage.exportFolder = "/";
-
-		project.clear();
-
-		// Take the first layer as base layer
-		baseLayer = project.activeLayer;
-
-		// Make a new drawing layer
-		drawingLayer = new Layer();
-	}
-
-	/////////////////////////////////////////////////77
-	// Preparing the base layer (viewer, cropper, commands)
-	baseLayer.activate();
-
-	baseCropper = new Cropper( cropperBounds );
-	baseViewer = new Viewer( baseCropper );
-	baseCommands = new Commands( baseCropper );
-}
-
 ////////////////////////////////////////////////////////
 // Program startup
-reset();
+
+// Set project to zero, make drawing and base layer
+project.clear();
+var baseLayer = project.activeLayer;
+var drawingLayer = new Layer();
+
+sessionStorage.importFolder = window.AllImages[ 0 ].groupName;
+sessionStorage.exportFolder = "/";
+
+///////////////////////////////////////////////////
+// Preparing the base layer (viewer, cropper, commands)
+baseLayer.activate();
+
+baseCropper = new Cropper( cropperBounds );
+baseViewer = new Viewer( baseCropper );
+baseCommands = new Commands( baseCropper );
 
 // Initialize the first colorizer (for brightness, saturation and hue)
 var baseColorizer1 = new Colorizer( [ {

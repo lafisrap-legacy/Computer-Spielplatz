@@ -924,6 +924,11 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 	getCurrentCodeFile: function() {
 		return this.codeFiles[ this.currentCodeFile ];
+	},
+
+	storeCurrentCodeFile: function() {
+		this.codeFiles[ this.currentCodeFile ].code = this.editor.text();
+		sessionStorage[ this.currentCodeFile ] = JSON.stringify( this.codeFiles[ this.currentCodeFile ] );
 	}
 } );
 
