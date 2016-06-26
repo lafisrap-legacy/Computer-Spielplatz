@@ -247,6 +247,12 @@ window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
             changed: code !== newCode
         };
 	},
+
+	alternateType: function() {
+		// No alternate file types for live editor"
+		return null;
+	},
+
 } );
 
 } )( );

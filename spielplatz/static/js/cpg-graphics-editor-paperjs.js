@@ -10,8 +10,8 @@ var baseLayer, cropperBounds, drawingLayer, baseCropper, baseViewer, baseCommand
 paper.editor = $( "#page-paper" );
 paper.EditorAPI = {
 	text: function() {
-		var activeLayer = project.activeLayer;
-		drawingLayer.activate();
+		//var activeLayer = project.activeLayer;
+		//drawingLayer.activate();
 
 		// Add the cropper rect as transparent grey backround
 		var rect = new Path.Rectangle( baseLayer.children[ 0 ].children[ 1 ].bounds );
@@ -25,14 +25,14 @@ paper.EditorAPI = {
 		} );
 
 		rect.remove();
-		project.activeLayer = activeLayer;
+		//project.activeLayer = activeLayer;
 
 		return JSONDrawingLayer;
 	},
 
 	reset: function( code ) {
-		var activeLayer = project.activeLayer;
-		drawingLayer.activate();
+		//var activeLayer = project.activeLayer;
+		//drawingLayer.activate();
 
 		// Remove all children and import new
 		drawingLayer.removeChildren();
@@ -47,33 +47,39 @@ paper.EditorAPI = {
 			baseCropper.set( rect.bounds );
 			rect.remove();
 
+			project.insertLayer(1, drawingLayer);
 			project.deselectAll();
 		}
 
-		project.activeLayer = activeLayer;
+		//project.activeLayer = activeLayer;
 	},
 
 	getScreenshot: function( cb ) {
-		var activeLayer = project.activeLayer;
-		drawingLayer.activate();
+		//var activeLayer = project.activeLayer;
+		//drawingLayer.activate();
 
 		var rect = new Path.Rectangle( baseCropper.getInnerRect() );
 		rect.strokeWidth = 0;
 		rect.fillColor = new Color(0, 0, 0, 0);
 
-		var image = drawingLayer.rasterize( view.resolution, false );
+		var image = drawingLayer.rasterize( view.resolution, false ),
+			raster = baseCommands.cutRaster( image ),
+			scale = Math.min( 1, 200 / raster.width, 200 / raster.height );
 
-		cb( baseCommands.cutRaster( image ).toDataURL() );
+			debugger;
+		raster = raster.scale( scale ).rasterize( view.resolution, false );
+
+		cb( raster.toDataURL() );
 
 		rect.remove();
 		image.remove();
 
-		project.activeLayer = activeLayer;
+		//project.activeLayer = activeLayer;
 	},
 
 	getImage: function( ) {
-		var activeLayer = project.activeLayer;
-		drawingLayer.activate();
+		//var activeLayer = project.activeLayer;
+		//drawingLayer.activate();
 
 		var rect = new Path.Rectangle( baseCropper.getInnerRect() );
 
@@ -86,7 +92,7 @@ paper.EditorAPI = {
 		rect.remove();
 		image.remove();
 
-		project.activeLayer = activeLayer;
+		//project.activeLayer = activeLayer;
 
 		return data;
 	},
@@ -1211,6 +1217,8 @@ var Commands = Base.extend( {
 		// Menü-Command: Clone
 		//
 		$( ".command-clone" ).on( "click tap", function( event ) {
+			debugger;
+
 			Base.each( project.selectedItems, function( item ) {
 				item.joinDirty = false; // Attribute joinDirty may be set by a triggered function
 				Editor.trigger( "itemDeselected", { item: item, join: false } );
@@ -2210,7 +2218,6 @@ function onMouseMove( event ) {
 /////////////////////////////////////////////////////////////
 // onMouseDown handles click events of drawing layer
 function onMouseDown( event ) {
-		debugger;
 
 	// Nothing happend so far ...
 	segment = item = moveItem = startRotation = null;
@@ -2292,11 +2299,17 @@ function onMouseDown( event ) {
 	// If item was not selected, then select it now
 	if ( !item.hasBeenSelected ) {
 
+		var a = project.selectedItems;
+		debugger;
+
 		// Use the undoer to select it
 		Do.execute( {
 			item: item,
 			action: "Select"
 		} );
+
+		var b = project.selectedItems;
+		var c = item.selected;
 
 		// Tell the world, what we just did
 		Editor.trigger( "itemSelected", { item: item } );
