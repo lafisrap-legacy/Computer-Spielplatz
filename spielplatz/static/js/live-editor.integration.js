@@ -41,6 +41,39 @@ if( !TooltipEngine.classes.imagePicker.prototype.defaultImage )
 	console.error( errMsg + "Default image file is not in place." );
 TooltipEngine.classes.imagePicker.prototype.defaultImage = "Spielplatz/Leer";
 
+if( !TooltipEngine.classes.imageModal.prototype.updateTooltip ) 
+	console.error( errMsg + "updateTooltip mothod of image Modal is not in place." );
+
+debugger;
+TooltipEngine.classes.imageModal.prototype.updateTooltip = function updateTooltip(url) {
+    if (url !== this.currentUrl) {
+        this.currentUrl = url.trim();
+        if (url === "") {
+            this.$(".thumb").hide();
+            this.$(".thumb-throbber").hide();
+            this.$(".thumb-error").text(i18n._("Enter an image URL.")).show();
+            return;
+        }
+        var allowedHosts = /(\.|^)?(khanacademy\.org|kastatic\.org|kasandbox\.org|ka-perseus-images\.s3\.amazonaws\.com|wikimedia\.org|localhost:\d+)$/i;
+        var match = /\/\/([^\/]*)(?:\/|\?|#|$)/.exec(url);
+        var host = match ? match[1] : "";
+        if (!host || allowedHosts.test(host)) {
+            if (url !== this.$(".thumb").attr("src")) {
+                this.$(".thumb").attr("src", url);
+                this.$(".thumb-throbber").show();
+            }
+            if (this.$(".thumb-error").hasClass("domainError")) {
+                this.$(".thumb-error").removeClass("domainError").hide();
+                this.$(".thumb").show();
+            }
+        } else {
+            this.$(".thumb").hide();
+            this.$(".thumb-error").text(i18n._("Sorry! That server is not permitted.")).addClass("domainError").show();
+            this.$(".thumb-throbber").hide();
+        }
+    }
+};
+
 ///////////////////////////////////////////////////////////
 // Late integration functions
 //

@@ -277,6 +277,23 @@ h1, h2, h3, h4, h5, h6 {
   text-align: center;
 }
 
+#project-bar-select-list-label {
+  margin-top: 20px;
+}
+
+#project-bar-save {
+  padding-right: 2px;
+}
+
+#project-bar-save-as-up .btn {
+  padding-left: 2px;
+}
+
+#project-bar-save-as-up .dropdown-menu {
+  left: -75px;
+}
+
+
 #modal-codefiles .filename {
   font-size: 1.2em;
   display: inline-block;

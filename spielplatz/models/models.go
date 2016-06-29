@@ -159,6 +159,7 @@ var T map[string]string
 var TLanguages map[string]map[string]string
 
 const (
+	MaxProjectsPerUser = 100
 	MaxUserPerProject  = 100
 	MaxRightsPerUser   = 100
 	MaxMessagesPerUser = 100
@@ -397,7 +398,7 @@ func CreateGroupUserDatabaseEntry(u *User, group string) error {
 
 //////////////////////////////////////////////////
 // CloneProjectDir
-func CloneProjectDir(userName string, projectName string) error {
+func CloneProjectDir(userName string, projectName string, readonly bool) error {
 	url := beego.AppConfig.String("userdata::location") + "/" +
 		beego.AppConfig.String("userdata::bareprojects") + "/" +
 		projectName
@@ -429,7 +430,7 @@ func CloneProjectDir(userName string, projectName string) error {
 		return err
 	}
 	for _, right := range PRR_NAMES {
-		if right == "Write" {
+		if right == "Write" && readonly == false {
 			cnf.Set("rights::"+right, "true")
 		} else {
 			cnf.Set("rights::"+right, "false")
@@ -562,15 +563,15 @@ func GetProjectRightsFromDatabase(userName string, projectName string) []string 
 
 	o.QueryTable("project_user").Filter("user__name", userName).Filter("project__name", projectName).Values(&r, "rights")
 
-	//	beego.Warning("Rights for", userName, projectName, r)
-	rightBits := r[0]["Rights"].(int64)
-	for index, right := range PRR_NAMES {
-		if rightBits&(1<<uint(index)) > 0 {
-			rights = append(rights, right)
+	if len(r) > 0 {
+		rightBits := r[0]["Rights"].(int64)
+		for index, right := range PRR_NAMES {
+			if rightBits&(1<<uint(index)) > 0 {
+				rights = append(rights, right)
+			}
 		}
 	}
 
-	//	beego.Warning("Rights for", userName, rights)
 	return rights
 }
 

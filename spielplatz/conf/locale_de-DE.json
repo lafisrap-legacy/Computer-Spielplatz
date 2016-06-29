@@ -72,6 +72,7 @@
 	"project_bar_modal_project_save_2"	: "Was hast du seit dem letzten Speichern getan (Commit-Nachricht)",
 	"project_bar_modal_project_save_ok"	: "Projekt speichern",
 	"project_bar_modal_project_save"	: "Projekt speichern",
+	"project_bar_modal_projects"		: "Wähle ein Projekt",
 	"project_bar_modal_save_filename_2" : "Gib einen Dateinamen ein",
 	"project_bar_modal_save_filename"   : "Datei speichern",
 	"project_bar_modal_save"		    : "Speichern",

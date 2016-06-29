@@ -40,6 +40,7 @@ $( function fn( ) {
 											wsToken: window.CPG.WebSocketsToken,
 											newFile: window.CPG.ProjectBarNewFile + "." + CPG_page,
 											modalContainer: $( ".container" ),
+											disableProjectInit: true,
 										} );		
 
 			CPG_projectControlBar.refreshSession( window.CPG.LoginTime );

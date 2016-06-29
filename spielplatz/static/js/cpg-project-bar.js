@@ -4,22 +4,24 @@
 ( function( ) {
 
 window.ProjectControlBar = Backbone.Model.extend( {
-	userName: null,			// Logged in user, or ""
-	editor: null,			// Live editor, graphics editor, sound editor
-	buttonGroup: null,		// The bootstrap button group belonging to the project bar
-	fileType: null,			// pjs, html, paper, go, svg, ani ...
-	newFile: null,			// Filename if non is specified
+	userName: null,				// Logged in user, or ""
+	editor: null,				// Live editor, graphics editor, sound editor
+	buttonGroup: null,			// The bootstrap button group belonging to the project bar
+	fileType: null,				// pjs, html, paper, go, svg, ani ...
+	newFile: null,				// Filename if non is specified
 
-	codeFileList: null,		// A list of all currently loaded files
-	allFilesList: null,		// A list of all files available from the user account
-	currentCodeFile: null,	// File that is currently worked on
-	codeFiles: {},			// Loaded files, key is filename
-	messages: [],			// List of messages that the user received
+	codeFileList: null,			// A list of all currently loaded files
+	allFilesList: null,			// A list of all files available from the user account
+	currentCodeFile: null,		// File that is currently worked on
+	codeFiles: {},				// Loaded files, key is filename
+	messages: [],				// List of messages that the user received
 
-	wsAdress: null,			// Websockets address
-	wsToken: null,			// Token used to authenticate with the server
-	reconnectInterval: null,// Interval id of reconnection interval
-	reconnectCbs: [],		// Callbacks that should be called after connection is back
+	wsAdress: null,				// Websockets address
+	wsToken: null,				// Token used to authenticate with the server
+	reconnectInterval: null,	// Interval id of reconnection interval
+	reconnectCbs: [],			// Callbacks that should be called after connection is back
+
+	disableProjectInit: null,	// Some editors need to disable the project init
 
 	// Message constants
 	MSG_INVITE: 0,
@@ -40,6 +42,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		this.editor = options.editor;
 		this.fileType = options.fileType || "pjs";
 		this.newFile = options.newFile || "noname.pjs";
+		this.disableProjectInit = options.disableProjectInit;
 
 		console.assert( this.editor && 
 						typeof this.editor.text === "function" &&
@@ -52,6 +55,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		// Fill in the globals form session storage
 		this.codeFileList = sessionStorage[ this.fileType + "CodeFileList" ] && JSON.parse( sessionStorage[ this.fileType + "CodeFileList" ] ) || [ ],
 		this.allFilesList = sessionStorage[ this.fileType + "AllFilesList" ] && JSON.parse( sessionStorage[ this.fileType + "AllFilesList" ] ) || [ ],
+		this.allProjects = sessionStorage[ "allProjects" ] && JSON.parse( sessionStorage[ "allProjects" ] ) || [ ],
 		this.currentCodeFile = sessionStorage[ this.fileType + "CurrentCodeFile" ] || this.newFile;
 		this.codeFiles = {};
         this.messages = [];
@@ -73,10 +77,11 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 		//////////////////////////////////////////////////
 		// For testing
-		$("#project-button-textarea-for-testing").on("set-live-editor", function(e) {
+		$("#project-button-textarea-for-testing").css( "height", 0 )
+		.on("set-live-editor", function(e) {
 			self.editor.reset( $(this).val() );
-		});
-		$("#project-button-textarea-for-testing").on("get-live-editor", function(e) {
+		})
+		.on("get-live-editor", function(e) {
 			$(this).val( self.editor.text() );
 		});
 	},
@@ -116,6 +121,9 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 					self.allFilesList = files;
 					sessionStorage[ self.fileType + "AllFilesList" ] = JSON.stringify( self.allFilesList );
+
+					self.allProjects = message.Projects;
+					if( self.allProjects ) sessionStorage[ "allProjects" ] = JSON.stringify( self.allProjects );
 
 					for( var i=0, codeFilesToRead = [], projects = [] ; i < 5 && i < files.length ; i++ ) {
 						codeFilesToRead.push( files[ i ].name );
@@ -239,7 +247,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		if( this.editor.modified() && self.currentCodeFile !== self.newFile ) {
 			self.buttonGroup.showModalYesNo( window.CPG.ProjectBarModalFileChanged, window.CPG.ProjectBarModalFileChanged2, false, function( res ) {
 				if( res === "yes" ) {
-					self.saveSourceFile( self.currentCodeFile, self.codeFiles[ self.currentCodeFile ].project, function( ) { newFile( ); } ); 
+					self.saveSourceFile( self.currentCodeFile, self.codeFiles[ self.currentCodeFile ].project, false, function( ) { newFile( ); } ); 
 				} else {
 					newFile( );
 				}
@@ -290,10 +298,6 @@ window.ProjectControlBar = Backbone.Model.extend( {
 					} else {
 						self.readSourceFiles( selFiles, selProjects );
 						$("#project-button-textarea-for-testing").trigger("get-live-editor");
-						setTimeout( function() {
-							console.log( "Textarea:", $("#project-button-textarea-for-testing").val() );
-
-						}, 100)
 					}
 					break;
 
@@ -306,18 +310,21 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		}
 	},
 
-	save: function( ) {
+	save: function( saveAs ) {
 
 		var self = this,
-			fileName = this.currentCodeFile;
+			fileName = this.currentCodeFile,
+			selProjects = this.disableProjectInit;	// If project init is disabled allow project selection
 
-		if( fileName === this.newFile ) {
+		if( saveAs || fileName === this.newFile ) {
 			this.buttonGroup.showModalStringInput(
 				window.CPG.ProjectBarModalSaveFilename, 
 				window.CPG.ProjectBarModalSaveFilename2, 
 				"", 
-				window.CPG.ProjectBarModalSave, 
-				function( fileName ) {
+				window.CPG.ProjectBarModalSave,
+				selProjects? window.CPG.ProjectBarModalProjects : null, 
+				selProjects? this.allProjects : [],
+				function( fileName, projectName ) {
 					if( !fileName ) return;
 
 					if( fileName !== "" ) {
@@ -326,13 +333,12 @@ window.ProjectControlBar = Backbone.Model.extend( {
 						}
 
 						if( fileName !== self.newFile && (!self.checkCodeFile( fileName ) || !self.checkCodeFile( fileName ).project) ) {
-							self.saveSourceFile( fileName );
+							self.saveSourceFile( fileName, projectName );
 						} else {
 							self.buttonGroup.showModalOk( window.CPG.ProjectBarModalFileExists, window.CPG.ProjectBarModalFileExists2, function() {
 								self.isSaving = false;
-								self.save();
+								self.saveAs();
 							} );
-
 						}
 					}
 				} 
@@ -340,6 +346,10 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		} else {
 			self.saveSourceFile( fileName, self.codeFiles[ fileName ].project );
 		}
+	},
+
+	saveAs: function( ) {
+		this.save( true );
 	},
 
 	saveProject: function( ) {
@@ -358,7 +368,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				if( projectName === "" ) {
 					projectName = fileName.substr( 0, fileName.length - self.fileType.length - 1 );
 
-					self.buttonGroup.showModalStringInput( window.CPG.ProjectBarModalProjectInit , window.CPG.ProjectBarModalProjectInit2, projectName, window.CPG.ProjectBarModalProjectInitOk, function( name ) {
+					self.buttonGroup.showModalStringInput( window.CPG.ProjectBarModalProjectInit , window.CPG.ProjectBarModalProjectInit2, projectName, window.CPG.ProjectBarModalProjectInitOk, null, [], function( name ) {
 
 						var res = self.editor.moveResources( name ),
 							code = res.code;
@@ -388,13 +398,13 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 							// Initialize new project
 							$WS.sendMessage( {
-								Command: "initProject",
-								ProjectName: name,
-								FileType: self.fileType,
-								FileNames: [ fileName ],
-								CodeFiles: [ code ],
-								ResourceFiles: self.editor.resources(),
-			 					Images : [ image ], 
+								Command: 		"initProject",
+								ProjectName: 	name,
+								FileType: 		self.fileType,
+								FileName: 		fileName,
+								CodeFile: 		code,
+								ResourceFiles: 	self.editor.resources(),
+			 					Image: 			image, 
 							}, function( message ) {
 								if( message.Error ) {
 									if( message.Error === "project exists" ) {
@@ -418,7 +428,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 										name: newCodeFile,
 										code: code,
 										project: name,
-										timeStamp: message.SavedTimeStamps[0],
+										timeStamp: message.SavedTimeStamp,
 										rights: message.Rights,
 										users: message.Users,
 										status: message.Status
@@ -467,7 +477,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 					} );
 
 				} else {
-					self.buttonGroup.showModalStringInput( window.CPG.ProjectBarModalProjectSave, window.CPG.ProjectBarModalProjectSave2, "", window.CPG.ProjectBarModalProjectSaveOk, function( commit ) {
+					self.buttonGroup.showModalStringInput( window.CPG.ProjectBarModalProjectSave, window.CPG.ProjectBarModalProjectSave2, "", window.CPG.ProjectBarModalProjectSaveOk, null, [], function( commit ) {
 						if( commit ) {
 							self.buttonGroup.showSaving( "...", true );
 
@@ -479,26 +489,26 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 								// Save project
 								$WS.sendMessage( {
-									Command: "writeProject",
-									ProjectName: projectName,
-									FileType: self.fileType,
-									FileNames: [ fileName ],
-									CodeFiles: [ code ],
-									TimeStamps: self.codeFiles[ fileName ] && [ self.codeFiles[ fileName ].timeStamp ] || null,
-									ResourceFiles: self.editor.resources(),
-									Images : [ image ],
-									Commit: commit
+									Command: 		"writeProject",
+									ProjectName: 	projectName,
+									FileType: 		self.fileType,
+									FileName: 		fileName,
+									CodeFile: 		code,
+									TimeStamp: 		self.codeFiles[ fileName ] && self.codeFiles[ fileName ].timeStamp || null,
+									ResourceFiles: 	self.editor.resources(),
+									Image: 			image,
+									Commit: 		commit
 								}, function( message ) {
 									if( message.Error ) {
 										self.isSaving = false;
 										self.buttonGroup.showSaving( false, true );
 										console.log( "Error writing project: ", message.Error );
 
-									} else if( message.OutdatedTimeStamps.length > 0 ) {
+									} else if( message.OutdatedTimeStamp ) {
 
 										self.buttonGroup.showModalYesNo( fileName, window.CPG.ProjectBarModalFileOutdated, false, function( res ) {
 											if( res === "yes" ) {
-												self.codeFiles[ fileName ].timeStamp = message.OutdatedTimeStamps[ 0 ] 
+												self.codeFiles[ fileName ].timeStamp = message.OutdatedTimeStamp 
 												sendWriteProject();
 											} else {
 												self.buttonGroup.showSaving( false, true );
@@ -629,7 +639,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		}
 	},
 
-	saveSourceFile: function( fileName, project, cb ) {
+	saveSourceFile: function( fileName, project, overwrite, cb ) {
 
 		var self = this;
 
@@ -643,16 +653,16 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				alternate = self.editor.alternateType();
 
 			$WS.sendMessage( {
-				Command: "writeSourceFiles",
-				FileNames: [ fileName ],
-				ProjectName: project || "",
-				FileType: self.fileType,
-				TimeStamps: self.codeFiles[ fileName ] && [ self.codeFiles[ fileName ].timeStamp ] || null,
-				CodeFiles: [ code ],
-				Overwrite: self.currentCodeFile === fileName,
-				Images : [ image ],
-				AlternateFiles : alternate? [ alternate.file.substr( data.search( "," )+1 ) ] : undefined,
-				AlternateType: alternate? alternate.type : ""
+				Command:		"writeSourceFile",
+				FileName:		fileName,
+				ProjectName:	project || "",
+				FileType:		self.fileType,
+				TimeStamp:		self.codeFiles[ fileName ] && self.codeFiles[ fileName ].timeStamp || null,
+				CodeFile:		code,
+				Overwrite:		self.currentCodeFile === fileName || overwrite,
+				Image :			image,
+				AlternateFile:	alternate? alternate.file.substr( data.search( "," )+1 ) : undefined,
+				AlternateType:	alternate? alternate.type : ""
 			}, function( message ) {
 
 				var codeFile = self.codeFiles[ self.currentCodeFile ];
@@ -665,8 +675,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				} else if ( message.Error ) {
 					self.buttonGroup.showModalYesNo( window.CPG.ProjectBarModalFileExists, message.Error, false, function( res ) {
 						if( res === "yes" ) {
-							self.currentCodeFile = fileName;
-							self.saveSourceFile( fileName, project );
+							self.saveSourceFile( fileName, project, true );
 						} else {
 							self.buttonGroup.showSaving( false );
 							if( cb ) cb( false );
@@ -674,47 +683,46 @@ window.ProjectControlBar = Backbone.Model.extend( {
 					} );
 					return false;
 
-				} else if( self.currentCodeFile !== fileName ) {
-
-					codeFile.code = self.editor.text( );
-					codeFile.timeStamp = message.SavedTimeStamps[ 0 ]
-					self.codeFileList.push( fileName );
-
-					if( !self.checkCodeFile( fileName ) ) self.allFilesList.push( {
-						name: fileName,
-						timeStamp: codeFile.timeStamp,
-						project: codeFile.project,
-					} );
-
-					sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
-					sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
-					sessionStorage[ self.fileType + "AllFilesList" ] = JSON.stringify( self.allFilesList );
-					sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = fileName;
-
-				} else if( message.OutdatedTimeStamps.length > 0 ) {
+				} else if( message.OutdatedTimeStamp ) {
 
 					self.buttonGroup.showModalYesNo( fileName, window.CPG.ProjectBarModalFileOutdated, false, function( res ) {
 						if( res === "yes" ) {
-							self.codeFiles[ fileName ].timeStamp = message.OutdatedTimeStamps[ 0 ] 
+							self.codeFiles[ fileName ].timeStamp = message.OutdatedTimeStamp 
 							self.saveSourceFile( fileName, project );
 						} else {
 							self.buttonGroup.showSaving( false );
-							cb( false );
+							if( cb ) cb( false );
 						}
 					} );
 					return false;
+				
+				} else if( self.currentCodeFile !== fileName ) {
+
+					self.codeFiles[ fileName ] = {
+						name: fileName,
+						rights: message.Rights,
+						users: message.Users
+					};
+
+					if( !self.checkCodeFile( fileName ) ) {
+
+						self.allFilesList.push( {
+							name: fileName,
+							timeStamp: message.SavedTimeStamp,
+						} );
+						self.codeFileList.push( fileName );
+					}
+
+					sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
+					sessionStorage[ self.fileType + "AllFilesList" ] = JSON.stringify( self.allFilesList );
+					sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = fileName;
+					sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
 				} 
 
-				self.codeFiles[ fileName ] = {
-					name: fileName, 
-					code: code,
-					timeStamp: message.SavedTimeStamps[ 0 ],
-					project: project,
-					rights: codeFile.rights,
-					users: codeFile.users,
-					status: codeFile.status,
-				};
+				self.codeFiles[ fileName ].code = self.editor.text( );
+				self.codeFiles[ fileName ].timeStamp = message.SavedTimeStamp;
 				sessionStorage[ fileName ] = JSON.stringify( self.codeFiles[ fileName ] );
+
 				self.buttonGroup.fillOpenControl( );
 				self.editor.setClean();
 				self.buttonGroup.showSaving( "success" );
@@ -934,10 +942,11 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 
 var ButtonGroup = Backbone.View.extend( {
-	projectBar: null,
-	codeFileModal: null,
-	yesNoModal: null,
-	stringInputModal: null,
+	projectBar:			null,
+	codeFileModal:		null,
+	yesNoModal:			null,
+	stringInputModal:	null,
+	disableProjectInit:	null,
 
 	initialize: function( options ) {
 		var self = this;
@@ -945,7 +954,7 @@ var ButtonGroup = Backbone.View.extend( {
 		this.el = options.el;
 		this.projectBar = options.projectBar;
 
-		this.fillDomElements( options.modalContainer );
+		this.fillDomElements( options );
 
 		$( "#project-bar-new" ).on( 'click', function() { self.projectBar.new(); } );
 		$( "#project-bar-save" ).on( 'click', function() { self.projectBar.save(); } );
@@ -953,9 +962,13 @@ var ButtonGroup = Backbone.View.extend( {
 		$( "#project-bar-save-project" ).on( 'click', function() { self.projectBar.saveProject(); } );
 		$( "#project-bar-invite" ).on( 'click', function() { self.projectBar.inviteToProject(); } );
 		$( "#project-bar-mail" ).on( 'click', function() { self.projectBar.refreshMails(); } );
+
+		this.disableProjectInit = options.disableProjectInit;
 	},
 
-	fillDomElements: function( container ) {
+	fillDomElements: function( options ) {
+
+		var container = options.modalContainer;
 
 		this.el.html(
 			"<div class='btn-group'>" +
@@ -969,6 +982,14 @@ var ButtonGroup = Backbone.View.extend( {
 					"</ul>" +
 				"</div>" +
 				"<button id='project-bar-save' type='button' class='btn btn-primary'>" + window.CPG.ProjectBarSave + "</button>" +
+				"<div id='project-bar-save-as-up' class='btn-group dropup'>" +
+					"<button type='button' class='btn btn-primary dropup-toggle' data-toggle='dropdown'>" +
+						"<span class='caret'></span>" +
+					"</button>" +
+					"<ul class='dropdown-menu' role='menu'>" +
+						"<li id='project-bar-save-as'>" + window.CPG.ProjectBarSaveAs + "</li>" +
+					"</ul>" +
+				"</div>" +
 				"<button id='project-bar-save-project' type='button' class='btn btn-primary'>" + window.CPG.ProjectBarSaveProject + "</button>" +
 				"<div class='btn-group dropup'>" +
 					"<button id='project-bar-admin' type='button' class='btn btn-primary dropup-toggle' data-toggle='dropdown' disabled>" +
@@ -1082,6 +1103,8 @@ var ButtonGroup = Backbone.View.extend( {
 						"<div class='form-group'>" +
 						  "<label class='input-label' for='project-bar-input'></label>" +
 						  "<input type='text' class='form-control' id='project-bar-input' name='string-input'>" +
+						  "<p id='project-bar-select-list-label' class='hide'></p>" +
+						  "<select class='form-control hide' id='project-bar-select-list'></select>" +
 						"</div>" +
 					"</div>" +
 					"<div class='modal-footer'>" +
@@ -1427,13 +1450,26 @@ var ButtonGroup = Backbone.View.extend( {
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	// showModalStringInput displays a modal dialog for string input
-	showModalStringInput: function( title, body, value, action, cb ) {
+	showModalStringInput: function( title, body, value, action, listLabel, list, cb ) {
 		var modal = this.stringInputModal,
 			input = modal.find( "input" );
 
 		$( ".modal-title", modal ).text( title );
 		$( ".modal-body p", modal ).text( body );
 		$( ".modal-action", modal ).text( action );
+
+		if( listLabel ) {
+			var li = $( "#project-bar-select-list", modal );
+
+			if( list && list.length ) {
+				for( var i = 0 ; i < list.length ; i++ ) {
+					li.append("<option value='" + list[ i ] + "'>" + list[ i ] + "</option>");
+				}
+
+				li.removeClass( "hide" );
+				$( "#project-bar-select-list-label", modal ).removeClass( "hide" ).text( listLabel );				
+			}
+		}
 
 		input.val( value );
 
@@ -1451,7 +1487,7 @@ var ButtonGroup = Backbone.View.extend( {
 			var lcb = cb;
 			cb = null;
 			modal.modal( 'hide' );
-			if( lcb ) lcb( filteredValue );
+			if( lcb ) lcb( filteredValue, $( "#project-bar-select-list" ).val() );
 		} );
 
 		$( ".modal-cancel", modal ).off( "click" ).one( "click", function( e ) {
@@ -1590,9 +1626,16 @@ var ButtonGroup = Backbone.View.extend( {
 			if( projectStatus !== 0 )	$( ".big-filename", this.el ).addClass("uncommitted");
 			else 						$( ".big-filename", this.el ).removeClass("uncommitted");
 
+			if( this.disableProjectInit ) {
+				$( "#project-bar-save-project" ).prop( "disabled", false );
+			}
 		} else {
 			$( ".big-filename .project", this.el ).text( "" );
 			$( ".big-filename .points", this.el ).text( "" );			
+
+			if( this.disableProjectInit ) {
+				$( "#project-bar-save-project" ).prop( "disabled", true );
+			}
 		}
 
 		this.activateProjectMenu( );

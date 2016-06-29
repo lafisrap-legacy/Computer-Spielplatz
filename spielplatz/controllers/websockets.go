@@ -50,23 +50,26 @@ type Message struct {
 	Command    string
 	returnChan chan Data
 
-	CodeFiles      []string
-	Commit         string
-	FileNames      []string
-	FileName       string
-	FileType       string
-	Images         []string
-	MessageId      int64
-	MessageIds     []int64
-	Overwrite      bool
-	ProjectNames   []string
-	ProjectName    string
-	ResourceFiles  []string
-	TimeStamps     []int64
-	UserName       string
-	UserNames      []string
-	AlternateFiles []string
-	AlternateType  string
+	CodeFile      string
+	CodeFiles     []string
+	Commit        string
+	FileNames     []string
+	FileName      string
+	FileType      string
+	Image         string
+	Images        []string
+	MessageId     int64
+	MessageIds    []int64
+	Overwrite     bool
+	ProjectNames  []string
+	ProjectName   string
+	ResourceFiles []string
+	TimeStamp     int64
+	TimeStamps    []int64
+	UserName      string
+	UserNames     []string
+	AlternateFile string
+	AlternateType string
 }
 
 type SourceFile struct {
@@ -200,16 +203,16 @@ func serveMessages(messageChan chan Message) {
 			data = readDir(s, message.FileType)
 		case "readSourceFiles":
 			data = readSourceFiles(s, message.FileNames, message.ProjectNames, message.FileType)
-		case "writeSourceFiles":
-			data = writeSourceFiles(s, message.FileNames, message.ProjectName, message.FileType, message.CodeFiles, message.TimeStamps, message.Images, message.AlternateFiles, message.AlternateType, message.Overwrite)
+		case "writeSourceFile":
+			data = writeSourceFile(s, message.FileName, message.ProjectName, message.FileType, message.CodeFile, message.TimeStamp, message.Image, message.AlternateFile, message.AlternateType, message.Overwrite)
 		case "renameSourceFile":
 			data = renameSourceFile(s, message.FileNames, message.FileType)
 		case "deleteSourceFiles":
 			data = deleteSourceFiles(s, message.FileNames, message.ProjectNames)
 		case "initProject":
-			data = initProject(s, message.ProjectName, message.FileType, message.FileNames, message.CodeFiles, message.ResourceFiles, message.Images)
+			data = initProject(s, message.ProjectName, message.FileType, message.FileName, message.CodeFile, message.ResourceFiles, message.Image)
 		case "writeProject":
-			data = writeProject(s, message.ProjectName, message.FileType, message.FileNames, message.CodeFiles, message.TimeStamps, message.ResourceFiles, message.Images, message.Commit)
+			data = writeProject(s, message.ProjectName, message.FileType, message.FileName, message.CodeFile, message.TimeStamp, message.ResourceFiles, message.Image, message.Commit)
 		case "cloneProject":
 			data = cloneProject(s, message.ProjectName)
 		case "fetchProject":
@@ -234,7 +237,7 @@ func serveMessages(messageChan chan Message) {
 	}
 }
 
-func writeSourceFiles(s session.Store, fileNames []string, project string, fileType string, codeFiles []string, timeStamps []int64, Images []string, alternateFiles []string, alternateType string, overwrite bool) Data {
+func writeSourceFile(s session.Store, fileName string, project string, fileType string, codeFile string, timeStamp int64, Image string, alternateFile string, alternateType string, overwrite bool) Data {
 
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
@@ -242,116 +245,121 @@ func writeSourceFiles(s session.Store, fileNames []string, project string, fileT
 	}
 
 	T := models.T
-	name := s.Get("UserName").(string)
+	userName := s.Get("UserName").(string)
+
+	////////////////////////////////////////
+	// Retrieve rights and users if it is a project
+	rights := []string{}
+	users := []string{}
+	if project != "" {
+		rights = models.GetProjectRightsFromDatabase(userName, project)
+		users = models.GetProjectUsersFromDatabase(project)
+	}
+
 	var dir string
 	if project != "" {
-		dir = beego.AppConfig.String("userdata::location") + name + "/" + beego.AppConfig.String("userdata::projects") + "/" + project + "/" + fileType + "/"
+		dir = beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::projects") + "/" + project + "/" + fileType + "/"
 	} else {
-		dir = beego.AppConfig.String("userdata::location") + name + "/" + fileType + "/"
+		dir = beego.AppConfig.String("userdata::location") + userName + "/" + fileType + "/"
 	}
-	savedFiles := []string{}
-	savedTimeStamps := []int64{}
-	outdatedFiles := []string{}
-	outdatedTimeStamps := []int64{}
 
-	for i := 0; i < len(fileNames); i++ {
-		var (
-			file *os.File
-			err  error
-		)
-		fileName := dir + fileNames[i]
+	var (
+		file           *os.File
+		err            error
+		savedTimeStamp int64
+	)
+	filePath := dir + fileName
 
-		/////////////////////////////////////////
-		// Check if directory is there and create if not
-		//
-		fileStat, err := os.Stat(fileName)
-		if os.IsNotExist(err) {
-			if err = os.MkdirAll(dir, os.ModePerm); err != nil {
-				beego.Error("Cannot create directory", dir)
-				return Data{}
-			}
-		} else if err != nil {
-			beego.Error("Error while checking for directory", dir)
+	/////////////////////////////////////////
+	// Check if directory is there and create if not
+	//
+	fileStat, err := os.Stat(filePath)
+	if os.IsNotExist(err) {
+		if err = os.MkdirAll(dir, os.ModePerm); err != nil {
+			beego.Error("Cannot create directory", dir)
 			return Data{}
 		}
+	} else if err != nil {
+		beego.Error("Error while checking for directory", dir)
+		return Data{}
+	}
 
-		/////////////////////////////////////////
-		// Don't overwrite if file exists
-		fileStat, err = os.Stat(fileName)
+	/////////////////////////////////////////
+	// Don't overwrite file unintendedly
+	fileStat, err = os.Stat(filePath)
+	if !overwrite {
+		if !os.IsNotExist(err) {
+			return Data{
+				"Error": T["websockets_file_exists"],
+			}
+		} else if err == nil {
+			time := fileStat.ModTime().UnixNano() / int64(time.Millisecond)
+			// Look if the file changed on disk since last writing
+			if time > timeStamp {
+				return Data{
+					"OutdatedTimeStamp": time,
+				}
+			}
+		} else {
+			beego.Error(err)
+		}
+	}
+
+	/////////////////////////////////////////
+	// Also check if alternate file type (png, mp3) would be overwritten
+	altSubDir := ""
+	switch alternateType {
+	case "png":
+		altSubDir = beego.AppConfig.String("userdata::imagefiles")
+	case "mp3":
+		altSubDir = beego.AppConfig.String("userdata::soundfiles")
+	}
+	altDir := dir[:len(dir)-len(fileType)-1] + altSubDir + "/"
+	altFileName := altDir + fileName[:len(fileName)-len(fileType)] + alternateType
+	if alternateType != "" {
+		fileStat, err = os.Stat(altFileName)
 		if !overwrite {
 			if !os.IsNotExist(err) {
 				return Data{
 					"Error": T["websockets_file_exists"],
 				}
 			}
-		} else if err == nil {
-			time := fileStat.ModTime().UnixNano() / int64(time.Millisecond)
-			// Look if the file changed on disk since last writing
-			if i < len(timeStamps) && time > timeStamps[i] {
-				outdatedFiles = append(outdatedFiles, fileNames[i])
-				outdatedTimeStamps = append(outdatedTimeStamps, time)
-				continue
-			}
 		}
+	}
+	beego.Warning("altDir:", altDir, "altFileName:", altFileName)
 
-		/////////////////////////////////////////
-		// Also check if alternate file type (png, mp3) would be overwritten
-		altSubDir := ""
-		switch alternateType {
-		case "png":
-			altSubDir = beego.AppConfig.String("userdata::imagefiles")
-		case "mp3":
-			altSubDir = beego.AppConfig.String("userdata::soundfiles")
-		}
-		altDir := dir[:len(dir)-len(fileType)-1] + altSubDir + "/"
-		altFileName := altDir + fileNames[i][:len(fileNames[i])-len(fileType)] + alternateType
-		if alternateType != "" {
-			fileStat, err = os.Stat(altFileName)
-			if !overwrite {
-				if !os.IsNotExist(err) {
-					return Data{
-						"Error": T["websockets_file_exists"],
-					}
-				}
-			}
-		}
-		beego.Warning("altDir:", altDir, "altFileName:", altFileName)
+	/////////////////////////////////////////
+	// Create/overwrite file
+	if file, err = os.Create(filePath); err != nil {
+		beego.Error("Cannot create or overwrite file", filePath)
+		return Data{}
+	}
+	defer file.Close()
+	_, err = file.Write([]byte(codeFile))
 
-		/////////////////////////////////////////
-		// Create/overwrite file
-		if file, err = os.Create(fileName); err != nil {
-			beego.Error("Cannot create or overwrite file", fileName)
-			return Data{}
-		}
-		defer file.Close()
-		_, err = file.Write([]byte(codeFiles[i]))
+	////////////////////////////////////////
+	// Record timestamps for web app
+	if err == nil {
+		fileStat, _ = file.Stat()
+		savedTimeStamp = fileStat.ModTime().UnixNano() / int64(time.Millisecond)
+	} else {
+		beego.Error("Cannot write to file", filePath)
+		return Data{}
+	}
 
-		////////////////////////////////////////
-		// Record timestamps for web app
-		if err == nil {
-			fileStat, _ = file.Stat()
-			savedFiles = append(savedFiles, fileNames[i])
-			savedTimeStamps = append(savedTimeStamps, fileStat.ModTime().UnixNano()/int64(time.Millisecond))
-		} else {
-			beego.Error("Cannot write to file", fileName)
-			return Data{}
-		}
-
-		////////////////////////////////////////
-		// Create image file
-		createImageFile(Images[i], fileName)
-		if alternateType == "png" {
-			createImageFile(alternateFiles[i], altFileName)
-		} else if alternateType == "mp3" {
-			// create sound file
-		}
+	////////////////////////////////////////
+	// Create image file
+	createImageFile(Image, filePath)
+	if alternateType == "png" {
+		createImageFile(alternateFile, altFileName)
+	} else if alternateType == "mp3" {
+		// create sound file
 	}
 
 	return Data{
-		"SavedTimeStamps":    savedTimeStamps,
-		"SavedFiles":         savedFiles,
-		"OutdatedTimeStamps": outdatedTimeStamps,
-		"OutdatedFiles":      outdatedFiles,
+		"SavedTimeStamp": savedTimeStamp,
+		"Rights":         rights,
+		"Users":          users,
 	}
 }
 
@@ -477,6 +485,8 @@ func readDir(s session.Store, fileType string) Data {
 
 	data := Data{}
 	sourceFiles := make(map[string]SourceFile)
+	projectNames := make([]string, 1, models.MaxProjectsPerUser)
+	projectNames[0] = "/"
 	userName := s.Get("UserName")
 
 	// if user is not logged in return
@@ -489,7 +499,9 @@ func readDir(s session.Store, fileType string) Data {
 	dir := beego.AppConfig.String("userdata::location") + name + "/" + fileType
 
 	files, err := ioutil.ReadDir(dir)
-	if err != nil {
+	if os.IsNotExist(err) {
+		beego.Warning("Directory", dir, "is not available.")
+	} else if err != nil {
 		beego.Error(err)
 		return data
 	}
@@ -517,8 +529,15 @@ func readDir(s session.Store, fileType string) Data {
 		var dir2 string
 		if p.IsDir() == true {
 			project := p.Name()
+			projectNames = append(projectNames, project)
 			dir2 = dir + "/" + p.Name() + "/" + fileType
-			files, _ := ioutil.ReadDir(dir2)
+			files, err := ioutil.ReadDir(dir2)
+			if os.IsNotExist(err) {
+				beego.Warning("Directory", dir2, "is not available.")
+			} else if err != nil {
+				beego.Error(err)
+				return data
+			}
 
 			for _, f := range files {
 				name := f.Name()
@@ -533,6 +552,8 @@ func readDir(s session.Store, fileType string) Data {
 	}
 
 	data["Files"] = sourceFiles
+	data["Projects"] = projectNames
+	beego.Warning(data)
 
 	return data
 }
@@ -568,9 +589,9 @@ func deleteSourceFiles(s session.Store, fileNames []string, projectNames []strin
 	return Data{}
 }
 
-func initProject(s session.Store, projectName string, fileType string, fileNames []string, codeFiles []string, resourceFiles []string, images []string) Data {
+func initProject(s session.Store, projectName string, fileType string, fileName string, codeFile string, resourceFiles []string, image string) Data {
 
-	beego.Trace("Entering initProject", projectName, fileNames, resourceFiles)
+	beego.Trace("Entering initProject", projectName, fileName, resourceFiles)
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
 		beego.Error("No user name available.")
@@ -621,9 +642,8 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 	models.CreateDirectories(projectDir, false)
 
 	// Write source files to new project directory
-	timeStamps := []int64{0}
-	fileName := []string{projectName + "." + fileType}
-	data := writeSourceFiles(s, fileName, projectName, fileType, codeFiles, timeStamps, images, []string{}, "", false)
+	filePath := projectName + "." + fileType
+	data := writeSourceFile(s, filePath, projectName, fileType, codeFile, int64(0), image, "", "", false)
 
 	// Create .gitignore file with .spielplatz/project in it
 	models.CreateTextFile(projectDir+"/"+".gitignore", beego.AppConfig.String("userdata::spielplatzdir")+"/rights")
@@ -703,14 +723,14 @@ func initProject(s session.Store, projectName string, fileType string, fileNames
 	}
 
 	// Remove old files, if any
-	if fileNames[0] != "" {
-		deleteSourceFiles(s, fileNames, nil)
+	if fileName != "" {
+		deleteSourceFiles(s, []string{fileName}, nil)
 	}
 
 	return data
 }
 
-func writeProject(s session.Store, projectName string, fileType string, fileNames []string, codeFiles []string, timeStamps []int64, resourceFiles []string, images []string, commit string) Data {
+func writeProject(s session.Store, projectName string, fileType string, fileName string, codeFile string, timeStamp int64, resourceFiles []string, image string, commit string) Data {
 
 	// if user is not logged in return
 	userName := ""
@@ -737,10 +757,11 @@ func writeProject(s session.Store, projectName string, fileType string, fileName
 	projectDir := userDir + "/" + beego.AppConfig.String("userdata::projects") + "/" + projectName
 
 	// Write source files to new project directory
-	fileName := []string{projectName + "." + fileType}
-	data := writeSourceFiles(s, fileName, projectName, fileType, codeFiles, timeStamps, images, []string{}, "", true)
+	filePath := projectName + "." + fileType
+	data := writeSourceFile(s, filePath, projectName, fileType, codeFile, timeStamp, image, "", "", true)
 
-	if len(data["OutdatedFiles"].([]string)) > 0 {
+	outdatedFile := data["OutdatedFile"]
+	if outdatedFile != nil && outdatedFile.(string) != "" {
 		return data
 	}
 
@@ -799,7 +820,7 @@ func cloneProject(s session.Store, projectName string) Data {
 	// Check for rights
 	// Maybe add a token check here, otherwise manipulated clients can clone any project
 
-	models.CloneProjectDir(userName, projectName)
+	models.CloneProjectDir(userName, projectName, false)
 	return Data{
 		"ProjectName": projectName,
 	}

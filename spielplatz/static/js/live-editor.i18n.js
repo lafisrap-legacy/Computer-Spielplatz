@@ -637,7 +637,7 @@ var translations = {
 	"Enter an image URL.":
 		"Gib eine Bild-URL ein",
 	"Sorry! That server is not permitted.":
-		"Entschuldige, aber das darf der Server nicht machen!",
+		"Entschuldige, aber dieser Server ist nicht erlaubt.",
 	"That is not a valid image URL.":
 		"Das ist keine gültige Bild-URL",
 	"Invalid sound file.":

@@ -269,6 +269,7 @@ func setProjectBarData(data map[interface{}]interface{}) {
 	data["ProjectBarModalFileExists"] = T["project_bar_modal_file_exists"]
 	data["ProjectBarModalFileExists2"] = T["project_bar_modal_file_exists_2"]
 	data["ProjectBarModalProjectExists"] = T["project_bar_modal_project_exists"]
+	data["ProjectBarModalProjects"] = T["project_bar_modal_projects"]
 	data["ProjectBarModalProjectExists2"] = T["project_bar_modal_project_exists_2"]
 	data["ProjectBarModalFilename"] = T["project_bar_modal_filename"]
 	data["ProjectBarModalFileOutdated"] = T["project_bar_modal_file_outdated"]
@@ -505,7 +506,7 @@ func (c *SignupController) createUserDirectory(user models.User, group string) {
 	cnf.SaveConfigFile(identityFile)
 
 	// Clone Admin Spielplatz project
-	err = models.CloneProjectDir(user.Name, beego.AppConfig.String("userdata::commonproject"))
+	err = models.CloneProjectDir(user.Name, beego.AppConfig.String("userdata::commonproject"), true)
 	if err != nil {
 		beego.Error(err)
 	}

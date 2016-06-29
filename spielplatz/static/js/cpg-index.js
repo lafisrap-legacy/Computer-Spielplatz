@@ -8,6 +8,8 @@
         e.stopPropagation();
     });
 
+    if( $(window).width() < 769 ) return;
+
     // Alfred
     var canvas = document.getElementById("canvas");
     new Processing(canvas, function(processing) {
@@ -250,7 +252,8 @@ var angle = -5;
 var draw = function() {
     background(255,255,255,0);
     
-    translate(170, 200);
+    translate(180, 140);
+    scale( 0.8 );
     rotate(angle);
     //scale(sc);
     if( millis() - 3000 < startTime ) {
@@ -1312,7 +1315,7 @@ var offsetTop = $("section#contact").offset().top,
 
 var draw = function() {
     var scrollTop = $(window).scrollTop();
-    if( scrollTop < offsetTop - offsetHeight || scrollTop > offsetTop - offsetHeight + windowHeight + 100 ) return;
+    if( scrollTop < offsetTop - offsetHeight ) return;
 
     background(0, 0, 0, 0);
     
@@ -1372,8 +1375,6 @@ var draw = function() {
         animationPointer = animationPointer % animationList.length;
 
         animationTimer = anim.time * 1000;
-
-        println("Animationstep " + animationPointer);
 
         scaleXPerMillis = anim.scaleX? (anim.scaleX - scaleX) / animationTimer : 0;
         scaleYPerMillis = anim.scaleY? (anim.scaleY - scaleY) / animationTimer : 0;

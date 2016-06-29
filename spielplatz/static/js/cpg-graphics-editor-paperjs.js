@@ -66,7 +66,6 @@ paper.EditorAPI = {
 			raster = baseCommands.cutRaster( image ),
 			scale = Math.min( 1, 200 / raster.width, 200 / raster.height );
 
-			debugger;
 		raster = raster.scale( scale ).rasterize( view.resolution, false );
 
 		cb( raster.toDataURL() );
@@ -1217,7 +1216,6 @@ var Commands = Base.extend( {
 		// Menü-Command: Clone
 		//
 		$( ".command-clone" ).on( "click tap", function( event ) {
-			debugger;
 
 			Base.each( project.selectedItems, function( item ) {
 				item.joinDirty = false; // Attribute joinDirty may be set by a triggered function
@@ -2276,7 +2274,7 @@ function onMouseDown( event ) {
 
 	// If still nothing was hit and mouse is within cropper area, then deselect all items
 	if ( !hitResult ) {
-		if ( baseCropper.getRect().contains( event.point ) ) {
+		if ( baseCropper.getRect().contains( event.point ) && project.selectedItems.length ) {
 			setTimeout( function() {
 				Base.each( project.selectedItems, function( item ) {
 					Editor.trigger( "itemDeselected", { item: item, join: false } );
@@ -2300,7 +2298,6 @@ function onMouseDown( event ) {
 	if ( !item.hasBeenSelected ) {
 
 		var a = project.selectedItems;
-		debugger;
 
 		// Use the undoer to select it
 		Do.execute( {
