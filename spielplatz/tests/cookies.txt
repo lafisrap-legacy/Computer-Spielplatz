@@ -1,0 +1,2 @@
+[General]
+cookies="@Variant(\0\0\0\x7f\0\0\0\x16QList<QNetworkCookie>\0\0\0\0\x1\0\0\0\x1\0\0\0\x80\x63omputerspielplatzID=080c3c2a7b8436a83086de5cb99558ae; HttpOnly; expires=Mon, 06-Jun-2016 01:43:09 GMT; domain=localhost; path=/)"

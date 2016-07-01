@@ -370,6 +370,12 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 					self.buttonGroup.showModalStringInput( window.CPG.ProjectBarModalProjectInit , window.CPG.ProjectBarModalProjectInit2, projectName, window.CPG.ProjectBarModalProjectInitOk, null, [], function( name ) {
 
+						if( !name || name === "" ) {
+							self.isSaving = false;
+							self.buttonGroup.showSaving( false, true );
+							return;
+						}
+
 						var res = self.editor.moveResources( name ),
 							code = res.code;
 
@@ -418,7 +424,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 										self.buttonGroup.showSaving( false, true );
 										return
 									} else {
-										console.error("Unknown error after getStatus call.");
+										console.error("Unknown error after getStatus call:", message.Error);
 									}
 								} else {
 									// Success: Project was created
@@ -482,8 +488,9 @@ window.ProjectControlBar = Backbone.Model.extend( {
 							self.buttonGroup.showSaving( "...", true );
 
 							var projectName = self.codeFiles[ self.currentCodeFile ].project,
+								alternate = self.editor.alternateType(),
 								res = self.editor.moveResources( projectName ),
-								code = res.code;
+								code = res? res.code : self.editor.text();
 
 							(function sendWriteProject( ) {
 
@@ -497,6 +504,8 @@ window.ProjectControlBar = Backbone.Model.extend( {
 									TimeStamp: 		self.codeFiles[ fileName ] && self.codeFiles[ fileName ].timeStamp || null,
 									ResourceFiles: 	self.editor.resources(),
 									Image: 			image,
+									AlternateFile:	alternate? alternate.file.substr( data.search( "," )+1 ) : undefined,
+									AlternateType:	alternate? alternate.type : "",
 									Commit: 		commit
 								}, function( message ) {
 									if( message.Error ) {
@@ -649,7 +658,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		this.editor.getScreenshot( function ( data ) {
 
 			// remove BASE64-HTML header
-			var image = data.substr( data.search( "," )+1 )
+			var image = data.substr( data.search( "," )+1 ),
 				alternate = self.editor.alternateType();
 
 			$WS.sendMessage( {
@@ -700,6 +709,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 					self.codeFiles[ fileName ] = {
 						name: fileName,
+						project: project,
 						rights: message.Rights,
 						users: message.Users
 					};
@@ -1214,7 +1224,7 @@ var ButtonGroup = Backbone.View.extend( {
         var self = this,
         	button = $( "#project-bar-mail-menu" );
         
-        $( ".dropdown-menu", button ).append( "<li message-id='" + message.Id + "'>" + message.Subject + "</li>" );
+        $( ".dropdown-menu", button ).append( "<li message-id='" + message.Id + "' project-name='" + message.ProjectName + "'>" + message.Subject + "</li>" );
 		$( "ul li", button ).on( 'click', function() { self.projectBar.openMail( $( this ) ); } );
         $( ".badge", button ).text( $( ".dropdown-menu li", button ).length );
     },
@@ -1458,17 +1468,19 @@ var ButtonGroup = Backbone.View.extend( {
 		$( ".modal-body p", modal ).text( body );
 		$( ".modal-action", modal ).text( action );
 
+		var lel = $( "#project-bar-select-list", modal ).html("");
 		if( listLabel ) {
-			var li = $( "#project-bar-select-list", modal );
 
 			if( list && list.length ) {
 				for( var i = 0 ; i < list.length ; i++ ) {
-					li.append("<option value='" + list[ i ] + "'>" + list[ i ] + "</option>");
+					lel.append("<option value='" + list[ i ] + "'>" + list[ i ] + "</option>");
 				}
 
-				li.removeClass( "hide" );
+				lel.removeClass( "hide" );
 				$( "#project-bar-select-list-label", modal ).removeClass( "hide" ).text( listLabel );				
 			}
+		} else {
+			lel.addClass( "hide" );
 		}
 
 		input.val( value );

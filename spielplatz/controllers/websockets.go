@@ -212,7 +212,7 @@ func serveMessages(messageChan chan Message) {
 		case "initProject":
 			data = initProject(s, message.ProjectName, message.FileType, message.FileName, message.CodeFile, message.ResourceFiles, message.Image)
 		case "writeProject":
-			data = writeProject(s, message.ProjectName, message.FileType, message.FileName, message.CodeFile, message.TimeStamp, message.ResourceFiles, message.Image, message.Commit)
+			data = writeProject(s, message.ProjectName, message.FileType, message.FileName, message.CodeFile, message.TimeStamp, message.ResourceFiles, message.Image, message.AlternateFile, message.AlternateType, message.Commit)
 		case "cloneProject":
 			data = cloneProject(s, message.ProjectName)
 		case "fetchProject":
@@ -247,6 +247,10 @@ func writeSourceFile(s session.Store, fileName string, project string, fileType 
 	T := models.T
 	userName := s.Get("UserName").(string)
 
+	if project == "/" {
+		project = ""
+	}
+
 	////////////////////////////////////////
 	// Retrieve rights and users if it is a project
 	rights := []string{}
@@ -254,6 +258,13 @@ func writeSourceFile(s session.Store, fileName string, project string, fileType 
 	if project != "" {
 		rights = models.GetProjectRightsFromDatabase(userName, project)
 		users = models.GetProjectUsersFromDatabase(project)
+		beego.Warning("writeSourceFile:", userName, project, rights, users)
+	}
+
+	if project != "" && !models.CheckRight(userName, project, "Write") {
+		return Data{
+			"Error": "Insufficient rights for project " + project,
+		}
 	}
 
 	var dir string
@@ -300,8 +311,6 @@ func writeSourceFile(s session.Store, fileName string, project string, fileType 
 					"OutdatedTimeStamp": time,
 				}
 			}
-		} else {
-			beego.Error(err)
 		}
 	}
 
@@ -529,7 +538,6 @@ func readDir(s session.Store, fileType string) Data {
 		var dir2 string
 		if p.IsDir() == true {
 			project := p.Name()
-			projectNames = append(projectNames, project)
 			dir2 = dir + "/" + p.Name() + "/" + fileType
 			files, err := ioutil.ReadDir(dir2)
 			if os.IsNotExist(err) {
@@ -551,9 +559,10 @@ func readDir(s session.Store, fileType string) Data {
 		}
 	}
 
+	projectNames = append(projectNames, models.GetProjectsWithRightFromDatabase(name, "Write")...)
+
 	data["Files"] = sourceFiles
 	data["Projects"] = projectNames
-	beego.Warning(data)
 
 	return data
 }
@@ -641,10 +650,6 @@ func initProject(s session.Store, projectName string, fileType string, fileName 
 	// Create project directories
 	models.CreateDirectories(projectDir, false)
 
-	// Write source files to new project directory
-	filePath := projectName + "." + fileType
-	data := writeSourceFile(s, filePath, projectName, fileType, codeFile, int64(0), image, "", "", false)
-
 	// Create .gitignore file with .spielplatz/project in it
 	models.CreateTextFile(projectDir+"/"+".gitignore", beego.AppConfig.String("userdata::spielplatzdir")+"/rights")
 
@@ -701,10 +706,6 @@ func initProject(s session.Store, projectName string, fileType string, fileName 
 	}
 	cnf.SaveConfigFile(rightsFile)
 
-	// Add all rights as return values
-	data["Rights"] = models.PRR_NAMES
-	data["Users"] = []string{userName}
-
 	// Create database entry
 	user, _ := models.GetUser(userName)
 	project := new(models.Project)
@@ -715,6 +716,16 @@ func initProject(s session.Store, projectName string, fileType string, fileName 
 	project.Forks = 0
 	project.Stars = 0
 	models.CreateProjectDatabaseEntry(project, user, int64(1<<uint(len(models.PRR_NAMES)))-1)
+
+	// Write source files to new project directory
+	name := projectName + "." + fileType
+	data := writeSourceFile(s, name, projectName, fileType, codeFile, int64(0), image, "", "", false)
+
+	// Add all rights as return values
+	data["Rights"] = models.PRR_NAMES
+
+	// Only one user by now
+	data["Users"] = []string{userName}
 
 	// Add, commit and push
 	err = models.GitAddCommitPush(userName, projectDir, beego.AppConfig.String("userdata::firstcommit"), true)
@@ -730,7 +741,7 @@ func initProject(s session.Store, projectName string, fileType string, fileName 
 	return data
 }
 
-func writeProject(s session.Store, projectName string, fileType string, fileName string, codeFile string, timeStamp int64, resourceFiles []string, image string, commit string) Data {
+func writeProject(s session.Store, projectName string, fileType string, fileName string, codeFile string, timeStamp int64, resourceFiles []string, image string, alternateFile string, alternateType string, commit string) Data {
 
 	// if user is not logged in return
 	userName := ""
@@ -757,8 +768,7 @@ func writeProject(s session.Store, projectName string, fileType string, fileName
 	projectDir := userDir + "/" + beego.AppConfig.String("userdata::projects") + "/" + projectName
 
 	// Write source files to new project directory
-	filePath := projectName + "." + fileType
-	data := writeSourceFile(s, filePath, projectName, fileType, codeFile, timeStamp, image, "", "", true)
+	data := writeSourceFile(s, fileName, projectName, fileType, codeFile, timeStamp, image, alternateFile, alternateType, true)
 
 	outdatedFile := data["OutdatedFile"]
 	if outdatedFile != nil && outdatedFile.(string) != "" {

@@ -4,16 +4,17 @@ var name = casper.cli.args[1] || "Tester",
     tester = 3,
     url = "http://localhost:8080";
 
-require('utils').dump('Starting test with test users: ' + name  );
+var utils = require('utils');
+
+utils.dump('Starting test with test users: ' + name  );
 
 
-casper.test.begin('Home page', 4, function suite(test) {
+casper.test.begin('Home page', 3, function suite(test) {
     casper.start(url, function() {
         test.assertTitle("CYPHERPUNK Computer-Spielplatz", "CPG title.");
 
-        test.assertExists(".nav-tabs .btn-0", "Button Programmieren");
-        test.assertExists(".login-area a[href='/login/']", "Login Button");
-        test.assertExists(".login-area a[href='/signup/']", "Signup Button");
+        test.assertExists("a[href='live-editor.html']", "Button Programmieren");
+        test.assertExists("a[href='graphics-animation.html']", "Button Grafik & Animation");
     });
 
     casper.run(function() {
@@ -27,13 +28,7 @@ casper.test.begin('Signup', 15, function suite(test) {
 	phantom.cookiesEnabled = true;
     (function signup() {
 
-        casper.start(url, function() {
-            test.assertExists(".login-area a[href='/signup/']", "Signup Button for " + name + i );
-        });
-
-        /////////////////////////////////////////////////////////////////77
-        // Signup 1: Checking header
-        casper.thenClick( ".login-area a[href='/signup/']", function() {
+        casper.start(url + "/signup/live-editor", function() {
 
             test.assertExists(".form-signin-heading", "Header exists");
             test.assertEvalEquals(function() {
@@ -45,7 +40,7 @@ casper.test.begin('Signup', 15, function suite(test) {
             casper.fill('form', { password2: name + i }, false);
         } );
 
-        /////////////////////////////////////////////////////////////////77
+        ///////////////////////////////////////////////////////////////////
         // Signup 2: Signup with existing accout
         casper.thenClick( "form button", function() {
 
@@ -56,7 +51,7 @@ casper.test.begin('Signup', 15, function suite(test) {
             casper.fill('form', { password2: name + i }, false);
         } );
 
-        /////////////////////////////////////////////////////////////////77
+        ///////////////////////////////////////////////////////////////////
         // Signup 3: Signup with unmatching passwords
         casper.thenClick( "form button", function() {
 
@@ -65,15 +60,31 @@ casper.test.begin('Signup', 15, function suite(test) {
             casper.fill('form', { name: name + i }, false);
             casper.fill('form', { password: name + i }, false);
             casper.fill('form', { password2: name + i }, false);
+            casper.fill('form', { groupcode: "AllesWirdGutt" }, false);
+        } );
+
+        ///////////////////////////////////////////////////////////////////
+        // Signup 4: Signup with wrong group code
+        casper.thenClick( "form button", function() {
+
+            test.assertExists( "form.has-error", "Signup with incorrect Groupcode." );
+
+            casper.fill('form', { name: name + i }, false);
+            casper.fill('form', { password: name + i }, false);
+            casper.fill('form', { password2: name + i }, false);
             casper.fill('form', { groupcode: "AllesWirdGut" }, false);
         } );
 
-        /////////////////////////////////////////////////////////////////77
-        // Signup 3: Signup ok
+        ///////////////////////////////////////////////////////////////////
+        // Signup 5: Signup ok
         casper.thenClick( "form button", function() {
 
             if( casper.exists( "form.has-error" ) ) {
-                test.assert(false, "Test user" + (name + i) + "is already defined? (Delete all '"+name+"*' accounts and start again.)")
+                utils.dump( "Error-Message:" + casper.evaluate(function( ) {
+                    return $( "div.error-message" ).val();
+                } ) );
+
+                test.assert(false, "Test user " + (name + i) + "is already defined? (Delete all '"+name+"*' accounts and start again.)")
                 test.done();
             }
 
@@ -88,23 +99,17 @@ casper.test.begin('Signup', 15, function suite(test) {
     });
 });
 
-/////////////////////////////////////////////////////////////////77///////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Login Test
 //
-casper.test.begin('Login', 15, function suite(test) {
+casper.test.begin('Login', 12, function suite(test) {
 
     var i = 0;
 	phantom.cookiesEnabled = true;
 
     (function login() {
 
-        casper.start(url, function() {
-            test.assertExists(".login-area a[href='/login/']", "Login Button for " + name + i );
-        });
-
-        /////////////////////////////////////////////////////////////////77
-        // Login 1: Checking header
-        casper.thenClick( ".login-area a[href='/login/']", function() {
+        casper.start(url + "/login/live-editor", function() {
 
             test.assertExists(".form-login-heading", "Header exists");
             test.assertEvalEquals(function() {
@@ -116,7 +121,7 @@ casper.test.begin('Login', 15, function suite(test) {
 
         });
 
-        /////////////////////////////////////////////////////////////////77
+        ///////////////////////////////////////////////////////////////////
         // Login 2: Login with wrong password
         casper.thenClick( "form button", function() {
 
@@ -126,13 +131,15 @@ casper.test.begin('Login', 15, function suite(test) {
             casper.fill('form', { password: name + i }, false);
         });
 
-        /////////////////////////////////////////////////////////////////77
+        ///////////////////////////////////////////////////////////////////
         // Login 3: Login ok
         casper.thenClick( "form button", function() {
 
-            test.assertExists( ".login-area a[href='/logout']", "Logout button." );
-            casper.thenClick( ".login-area a[href='/logout']", function() {
-                if( ++i < tester ) login();
+            this.wait(100, function() {
+                test.assertExists( ".login-area a[href='/logout']", "Logout button." );
+                casper.thenClick( ".login-area a[href='/logout']", function() {
+                    if( ++i < tester ) login();
+                } );
             } );
         } );
     })();
@@ -142,51 +149,48 @@ casper.test.begin('Login', 15, function suite(test) {
     });
 });
 
-/////////////////////////////////////////////////////////////////77///////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Live-Editor Test
 //
-casper.test.begin('Live-Editor', 18, function suite(test) {
+casper.test.begin('Live-Editor', 52, function suite(test) {
 
     var i = 0;
 
-    casper.start(url, function() {
-        test.assertExists(".login-area a[href='/login/']", "Login Button " + " for " + name + i );
-    });
+    ///////////////////////////////////////////////////////////////////
+    // 1. Login 
+    casper.start(url + "/login/live-editor", function() {
 
-    /////////////////////////////////////////////////////////////////77
-    // User 0 Login
-    casper.thenClick( ".login-area a[href='/login/']", function() {
+        test.assertExists(".form-login-heading", "Header exists");
+        test.assertEvalEquals(function() {
+            return __utils__.findOne("form button").textContent;
+        }, "Einloggen", "Button label");
 
         casper.fill('form', { name: name + "0" }, false);
         casper.fill('form', { password: name + "0" }, false);
     });
 
-    /////////////////////////////////////////////////////////////////77
-    // Go to Live-Editor
     casper.thenClick( "form button", function() {
-
-        test.assertExists( "ul.kuenste a[href='live-editor']", "Button to Live-Editor" );
-    });
-
-
-    /////////////////////////////////////////////////////////////////77
-    // Login 3: Login ok
-    casper.thenClick( "ul.kuenste a[href='live-editor']", function() {
 
         this.wait(100, function() {
             test.assertExists( ".scratchpad-ace-editor .ace_text-input", "Text input for Ace-Editor (JavaScript)." );
-            casper.fill(".scratchpad-ace-editor", { "text-input": "ellipse( 100, 100, 100, 101 );\n\n" }, false);
+            casper.evaluate(function(){
+                $("#project-button-textarea-for-testing").val( "ellipse(100, 100, 100, 101);\n\n" ).trigger("set-live-editor");
+            });
 
-            test.assertExists( "#project-bar-save", "Save button of project bar" );
+            this.wait(200, function() {
+                test.assertExists( "#project-bar-save", "Save button of project bar" );
+            } );
         } );
     } );
 
+    ///////////////////////////////////////////////////////////////////
+    // 2. Save program
     casper.thenClick( "#project-bar-save", function() {
 
         this.wait(500, function() {
             test.assertExists( "#project-bar-string-input-modal.in input", "Input field of filename input modal" );
             test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Submit field of filename input modal" );
-            casper.fill("#project-bar-string-input-modal.in", { "string-input": "testing01" }, false);
+            casper.fill("#project-bar-string-input-modal.in", { "string-input": "TEST File 001 Long file name" }, false);
         });
     } );
 
@@ -197,6 +201,8 @@ casper.test.begin('Live-Editor', 18, function suite(test) {
         });
     } );
 
+    ///////////////////////////////////////////////////////////////////
+    // 3. New file & save again (same filename + don't overwrite)
     casper.thenClick( "#project-bar-new", function() {
 
         this.wait(500, function() {
@@ -210,16 +216,14 @@ casper.test.begin('Live-Editor', 18, function suite(test) {
     casper.thenClick( "#project-bar-save", function() {
 
         this.wait(500, function() {
-            this.echo("Can I save a file with the same filename?");
             test.assertExists( "#project-bar-string-input-modal.in input", "Input field of filename input modal" );
             test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Submit button of filename input modal" );
-            casper.fill("#project-bar-string-input-modal.in", { "string-input": "testing01" }, false);
+            casper.fill("#project-bar-string-input-modal.in", { "string-input": "TEST File 001 Long file name" }, false);
         } );
     } );
 
     casper.thenClick( "#project-bar-string-input-modal.in [type='submit']", function() {
         this.wait(500, function() {
-            this.echo("Pressing the NO button.");
             test.assertExists( "#project-bar-yes-no-modal.in", "Yes-No-Modal" );
 
             test.assertExists( "#project-bar-yes-no-modal.in button.modal-no", "Yes-No-Modal: No-Button" );
@@ -227,22 +231,28 @@ casper.test.begin('Live-Editor', 18, function suite(test) {
     } );
 
     casper.thenClick( "#project-bar-yes-no-modal.in button.modal-no", function() { 
-        casper.fill(".scratchpad-ace-editor", { "text-input": "rect( 100, 100, 100, 101 );\n\n" }, false);
+        casper.evaluate(function(){
+            $("#project-button-textarea-for-testing").val( "// This is a test program\nellipse(100, 100, 100, 102);\n\nrect(50, 50, 50, 50);" ).trigger("set-live-editor");
+        });
+
+        this.wait(200, function() {
+
+        } );
     } );
 
+    ///////////////////////////////////////////////////////////////////
+    // 4. Save again (same filename + overwrite)
     casper.thenClick( "#project-bar-save", function() {
 
         this.wait(500, function() {
-            this.echo("Can I save a file with the same filename? (again)");
             test.assertExists( "#project-bar-string-input-modal.in input", "Input field of filename input modal" );
             test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Submit button of filename input modal" );
-            casper.fill("#project-bar-string-input-modal.in", { "string-input": "testing01" }, false);
+            casper.fill("#project-bar-string-input-modal.in", { "string-input": "TEST File 001 Long file name" }, false);
         } );
     } );
 
     casper.thenClick( "#project-bar-string-input-modal.in [type='submit']", function() {
         this.wait(500, function() {
-            this.echo("Pressing the YES button.");
             test.assertExists( "#project-bar-yes-no-modal.in", "Yes-No-Modal" );
             test.assertExists( "#project-bar-yes-no-modal.in button.modal-yes", "Yes-No-Modal: Yes-Button" );
         } );
@@ -252,9 +262,300 @@ casper.test.begin('Live-Editor', 18, function suite(test) {
         this.wait(200, function() {
             test.assertEvalEquals(function() {
                 return __utils__.findOne(".big-filename .name").textContent;
-            }, "testing01.pjs", "'testing01.pjs' displayed as filename.");
+            }, "TEST File 001 Long file name.pjs", "'TEST File 001 Long file name.pjs' displayed as filename.");
+
+            test.assertExists( "#project-bar-save-project", "Save project button of project bar" );
         } );
     } );
+
+    ///////////////////////////////////////////////////////////////////
+    // 5. Save project
+    casper.thenClick( "#project-bar-save-project", function() { 
+        this.wait(200, function() {
+            test.assertExists( "#project-bar-string-input-modal.in", "String-Input-Modal" );
+            test.assertEvalEquals(function() {
+                return $("#project-bar-input").val();
+            }, "TEST File 001 Long file name", "'TEST File 001 Long file name' displayed as suggested project name.");
+            casper.fill("#project-bar-string-input-modal.in", { "string-input": "TEST-Project" }, false);
+            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Submit button of projectname input modal" );
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-string-input-modal.in [type='submit']", function() {
+        this.wait(500, function() {
+            test.assertEvalEquals(function() {
+                return __utils__.findOne(".big-filename .project").textContent;
+            }, "Projekt", "Project label is displayed.");
+        } );
+    } );
+
+    ///////////////////////////////////////////////////////////////////
+    // 6. New file & Save another project
+    casper.thenClick( "#project-bar-new", function() {
+
+        this.wait(500, function() {
+            test.assertEvalEquals(function() {
+                return __utils__.findOne(".big-filename .name").textContent;
+            }, "unbekannt.pjs", "'unbekannt.pjs' displayed as filename.");
+
+            casper.evaluate(function(){
+                $("#project-button-textarea-for-testing").val( "// This is a second test program\nfill(255,100,100,100);\nellipse(100, 100, 100, 102);\n\nfill(100,100,255,100);\nrect(50, 50, 50, 50);" ).trigger("set-live-editor");
+            });
+
+            this.wait(200, function() {
+                test.assertExists( "#project-bar-save-project", "Save button of project bar" );
+            } );
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-save-project", function() { 
+        this.wait(200, function() {
+            test.assertExists( "#project-bar-string-input-modal.in", "String-Input-Modal" );
+            casper.fill("#project-bar-string-input-modal.in", { "string-input": "TEST-Project-2" }, false);
+            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Submit button of projectname input modal" );
+        } );
+    } );
+
+    ///////////////////////////////////////////////////////////////////
+    // 7. Change code and save again
+
+    casper.thenClick( "#project-bar-string-input-modal.in [type='submit']", function() {
+        this.wait(500, function() {
+            test.assertEvalEquals(function() {
+                return __utils__.findOne(".big-filename .project").textContent;
+            }, "Projekt", "Project label is displayed.");
+
+            casper.evaluate(function(){
+                $("#project-button-textarea-for-testing").val( 
+                    "// This is a second test program\n" +
+                    "var bild = getImage(\"Spielplatz/Fred_Yeah\");\n" +
+                    "var sound = getSound(\"Spielplatz/Glas\");\n" +
+                    "// This is a second test program\n" +
+                    "fill(255,100,100,100);\n" +
+                    "ellipse(100, 100, 100, 102);\n\n"+ 
+                    "fill(100,100,255,100);\n" +
+                    "rect(50, 50, 50, 50);\n\n" +
+                    "image( bild, 160, 300 );\n" +
+                    "playSound( sound );\n"
+                ).trigger("set-live-editor");
+            } );
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-save-project", function() { 
+        this.wait(200, function() {
+            test.assertExists( "#project-bar-string-input-modal.in", "String-Input-Modal" );
+            casper.fill("#project-bar-string-input-modal.in", { "string-input": "Added an image and a sound." }, false);
+            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Submit button of projectname input modal" );
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-string-input-modal.in [type='submit']", function() {
+        this.wait(500, function() {
+            test.assertEvalEquals(function() {
+                return __utils__.findOne("#project-bar-ok-modal.in .modal-title").textContent;
+            }, "Live-Editor neu starten", "Modal-Title 'Live-Editor neu starten'");
+        });
+    });
+
+    casper.thenClick( "#project-bar-ok-modal.in button.btn-primary", function() {
+        this.wait(200, function() {
+
+            casper.evaluate(function(){
+                $("#project-button-textarea-for-testing").trigger("get-live-editor");
+            } );
+
+            this.wait(200, function() {
+
+                var val = casper.evaluate(function( ){
+                    return $("#project-button-textarea-for-testing").val();
+                } );
+
+                test.assert( val.search( "TEST-Project-2/Fred_Yeah" ) > -1, "Moved image resources." );
+                test.assert( val.search( "TEST-Project-2/Glas" ) > -1, "Moved sound resources." );
+
+                test.assertExists( "#project-bar-open-files li[codefile='TEST-Project.pjs']", "Open first Test-Project again." )
+            } );
+        });
+    });
+
+    ///////////////////////////////////////////////////////////////////
+    // 8. Change to first project, open directly
+
+    casper.thenClick( "#project-bar-open-files li[codefile='TEST-Project.pjs']", function() { 
+        this.wait(200, function() {
+
+            casper.evaluate(function(){
+                $("#project-button-textarea-for-testing").trigger("get-live-editor");
+            } );
+
+            this.wait(100, function() {
+
+                var val = casper.evaluate(function( ){
+                    return $("#project-button-textarea-for-testing").val();
+                } );
+
+                test.assert( val.search( "This is a test program" ) > -1, "First Test-Project loaded." );
+
+                test.assertExists( "#project-bar-invite", "Invite Tester1 to this project." )
+            } );
+        } );
+    } );
+
+    ///////////////////////////////////////////////////////////////////
+    // 9. Invite Tester1 to project
+    casper.thenClick( "#project-bar-invite", function() {
+
+        this.wait(200, function() {
+            test.assertExists( "#project-bar-invite-modal.in", "Invite Modal" );
+
+            test.assertExists( "#project-bar-invite-modal.in input[user='Tester1']", "Tester1 in Klasse 11 project" );
+        } );
+    } ); 
+
+    casper.thenClick( "#project-bar-invite-modal.in input[user='Tester1']", function() {
+
+        this.wait(200, function() {
+            test.assertExists( "#project-bar-invite-modal.in button.modal-invite.btn-primary", "Invite Button" );
+        } );
+    } ); 
+
+    casper.thenClick( "#project-bar-invite-modal.in button.modal-invite.btn-primary", function() {
+
+        this.wait(200, function() {} );
+    } ); 
+
+
+    ///////////////////////////////////////////////////////////////////
+    // 10. Change to second project, open via modal
+    casper.thenClick( "#project-bar-open-files li[codefile='TEST-Project-2.pjs']", function() { 
+        this.wait(200, function() {
+
+            casper.evaluate(function(){
+                $("#project-button-textarea-for-testing").trigger("get-live-editor");
+            } );
+
+            this.wait(100, function() {
+
+                var val = casper.evaluate(function( ){
+                    return $("#project-button-textarea-for-testing").val();
+                } );
+
+                test.assert( val.search( "This is a second test program" ) > -1, "Second Test-Project loaded." );
+
+                test.assertExists( "#project-bar-invite", "Invite Tester1 also to this project." )
+            } );
+        } );
+    } );
+
+    ///////////////////////////////////////////////////////////////////
+    // 11. Invite Tester1 and Tester2 to project
+    casper.thenClick( "#project-bar-invite", function() {
+
+        this.wait(200, function() {
+            test.assertExists( "#project-bar-invite-modal.in", "Invite Modal" );
+
+            test.assertExists( "#project-bar-invite-modal.in input[user='Tester1']", "Tester1 in Klasse 11 project" );
+        } );
+    } ); 
+
+    casper.thenClick( "#project-bar-invite-modal.in input[user='Tester1']" );
+    casper.thenClick( "#project-bar-invite-modal.in input[user='Tester2']", function() {
+
+        test.assertExists( "#project-bar-invite-modal.in button.modal-invite.btn-primary", "Invite Button" );
+    } ); 
+
+    casper.thenClick( "#project-bar-invite-modal.in button.modal-invite.btn-primary", function() {
+
+        test.assertExists( "div.login-area #logout-button", "Logout Button" );
+    } ); 
+
+    ///////////////////////////////////////////////////////////////////
+    // 12. Logout Tester0, Login Tester1
+    casper.thenClick( "div.login-area #logout-button", function() {
+
+        this.wait(200, function() {
+            test.assertTitle( "CYPHERPUNK Computer-Spielplatz", "Landing page: Title Computer-Spielplatz" );
+        } );
+    } );
+
+    casper.then( function() {
+        casper.open(url + "/login/live-editor").then( function() {
+
+            test.assertTitle( "Login - CYPHERPUNK Computer-Spielplatz", "Login: Title Computer-Spielplatz" );
+
+            casper.fill('form', { name: name + "1" }, false);
+            casper.fill('form', { password: name + "1" }, false);
+
+            test.assertExists( "form button", "Login button" );
+        } );
+    });
+
+    casper.thenClick( "form button", function() {
+
+        this.wait(200, function() {
+            test.assertTitle( "Live-Editor - CYPHERPUNK Computer-Spielplatz", "Live-Editor: Title Computer-Spielplatz" );
+            test.assertExists( "#project-bar-mail-menu .dropdown-menu li[project-name='TEST-Project']", "Invitation Entry" );
+            test.assertExists( "button#project-bar-mail", "Mail menu Button" );
+        });
+    });
+
+    ///////////////////////////////////////////////////////////////////
+    // 13. Read project invitation 1 and decline
+/*
+    casper.thenClick( "button#project-bar-mail", function() {
+        this.wait(100, function() {
+            test.assertExists( "#project-bar-mail-menu.open", "Mail menu open" );
+        } );        
+    });
+
+    casper.thenClick( "#project-bar-mail-menu .dropdown-menu li[project-name='TEST-Project']", function() {
+        this.wait(200, function() {
+            test.assertExists( "#project-bar-yes-no-modal.in", "Invitation Yes-No-Modal" );
+            test.assertEvalEquals(function() {
+                return __utils__.findOne("#project-bar-yes-no-modal.in .modal-title").textContent;
+            }, "Einladung zu \"TEST-Project\"", "Invitation Text.");
+        } );
+    });
+
+    casper.thenClick( "#project-bar-yes-no-modal.in button.btn-default", function() {
+        test.assertDoesntExist( "#project-bar-mail-menu .dropdown-menu li[project-name='TEST-Project']", "Invitation Entry gone" );
+        test.assertExists( "#project-bar-mail-menu .dropdown-menu li[project-name='TEST-Project-2']", "Invitation Entry 2" );
+    });
+*/
+
+    ///////////////////////////////////////////////////////////////////
+    // 14. Read project invitation 2 and accept
+
+    casper.thenClick( "button#project-bar-mail", function() {
+        this.wait(100, function() {
+            test.assertExists( "#project-bar-mail-menu.open", "Mail menu open" );
+            test.assertExists( "#project-bar-mail-menu .dropdown-menu li[project-name='TEST-Project-2']" );
+        } );        
+    });
+
+    casper.thenClick( "#project-bar-mail-menu .dropdown-menu li[project-name='TEST-Project-2']", function() {
+        this.wait(200, function() {
+            test.assertExists( "#project-bar-yes-no-modal.in", "Invitation Yes-No-Modal" );
+            test.assertEvalEquals(function() {
+                return __utils__.findOne("#project-bar-yes-no-modal.in .modal-title").textContent;
+            }, "Einladung zu \"TEST-Project-2\"", "Invitation Text.");
+        } );
+    });
+
+    casper.thenClick( "#project-bar-yes-no-modal.in button.btn-primary", function() {
+        this.wait(200, function() {
+            test.assertEvalEquals(function() {
+                return __utils__.findOne(".big-filename .points").textContent;
+            }, "..", "Two project points.");
+        } );        
+    });
+
+
+    // Drei Probleme
+    // 1. Invitation Modal öffnet nicht beim zweiten Mal
+    // 2. In der Datenbank steht bei den Projekten "/static/userdata" statt "CYPHERPUNK ..."
+    // 3. Der Invitation Text der Einladung stimmt nicht
 
     casper.run(function() {
         test.done();

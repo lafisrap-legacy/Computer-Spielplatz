@@ -123,8 +123,8 @@ type outputSounds struct {
 
 ///////////////////////////////
 // Regexp for detecting filename and folder of image files
-var imageRegexp *regexp.Regexp = regexp.MustCompile(`images\/([^\/]+)\/([^\.]+)\.png`)
-var soundRegexp *regexp.Regexp = regexp.MustCompile(`sounds\/([^\/]+)\/([^\.]+)\.mp3`)
+var imageRegexp *regexp.Regexp = regexp.MustCompile(`images\/([^\/]+\/|)([^\.]+)\.png`)
+var soundRegexp *regexp.Regexp = regexp.MustCompile(`sounds\/([^\/]+\/|)([^\.]+)\.mp3`)
 
 ///////////////////////////////////////////////////////
 // init function
@@ -334,6 +334,7 @@ func (c *LoginController) Get() {
 	c.Data["LoginPassword"] = T["login_input_password"]
 	c.Data["LoginLoginGo"] = T["login_login_go"]
 	c.Data["WebSocketsToken"] = token
+	c.Data["Title"] = T["Title"]
 
 	c.TplName = "login.html"
 }
@@ -589,6 +590,12 @@ func (c *CPGController) getImageInfo(userName string) string {
 			found := false
 			var i int
 
+			if folder == "" {
+				folder = "/"
+			} else {
+				folder = folder[:len(folder)-1]
+			}
+
 			for i = 0; i < len(imageInfo); i++ {
 				if folder == imageInfo[i].GroupName {
 					found = true
@@ -628,6 +635,12 @@ func (c *CPGController) getSoundInfo(userName string) string {
 			file := string(matches[2])
 			found := false
 			var i int
+
+			if folder == "" {
+				folder = "/"
+			} else {
+				folder = folder[:len(folder)-1]
+			}
 
 			for i = 0; i < len(soundInfo); i++ {
 				if folder == soundInfo[i].GroupName {

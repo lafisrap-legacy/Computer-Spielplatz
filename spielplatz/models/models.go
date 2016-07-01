@@ -609,6 +609,35 @@ func CheckRight(userName string, projectName string, right string) bool {
 	return ok
 }
 
+func GetProjectsWithRightFromDatabase(userName string, right string) []string {
+	o := orm.NewOrm()
+	o.Using("default") // Using default, you can use other database
+
+	var mask int64 = 0
+	for i := 0; i < len(PRR_NAMES); i++ {
+		if right == PRR_NAMES[i] {
+			mask |= 1 << uint(i)
+		}
+	}
+
+	var u []orm.Params
+
+	projects := make([]string, 0, MaxProjectsPerUser)
+
+	num, _ := o.QueryTable("project_user").Filter("user__name", userName).Values(&u, "project__name", "rights")
+
+	if num > 0 {
+		for _, params := range u {
+
+			if mask&params["Rights"].(int64) > 0 {
+				projects = append(projects, params["Project__Name"].(string))
+			}
+		}
+	}
+
+	return projects
+}
+
 //////////////////////////////////////////////////
 // DeleteMessageFromDatabase reads the users that are in the group of a user
 func DeleteMessageFromDatabase(userName string, messageId int64) error {

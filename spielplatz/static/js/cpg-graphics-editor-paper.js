@@ -122,12 +122,14 @@ window.GraphicsEditorFramePaper = window.GraphicsEditorFrame.extend ( {
 	// resouces returns a list of all images, sounds and other resources used in the code file
 	resources: function( ) {
 		// No resources (no live editor)
+		return null;
 	},
 
 	// moveResouces moves all resources to the project directory and returns the code file 
 	// (doesn't change it in the editor though)
 	moveResources: function( projectName ) {
 		// No resources (no live editor)
+		return null;
 	},
 
 	// restart: Restarts the code
