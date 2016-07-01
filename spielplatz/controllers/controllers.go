@@ -542,8 +542,8 @@ func (c *LiveEditorController) Get() {
 		}
 	}
 
-	c.Data["AllImages"] = c.getImageInfo(userNameForImages)
-	c.Data["OutputSounds"] = c.getSoundInfo(userNameForImages)
+	c.Data["AllImages"] = c.getImageInfo(userName)
+	c.Data["OutputSounds"] = c.getSoundInfo(userName)
 	c.Data["UserNameForImages"] = userNameForImages
 
 	file := c.Ctx.Input.Param(":file")
@@ -574,14 +574,27 @@ func (c *LiveEditorController) Get() {
 //////////////////////////////////////////////////////////
 // getImageInfo retrieves a list of all images for one particular user
 func (c *CPGController) getImageInfo(userName string) string {
+	var (
+		onlyCommonProject = false
+		commonProject     = beego.AppConfig.String("userdata::commonproject")
+	)
+
+	if userName == "" {
+		userName = beego.AppConfig.String("userdata::admin")
+		onlyCommonProject = true
+	}
+
 	dir := beego.AppConfig.String("userdata::location") + userName + "/" + beego.AppConfig.String("userdata::imagefiles") + "/"
 
 	imageInfo := make([]imageGroup, 0, 21)
 
-	imageInfo = append(imageInfo, imageGroup{
-		GroupName: "/",
-		Images:    []string{},
-	})
+	if !onlyCommonProject {
+		imageInfo = append(imageInfo, imageGroup{
+			GroupName: "/",
+			Images:    []string{},
+		})
+	}
+
 	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		matches := imageRegexp.FindSubmatch([]byte(path))
 		if matches != nil {
@@ -594,6 +607,10 @@ func (c *CPGController) getImageInfo(userName string) string {
 				folder = "/"
 			} else {
 				folder = folder[:len(folder)-1]
+			}
+
+			if onlyCommonProject && folder != commonProject {
+				return nil
 			}
 
 			for i = 0; i < len(imageInfo); i++ {
@@ -718,8 +735,8 @@ func (c *GraphicsController) Get() {
 		}
 	}
 
-	c.Data["AllImages"] = c.getImageInfo(userNameForImages)
-	c.Data["OutputSounds"] = c.getSoundInfo(userNameForImages)
+	c.Data["AllImages"] = c.getImageInfo(userName)
+	c.Data["OutputSounds"] = c.getSoundInfo(userName)
 	c.Data["UserNameForImages"] = userNameForImages
 	c.Data["RightInviteToGroups"] = rights["invitetogroups"]
 	c.Data["RightAddGroups"] = rights["addgroups"]

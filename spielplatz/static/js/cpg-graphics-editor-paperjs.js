@@ -1093,27 +1093,6 @@ var Commands = Base.extend( {
 		} );
 
 		///////////////////////////////////////////////////////////////////
-		// Menü-Command: Export images
-		//
-		$( ".command-export" ).on( "click tap", function( event ) {
-			if ( window.CPG.UserName === "" ) {
-				showModalYesNo( window.CPG.Modals.login1,
-								window.CPG.Modals.login2,
-								function( yes ) {
-					if ( yes ) {
-						window.location.href = "/login/graphics-animation";
-					}
-				} );
-			} else {
-				exportModal( function( res, image ) {
-					if ( res === "export" ) {
-
-					}
-				} );
-			}
-		} );
-
-		///////////////////////////////////////////////////////////////////
 		// Menü-Command: Mode-Commands
 		//
 		///////////////////////////////////////////////
@@ -1486,6 +1465,8 @@ var importModal = function( cb ) {
 
 		// Open image file
 		if ( lcb ) lcb( "open", "modal-image-" + $( this ).attr( "filename" ) );
+
+		sessionStorage.importFolder = $( ".panel .in", modal ).attr( "project" );
 	} );
 
 	// After dialog is shown
@@ -1537,77 +1518,16 @@ var importModal = function( cb ) {
 		reader.readAsDataURL( document.getElementById( "image-import-local" ).files[ 0 ] );
 	} );
 
-	modal.modal( "show" );
-	$( "#image-group-1", modal ).collapse( "show" );
-};
-
-////////////////////////////////////////////////////////////////////////
-// exportModal is the modal dialog for exporting images
-//
-var exportModal = function( cb ) {
-	var modal = $( "#commands-image-export-modal" );
-
-	var afl = window.AllImages,
-		imageGroups = getModelFileImages( afl, false );
-
-	// Fill image files into modal
-	$( ".modal-body", modal ).html( imageGroups );
-
-	$( ".filename-folder", modal ).text( sessionStorage.exportFolder );
-
-	// Click on title: take new folder name
-	$( ".title", modal ).on( "click tap", function( e ) {
-		sessionStorage.exportFolder = $( this ).text();
-		$( ".filename-folder", modal ).text( sessionStorage.exportFolder );
-	} );
-
-	// Click on file: take new file name
-	$( ".file", modal ).on( "click tap", function( e ) {
-		$( ".filename-input", modal ).val( $( this ).attr( "filename" ) );
-	} );
-
-	// Double click on file: export filename
-	$( ".file", modal ).on( "dblclick taphold", function( e ) {
-		var lcb = cb;
-		cb = null;
-		modal.modal( "hide" );
-
-		baseCommands.activateCommand( "pointer" );
-
-		if ( lcb ) lcb( "export", "modal-image-" + $( this ).attr( "filename" ) );
-	} );
-
-	// Cancel: close modal
-	$( ".modal-cancel", modal ).off( "click" ).one( "click", function( e ) {
-		modal.modal( "hide" );
-	} );
-
-	// Return cancel message on closing modal
-	modal.one( "hidden.bs.modal", function( e ) {
-		if ( cb ) cb( "cancel" );
-	} );
-
-	// Move images to right position, when collapsible paragraph is shown
-	modal.on( "shown.bs.collapse", function( e ) {
-
-		// Vertically center images after they are shown
-		$( ".file img", $( this ) ).each( function( index ) {
-			var img = $( this ),
-				w = img.width(),
-				h = img.height(),
-				maxW = parseInt( img.attr( "max-width" ) ),
-				maxH = parseInt( img.attr( "max-height" ) );
-
-			img.animate( {
-				marginLeft: ( ( maxW - w ) / 2 ) + "px",
-				marginTop:  ( ( maxH - h ) / 2 ) + "px",
-				zoom: 1,
-				opacity: 1
-			}, 300 );
-		} );
+	$( ".panel-heading", modal ).on( "click", function( e ) {
+		debugger;
+		var currentProject = $( ".panel-collapse.in", modal ).attr( "project");
+			project = $( this ).parent().find( ".panel-collapse" ).attr( "project");
+		$( "[project='" + currentProject + "']", modal ).collapse( "hide" );
+		if( currentProject !== project ) $( "[project='" + project + "']", modal ).collapse( "show" );
 	} );
 
 	modal.modal( "show" );
+	$( "[project='" + sessionStorage.importFolder + "']", modal ).collapse( "show" );
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -1636,9 +1556,7 @@ var getModelFileImages = function( afl, readonly ) {
 						"</a>" +
 					"</div>" +
 				"</div>" +
-				"<div id='image-group-" + i + "' class='panel-collapse collapse fade" +
-					( sessionStorage[ readonly ? "importFolder" : "exportFolder" ] ===
-						afl[ i ].groupName ? " in" : "" ) + "'>" +
+				"<div id='image-group-" + i + "' project='" + groupName + "' class='panel-collapse collapse fade'>" +
 				"</div>" +
 			"</div>"
 		);
@@ -1662,6 +1580,8 @@ var getModelFileImages = function( afl, readonly ) {
 				"</div>"
 			);
 		}
+
+		imageGroup.append( "<div class='clearfix'></div>" );
 	}
 
 	return imageGroups;
@@ -2565,8 +2485,7 @@ project.clear();
 var baseLayer = project.activeLayer;
 var drawingLayer = new Layer();
 
-sessionStorage.importFolder = window.AllImages[ 0 ].groupName;
-sessionStorage.exportFolder = "/";
+sessionStorage.importFolder = "Spielplatz";
 
 ///////////////////////////////////////////////////
 // Preparing the base layer (viewer, cropper, commands)
