@@ -20,7 +20,7 @@ var langTypes []*langType // Languages are supported.
 func init() {
 	beego.Router("/", &controllers.RootController{})
 	beego.Router("/login/?:dest", &controllers.LoginController{})
-	beego.Router("/logout", &controllers.LogoutController{})
+	beego.Router("/logout/?:dest", &controllers.LogoutController{})
 	beego.Router("/signup/?:dest", &controllers.SignupController{})
 	beego.Router("/live-editor/", &controllers.LiveEditorController{})
 	beego.Router("/graphics-animation/", &controllers.GraphicsController{})

@@ -327,7 +327,6 @@ func (c *LoginController) Get() {
 	T := models.T
 	token := c.getWebSocketsToken()
 
-	beego.Warning("Dest:", c.Ctx.Input.Param(":wstoken"))
 	c.Data["Destination"] = "/" + c.Ctx.Input.Param(":dest")
 	c.Data["LoginInvitation"] = T["login_invitation"]
 	c.Data["LoginInputName"] = T["login_input_name"]
@@ -388,12 +387,13 @@ func (c *LogoutController) Get() {
 
 	token := c.getWebSocketsToken()
 
+	dest := "/" + c.Ctx.Input.Param(":dest")
 	c.DelSession("UserName")
 	c.DelSession("LoginTime")
 	c.DestroySession()
 	c.Data["WebSocketsToken"] = token
 
-	c.Ctx.Redirect(302, "/")
+	c.Ctx.Redirect(302, dest)
 }
 
 //////////////////////////////////////////////////////////

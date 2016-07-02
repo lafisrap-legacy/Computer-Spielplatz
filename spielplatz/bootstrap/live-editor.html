@@ -58,7 +58,7 @@
 			<a href="/login/live-editor" class="btn btn-info btn-sm pull-right">{{ .LoginLogin }} <span class="glyphicon glyphicon-share-alt"></span></a>
 			<a href="/signup/live-editor" class="btn btn-info btn-sm pull-right">{{ .LoginSignup }} <span class="glyphicon glyphicon-book"></span></a>
 		{{else}}
-			<a href="/logout" id="logout-button" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>		
+			<a href="/logout/live-editor" id="logout-button" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>		
 		{{end}}
 		<ul class="nav nav-tabs kuenste" style="display:none,">
 		{{range $i, $art := .Arts}}

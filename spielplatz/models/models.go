@@ -903,7 +903,6 @@ func CreateUserInDatabase(uf *UserForm) (User, string, error) {
 		return User{}, "", err
 	}
 
-	beego.Warning("Group found:", group)
 	err = CreateGroupUserDatabaseEntry(&user, group.Name)
 	if err != nil {
 		return user, "", err

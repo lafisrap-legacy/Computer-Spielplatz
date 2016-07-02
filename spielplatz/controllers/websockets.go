@@ -600,7 +600,6 @@ func deleteSourceFiles(s session.Store, fileNames []string, projectNames []strin
 
 func initProject(s session.Store, projectName string, fileType string, fileName string, codeFile string, resourceFiles []string, image string) Data {
 
-	beego.Trace("Entering initProject", projectName, fileName, resourceFiles)
 	// if user is not logged in return
 	if s.Get("UserName") == nil {
 		beego.Error("No user name available.")
@@ -710,7 +709,7 @@ func initProject(s session.Store, projectName string, fileType string, fileName 
 	user, _ := models.GetUser(userName)
 	project := new(models.Project)
 	project.Name = projectName
-	project.Playground = beego.AppConfig.String("userdata::location")
+	project.Playground = beego.AppConfig.String("userdata::name")
 	project.Origin = "none"
 	project.Gallery = false
 	project.Forks = 0

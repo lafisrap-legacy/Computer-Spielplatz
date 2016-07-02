@@ -1073,23 +1073,47 @@ var Commands = Base.extend( {
 		///////////////////////////////////////////////////////////////////
 		// Menü-Command: Import images
 		//
+		var importImage = function( image ) {
+			// Create a new raster of the returned image
+			var r1 = new Raster( image ),
+				r2 = Do.execute( {
+					item: r1,
+					action: "Import"
+				} );
+
+			r1.remove();
+
+			var items = project.activeLayer.children;
+			if ( items.length === 1 ) baseCropper.set( r2.bounds );
+		};
+
 		$( ".command-import" ).on( "click tap", function( event ) {
 			importModal( function( res, image ) {
 				if ( res === "open" ) {
-
-					// Create a new raster of the returned image
-					var r1 = new Raster( image ),
-						r2 = Do.execute( {
-							item: r1,
-							action: "Import"
-						} );
-
-					r1.remove();
-
-					var items = project.activeLayer.children;
-					if ( items.length === 1 ) baseCropper.set( r2.bounds );
+					importImage( image );
 				}
 			} );
+		} );
+
+		$( ".command-import-local" ).on( "click tap", function( event ) {
+			$( "#image-import-local" ).trigger( "click" );
+		} );
+
+		$( "#image-import-local" ).on( "change", function() {
+			var input = $( this ),
+				numFiles = input.get( 0 ).files ? input.get( 0 ).files.length : 1,
+				label = input.val().replace( /\\/g, "/" ).replace( /.*\//, "" ),
+				reader = new FileReader();
+
+			baseCommands.activateCommand( "pointer" );
+
+			reader.onload = function( event ) {
+				if( event.target.result ) {
+					importImage( event.target.result );					
+				}
+			};
+
+			reader.readAsDataURL( document.getElementById( "image-import-local" ).files[ 0 ] );
 		} );
 
 		///////////////////////////////////////////////////////////////////
@@ -1497,25 +1521,6 @@ var importModal = function( cb ) {
 	// After dialog is hidden ...
 	modal.one( "hidden.bs.modal", function( e ) {
 		if ( cb ) cb( "cancel" );
-	} );
-
-	$( "#image-import-local" ).on( "change", function() {
-		var input = $( this ),
-			numFiles = input.get( 0 ).files ? input.get( 0 ).files.length : 1,
-			label = input.val().replace( /\\/g, "/" ).replace( /.*\//, "" ),
-			reader = new FileReader(),
-			lcb = cb;
-
-		cb = null;
-		modal.modal( "hide" );
-
-		baseCommands.activateCommand( "pointer" );
-
-		reader.onload = function( event ) {
-			if ( lcb ) lcb( "open", event.target.result );
-		};
-
-		reader.readAsDataURL( document.getElementById( "image-import-local" ).files[ 0 ] );
 	} );
 
 	$( ".panel-heading", modal ).on( "click", function( e ) {
