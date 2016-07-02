@@ -88,7 +88,7 @@ casper.test.begin('Signup', 15, function suite(test) {
                 test.done();
             }
 
-            casper.thenClick( ".login-area a[href='/logout']", function() {
+            casper.thenClick( ".login-area a[href='/logout/live-editor']", function() {
                 if( ++i < tester ) signup();
             } );
         } );
@@ -136,8 +136,8 @@ casper.test.begin('Login', 12, function suite(test) {
         casper.thenClick( "form button", function() {
 
             this.wait(100, function() {
-                test.assertExists( ".login-area a[href='/logout']", "Logout button." );
-                casper.thenClick( ".login-area a[href='/logout']", function() {
+                test.assertExists( ".login-area a[href='/logout/live-editor']", "Logout button." );
+                casper.thenClick( ".login-area a[href='/logout/live-editor']", function() {
                     if( ++i < tester ) login();
                 } );
             } );
@@ -152,7 +152,7 @@ casper.test.begin('Login', 12, function suite(test) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Live-Editor Test
 //
-casper.test.begin('Live-Editor', 52, function suite(test) {
+casper.test.begin('Live-Editor', 72, function suite(test) {
 
     var i = 0;
 
@@ -290,7 +290,7 @@ casper.test.begin('Live-Editor', 52, function suite(test) {
     } );
 
     ///////////////////////////////////////////////////////////////////
-    // 6. New file & Save another project
+    // 6. New file, some new code and save another project with the same name as the first
     casper.thenClick( "#project-bar-new", function() {
 
         this.wait(500, function() {
@@ -311,34 +311,52 @@ casper.test.begin('Live-Editor', 52, function suite(test) {
     casper.thenClick( "#project-bar-save-project", function() { 
         this.wait(200, function() {
             test.assertExists( "#project-bar-string-input-modal.in", "String-Input-Modal" );
-            casper.fill("#project-bar-string-input-modal.in", { "string-input": "TEST-Project-2" }, false);
+            casper.fill("#project-bar-string-input-modal.in", { "string-input": "TEST-Project" }, false);
             test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Submit button of projectname input modal" );
         } );
     } );
 
-    ///////////////////////////////////////////////////////////////////
-    // 7. Change code and save again
-
     casper.thenClick( "#project-bar-string-input-modal.in [type='submit']", function() {
+        this.wait(200, function() {
+            test.assertExists( "#project-bar-ok-modal.in button.btn-primary", "Project exists modal and Ok button");
+        } );
+    } );
+
+    ///////////////////////////////////////////////////////////////////
+    // 7. Save project again with a new name
+    casper.thenClick( "#project-bar-ok-modal.in button.btn-primary", function() {
+
+        this.wait(200, function() {
+            casper.fill("#project-bar-string-input-modal", { "string-input": "TEST-Project-2" }, false);
+            test.assertExists( "#project-bar-string-input-modal [type='submit']", "Submit button of projectname input modal" );
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-string-input-modal [type='submit']", function() {
         this.wait(500, function() {
             test.assertEvalEquals(function() {
                 return __utils__.findOne(".big-filename .project").textContent;
             }, "Projekt", "Project label is displayed.");
+        } );
+    } );
 
-            casper.evaluate(function(){
-                $("#project-button-textarea-for-testing").val( 
-                    "// This is a second test program\n" +
-                    "var bild = getImage(\"Spielplatz/Fred_Yeah\");\n" +
-                    "var sound = getSound(\"Spielplatz/Glas\");\n" +
-                    "// This is a second test program\n" +
-                    "fill(255,100,100,100);\n" +
-                    "ellipse(100, 100, 100, 102);\n\n"+ 
-                    "fill(100,100,255,100);\n" +
-                    "rect(50, 50, 50, 50);\n\n" +
-                    "image( bild, 160, 300 );\n" +
-                    "playSound( sound );\n"
-                ).trigger("set-live-editor");
-            } );
+    ///////////////////////////////////////////////////////////////////
+    // 8. Change code and save again
+    casper.then( function() {
+
+        casper.evaluate(function(){
+            $("#project-button-textarea-for-testing").val( 
+                "// This is a second test program\n" +
+                "var bild = getImage(\"Spielplatz/Fred_Yeah\");\n" +
+                "var sound = getSound(\"Spielplatz/Glas\");\n" +
+                "// This is a second test program\n" +
+                "fill(255,100,100,100);\n" +
+                "ellipse(100, 100, 100, 102);\n\n"+ 
+                "fill(100,100,255,100);\n" +
+                "rect(50, 50, 50, 50);\n\n" +
+                "image( bild, 160, 300 );\n" +
+                "playSound( sound );\n"
+            ).trigger("set-live-editor");
         } );
     } );
 
@@ -380,7 +398,7 @@ casper.test.begin('Live-Editor', 52, function suite(test) {
     });
 
     ///////////////////////////////////////////////////////////////////
-    // 8. Change to first project, open directly
+    // 9. Change to first project, open directly
 
     casper.thenClick( "#project-bar-open-files li[codefile='TEST-Project.pjs']", function() { 
         this.wait(200, function() {
@@ -403,7 +421,7 @@ casper.test.begin('Live-Editor', 52, function suite(test) {
     } );
 
     ///////////////////////////////////////////////////////////////////
-    // 9. Invite Tester1 to project
+    // 10. Invite Tester1 to project
     casper.thenClick( "#project-bar-invite", function() {
 
         this.wait(200, function() {
@@ -427,7 +445,7 @@ casper.test.begin('Live-Editor', 52, function suite(test) {
 
 
     ///////////////////////////////////////////////////////////////////
-    // 10. Change to second project, open via modal
+    // 11. Change to second project, open via modal
     casper.thenClick( "#project-bar-open-files li[codefile='TEST-Project-2.pjs']", function() { 
         this.wait(200, function() {
 
@@ -449,7 +467,7 @@ casper.test.begin('Live-Editor', 52, function suite(test) {
     } );
 
     ///////////////////////////////////////////////////////////////////
-    // 11. Invite Tester1 and Tester2 to project
+    // 12. Invite Tester1 and Tester2 to project
     casper.thenClick( "#project-bar-invite", function() {
 
         this.wait(200, function() {
@@ -471,12 +489,10 @@ casper.test.begin('Live-Editor', 52, function suite(test) {
     } ); 
 
     ///////////////////////////////////////////////////////////////////
-    // 12. Logout Tester0, Login Tester1
+    // 13. Logout Tester0, Login Tester1
     casper.thenClick( "div.login-area #logout-button", function() {
 
-        this.wait(200, function() {
-            test.assertTitle( "CYPHERPUNK Computer-Spielplatz", "Landing page: Title Computer-Spielplatz" );
-        } );
+        test.assertTitle( "Live-Editor - CYPHERPUNK Computer-Spielplatz", "Landing page: Title Computer-Spielplatz" );
     } );
 
     casper.then( function() {
@@ -501,8 +517,36 @@ casper.test.begin('Live-Editor', 52, function suite(test) {
     });
 
     ///////////////////////////////////////////////////////////////////
-    // 13. Read project invitation 1 and decline
-/*
+    // 14. New file with name "Test-Project-2" & save
+    casper.thenClick( "#project-bar-new", function() {
+
+        this.wait(200, function() {
+            test.assertEvalEquals(function() {
+                return __utils__.findOne(".big-filename .name").textContent;
+            }, "unbekannt.pjs", "'unbekannt.pjs' displayed as filename.");
+            test.assertExists( "#project-bar-save", "Save button of project bar" );
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-save", function() {
+
+        this.wait(500, function() {
+            test.assertExists( "#project-bar-string-input-modal.in input", "Input field of filename input modal" );
+            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Submit button of filename input modal" );
+            casper.fill("#project-bar-string-input-modal.in", { "string-input": "TEST-Project-2" }, false);
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-string-input-modal.in [type='submit']", function() {
+        this.wait(200, function() {
+            test.assertEvalEquals(function() {
+                return __utils__.findOne(".big-filename .name").textContent;
+            }, "TEST-Project-2.pjs", "'TEST-Project-2.pjs' displayed as filename.");
+        } );
+    } );
+
+    ///////////////////////////////////////////////////////////////////
+    // 15. Read project invitation 1 and decline
     casper.thenClick( "button#project-bar-mail", function() {
         this.wait(100, function() {
             test.assertExists( "#project-bar-mail-menu.open", "Mail menu open" );
@@ -522,42 +566,92 @@ casper.test.begin('Live-Editor', 52, function suite(test) {
         test.assertDoesntExist( "#project-bar-mail-menu .dropdown-menu li[project-name='TEST-Project']", "Invitation Entry gone" );
         test.assertExists( "#project-bar-mail-menu .dropdown-menu li[project-name='TEST-Project-2']", "Invitation Entry 2" );
     });
-*/
+
 
     ///////////////////////////////////////////////////////////////////
-    // 14. Read project invitation 2 and accept
-
-    casper.thenClick( "button#project-bar-mail", function() {
-        this.wait(100, function() {
-            test.assertExists( "#project-bar-mail-menu.open", "Mail menu open" );
-            test.assertExists( "#project-bar-mail-menu .dropdown-menu li[project-name='TEST-Project-2']" );
-        } );        
-    });
-
+    // 16. Read project invitation 2 and accept / check if conflicting filename was changed
     casper.thenClick( "#project-bar-mail-menu .dropdown-menu li[project-name='TEST-Project-2']", function() {
         this.wait(200, function() {
-            test.assertExists( "#project-bar-yes-no-modal.in", "Invitation Yes-No-Modal" );
+            test.assertExists( "#project-bar-yes-no-modal", "Invitation Yes-No-Modal" );
             test.assertEvalEquals(function() {
-                return __utils__.findOne("#project-bar-yes-no-modal.in .modal-title").textContent;
+                return __utils__.findOne("#project-bar-yes-no-modal .modal-title").textContent;
             }, "Einladung zu \"TEST-Project-2\"", "Invitation Text.");
         } );
     });
 
-    casper.thenClick( "#project-bar-yes-no-modal.in button.btn-primary", function() {
+    casper.thenClick( "#project-bar-yes-no-modal button.btn-primary", function() {
         this.wait(200, function() {
             test.assertEvalEquals(function() {
                 return __utils__.findOne(".big-filename .points").textContent;
             }, "..", "Two project points.");
+
+            test.assertExists( ".project-bar-open-file[codefile='TEST-Project-2..pjs']", "Renamed conflicting filename to TEST-Project-2..pjs" );
+            test.assertExists( "#project-bar-save-as-up", "Save as menu entry button" );
         } );        
     });
 
+    ///////////////////////////////////////////////////////////////////
+    // 17. Change project and save it
 
-    // Drei Probleme
-    // 1. Invitation Modal öffnet nicht beim zweiten Mal
-    // 2. In der Datenbank steht bei den Projekten "/static/userdata" statt "CYPHERPUNK ..."
-    // 3. Der Invitation Text der Einladung stimmt nicht
+    ///////////////////////////////////////////////////////////////////
+    // 18. Make some more changes and write locally
+
+    ///////////////////////////////////////////////////////////////////
+    // 19. Save file as TEST-File
+    casper.thenClick( "#project-bar-save-as-up", function() {
+        this.wait(100, function() {
+            test.assertExists( "#project-bar-save-as", "Save as command button" );
+        } );        
+    });
+
+    casper.thenClick( "#project-bar-save-as", function() {
+        this.wait(100, function() {
+            test.assertExists( "#project-bar-save-as", "Save as command button" );
+            casper.fill("#project-bar-string-input-modal", { "string-input": "TEST-File" }, false);
+        } );        
+    });
+
+    casper.thenClick( "#project-bar-string-input-modal [type='submit']", function() {
+        this.wait(200, function() {
+            test.assertEvalEquals(function() {
+                return __utils__.findOne(".big-filename .name").textContent;
+            }, "TEST-File.pjs", "'TEST-File.pjs' displayed as filename.");
+
+            test.assertEvalEquals(function() {
+                return __utils__.findOne(".big-filename .project").textContent;
+            }, "", "File is no Project.");
+        } );
+    } );
+
+    ///////////////////////////////////////////////////////////////////
+    // 19. Logout Tester1 and login Tester0 again
+
+    ///////////////////////////////////////////////////////////////////
+    // 20. Check if changes of Tester1 are there
+
+    ///////////////////////////////////////////////////////////////////
+    // 21. Make some changes and save project
+
+    ///////////////////////////////////////////////////////////////////
+    // 22. Logout Tester0 and login Tester1 again
+
+    ///////////////////////////////////////////////////////////////////
+    // 23. Confirm that changes are NOT there (due to own local changes)
+
+    ///////////////////////////////////////////////////////////////////
+    // 24. Save Project and check code conflicts
+
+    ///////////////////////////////////////////////////////////////////
+    // 25. Resolve conflicts and save project
+
+    ///////////////////////////////////////////////////////////////////
+    // 26. Logout Tester1 and login Tester0 again
+
+    ///////////////////////////////////////////////////////////////////
+    // 27. Confirm that changes are there
 
     casper.run(function() {
         test.done();
     });
+
 });
