@@ -24,12 +24,6 @@
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <h4 class="modal-title">{{ .GraphicsCommandsImportTitle }}</h4>
             <div class="clearfix"></div>
-            <div class='title pull-right'>{{ .GraphicsCommandsImportLocal1 }}</div>
-            <div class="clearfix"></div>
-            <span class="btn btn-default btn-file pull-right">
-              {{ .GraphicsCommandsImportLocal2 }} <input id="image-import-local" type="file">
-            </span>
-            <div class="clearfix"></div>
           </div>
           <div class="modal-body">
           </div>
@@ -86,7 +80,7 @@
             <a href="/login/graphics-animation" class="btn btn-info btn-sm pull-right">{{ .LoginLogin }} <span class="glyphicon glyphicon-share-alt"></span></a>
             <a href="/signup/" class="btn btn-info btn-sm pull-right">{{ .LoginSignup }} <span class="glyphicon glyphicon-book"></span></a>
         {{else}}
-            <a href="/logout" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>        
+            <a href="/logout/graphics-animation" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>        
         {{end}}
         {{range $i, $art := .Arts}}
             <a href="{{$art.Page}}.html" class="btn btn-default btn-sm btn-{{ $i }} page-{{$art.Page}}">{{$art.Name}}</a></li>
@@ -120,9 +114,11 @@
                 <button type="button" class="command command-import btn btn-sm btn-default">
                     <span class="typcn typcn-download-outline"></span>
                 </button>
-                <button type="button" class="command command-export btn btn-sm btn-default">
-                    <span class="typcn typcn-upload-outline"></span>
+                <button type="button" id="command-import-local" class="command command-import-local btn btn-sm btn-default">
+                    <span class="typcn typcn-download-outline" style="left: -1px;"></span>
+                    <span class="typcn typcn-device-laptop" style="zoom: 0.7; top: -16px; right: -16px;"></span>
                 </button>
+                <input id="image-import-local" type="file" style="width: 0; height: 0; opacity: 0;">
                 <div class="colorfield">
                 </div>
                 <button type="button" class="command command-pointer mode-command btn btn-sm btn-default">

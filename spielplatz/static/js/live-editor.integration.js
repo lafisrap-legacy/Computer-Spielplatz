@@ -44,7 +44,6 @@ TooltipEngine.classes.imagePicker.prototype.defaultImage = "Spielplatz/Leer";
 if( !TooltipEngine.classes.imageModal.prototype.updateTooltip ) 
 	console.error( errMsg + "updateTooltip mothod of image Modal is not in place." );
 
-debugger;
 TooltipEngine.classes.imageModal.prototype.updateTooltip = function updateTooltip(url) {
     if (url !== this.currentUrl) {
         this.currentUrl = url.trim();
@@ -54,7 +53,8 @@ TooltipEngine.classes.imageModal.prototype.updateTooltip = function updateToolti
             this.$(".thumb-error").text(i18n._("Enter an image URL.")).show();
             return;
         }
-        var allowedHosts = /(\.|^)?(khanacademy\.org|kastatic\.org|kasandbox\.org|ka-perseus-images\.s3\.amazonaws\.com|wikimedia\.org|localhost:\d+)$/i;
+        //var allowedHosts = /(\.|^)?(khanacademy\.org|kastatic\.org|kasandbox\.org|ka-perseus-images\.s3\.amazonaws\.com|wikimedia\.org|localhost:\d+)$/i;
+        var allowedHosts = /(\.|^)?(localhost:\d+|192.168.178.177:8080|lafisrap.in-berlin.de:8080)$/i;
         var match = /\/\/([^\/]*)(?:\/|\?|#|$)/.exec(url);
         var host = match ? match[1] : "";
         if (!host || allowedHosts.test(host)) {

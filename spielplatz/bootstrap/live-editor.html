@@ -496,6 +496,16 @@
 	window.AllImages = JSON.parse({{ .AllImages }});
 	window.OutputSounds = JSON.parse({{ .OutputSounds }});
 	window.OutputImages = JSON.parse({{ .AllImages }});
+	window.ExtendedOutputImages = [ {
+		className: "Spielplatz",
+		groups: []
+	} ];
+
+	for( var i = 0; i < window.OutputImages.length; i++ ) {
+		if ( window.OutputImages[ i ].groupName !== "/" ) {
+			window.ExtendedOutputImages[0].groups.push( window.OutputImages[ i ] );
+		}
+	}
 
 	// Server data
 	window.CPG = {
