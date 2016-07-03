@@ -152,7 +152,7 @@ casper.test.begin('Login', 12, function suite(test) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Live-Editor Test
 //
-casper.test.begin('Live-Editor', 72, function suite(test) {
+casper.test.begin('Live-Editor', 105, function suite(test) {
 
     var i = 0;
 
@@ -592,15 +592,61 @@ casper.test.begin('Live-Editor', 72, function suite(test) {
 
     ///////////////////////////////////////////////////////////////////
     // 17. Change project and save it
+    casper.then( function() {
+
+        casper.evaluate(function(){
+            $("#project-button-textarea-for-testing").val( 
+                "// This is a second test program\n" +
+                "var bild = getImage(\"Spielplatz/Fred_Yeah\");\n" +
+                "var sound = getSound(\"Spielplatz/Glas\");\n" +
+                "// This is a second test program\n" +
+                "fill(255,255,100,100);\n" +
+                "ellipse(100, 100, 100, 102);\n\n"+ 
+                "fill(100,100,255,100);\n" +
+                "rect(50, 50, 50, 50);\n\n" +
+                "image( bild, 60, 300 );\n" +
+                "playSound( sound );\n"
+            ).trigger("set-live-editor");
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-save-project", function() { 
+        this.wait(200, function() {
+            test.assertExists( "#project-bar-string-input-modal.in", "String-Input-Modal" );
+            casper.fill("#project-bar-string-input-modal.in", { "string-input": "Changed ellipse color and image position." }, false);
+            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Submit button of projectname input modal" );
+        } );
+    } );
 
     ///////////////////////////////////////////////////////////////////
     // 18. Make some more changes and write locally
+    casper.thenClick( "#project-bar-string-input-modal.in button.btn-primary", function() {
+        casper.evaluate(function(){
+            $("#project-button-textarea-for-testing").val( 
+                "// This is a second test program\n" +
+                "var bild = getImage(\"Spielplatz/Fred_Yeah\");\n" +
+                "var sound = getSound(\"Spielplatz/Glas\");\n" +
+                "// This is a second test program\n" +
+                "fill(255,0,255,100);\n" +
+                "ellipse(100, 100, 100, 102);\n\n"+ 
+                "fill(100,100,255,100);\n" +
+                "rect(50, 50, 50, 50);\n\n" +
+                "image( bild, 60, 200 );\n" +
+                "playSound( sound );\n"
+            ).trigger("set-live-editor");
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-save", function() {
+        this.wait( 200 );
+    } );
 
     ///////////////////////////////////////////////////////////////////
     // 19. Save file as TEST-File
     casper.thenClick( "#project-bar-save-as-up", function() {
         this.wait(100, function() {
             test.assertExists( "#project-bar-save-as", "Save as command button" );
+            test.assertDoesntExist( "#project-bar-select-list option[value='Spielplatz'", "Spielplatz is not a SaveAs option for Tester1")
         } );        
     });
 
@@ -625,30 +671,248 @@ casper.test.begin('Live-Editor', 72, function suite(test) {
 
     ///////////////////////////////////////////////////////////////////
     // 19. Logout Tester1 and login Tester0 again
+    casper.thenClick( "div.login-area #logout-button", function() {
+
+        test.assertTitle( "Live-Editor - CYPHERPUNK Computer-Spielplatz", "Landing page: Title Computer-Spielplatz" );
+    } );
+
+    casper.then( function() {
+        casper.open(url + "/login/live-editor").then( function() {
+
+            test.assertTitle( "Login - CYPHERPUNK Computer-Spielplatz", "Login: Title Computer-Spielplatz" );
+
+            casper.fill('form', { name: name + "0" }, false);
+            casper.fill('form', { password: name + "0" }, false);
+
+            test.assertExists( "form button", "Login button" );
+        } );
+    });
+
+    casper.thenClick( "form button", function() {
+
+        this.wait(200, function() {
+            test.assertTitle( "Live-Editor - CYPHERPUNK Computer-Spielplatz", "Live-Editor: Title Computer-Spielplatz" );
+        });
+    });
 
     ///////////////////////////////////////////////////////////////////
     // 20. Check if changes of Tester1 are there
+    casper.then( function() {
+        casper.evaluate(function(){
+            $("#project-button-textarea-for-testing").trigger("get-live-editor");
+        } );
+
+        this.wait(200, function() {
+
+            var val = casper.evaluate(function( ){
+                return $("#project-button-textarea-for-testing").val();
+            } );
+
+            test.assert( val.search( "fill\\(255,255" ) > -1, "Changed ellipse color to yellow." );
+            test.assert( val.search( "image\\( bild, 60, 300 \\);" ) > -1, "Moved image to the left." );
+        } );
+    })
 
     ///////////////////////////////////////////////////////////////////
     // 21. Make some changes and save project
+    casper.then( function() {
+
+        casper.evaluate(function(){
+            $("#project-button-textarea-for-testing").val( 
+                "// This is a second test program\n" +
+                "var bild = getImage(\"Spielplatz/Fred_Yeah\");\n" +
+                "var sound = getSound(\"Spielplatz/Glas\");\n" +
+                "// This is a second test program\n" +
+                "fill(0,255,255,100);\n" +
+                "ellipse(100, 100, 100, 102);\n\n"+ 
+                "fill(100,100,255,100);\n" +
+                "rect(50, 50, 50, 50);\n\n" +
+                "image( bild, 60, 100 );\n" +
+                "playSound( sound );\n"
+            ).trigger("set-live-editor");
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-save-project", function() { 
+        this.wait(200, function() {
+            test.assertExists( "#project-bar-string-input-modal.in", "String-Input-Modal" );
+            casper.fill("#project-bar-string-input-modal.in", { "string-input": "Changed ellipse color and image position again." }, false);
+            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Submit button of projectname input modal" );
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-string-input-modal.in button.btn-primary", function() {
+        this.wait( 200 );
+    } );
 
     ///////////////////////////////////////////////////////////////////
     // 22. Logout Tester0 and login Tester1 again
+    casper.thenClick( "div.login-area #logout-button", function() {
+
+        test.assertTitle( "Live-Editor - CYPHERPUNK Computer-Spielplatz", "Landing page: Title Computer-Spielplatz" );
+    } );
+
+    casper.then( function() {
+        casper.open(url + "/login/live-editor").then( function() {
+
+            test.assertTitle( "Login - CYPHERPUNK Computer-Spielplatz", "Login: Title Computer-Spielplatz" );
+
+            casper.fill('form', { name: name + "1" }, false);
+            casper.fill('form', { password: name + "1" }, false);
+
+            test.assertExists( "form button", "Login button" );
+        } );
+    });
+
+    casper.thenClick( "form button", function() {
+
+        this.wait(200, function() {
+            test.assertTitle( "Live-Editor - CYPHERPUNK Computer-Spielplatz", "Live-Editor: Title Computer-Spielplatz" );
+        });
+    });
 
     ///////////////////////////////////////////////////////////////////
-    // 23. Confirm that changes are NOT there (due to own local changes)
+    // 23. Open test file 2 and confirm that changes are NOT there (due to own local changes)
+    casper.thenClick( "#project-bar-open-files li[codefile='TEST-Project-2.pjs']", function() { 
+
+        this.wait( 200 );
+    } );
+
+    casper.then( function() {
+
+        casper.evaluate(function(){
+            $("#project-button-textarea-for-testing").trigger("get-live-editor");
+        } );
+
+        this.wait(200, function() {
+
+            var val = casper.evaluate(function( ){
+                return $("#project-button-textarea-for-testing").val();
+            } );
+
+            test.assert( val.search( "fill\\(0,255,255,100\\);" ) === -1, "Ellipse color not changed." );
+            test.assert( val.search( "image\\( bild, 60, 100 \\);" ) == -1, "Image not moved up." );
+        } );
+    })
 
     ///////////////////////////////////////////////////////////////////
     // 24. Save Project and check code conflicts
+    casper.thenClick( "#project-bar-save-project", function() { 
+        this.wait(200, function() {
+            test.assertExists( "#project-bar-string-input-modal.in", "String-Input-Modal" );
+            casper.fill("#project-bar-string-input-modal.in", { "string-input": "Changed ellipse color and image position once again." }, false);
+            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Submit button of projectname input modal" );
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-string-input-modal.in button.btn-primary", function() {
+        this.wait(200, function() {
+            test.assertEvalEquals(function() {
+                return __utils__.findOne("#project-bar-ok-modal.in h4.modal-title").textContent;
+            }, "Quelltext-Konflikt", "There are conflicts in the code.");
+        });
+    } );
+
+    casper.thenClick( "#project-bar-ok-modal.in button.btn-primary", function() {
+
+        this.wait(200, function() {
+            casper.evaluate(function(){
+                $("#project-button-textarea-for-testing").trigger("get-live-editor");
+            } );            
+        } );
+    } );
+
+    casper.then( function() {
+        this.wait(200, function() {
+
+            var val = casper.evaluate(function( ){
+                return $("#project-button-textarea-for-testing").val();
+            } );
+
+            test.assert( val.search( "<<<<<<< HEAD" ) > -1, "Git marked conflicts." );
+            test.assert( val.search( "fill\\(255,0,255,100\\);" ) > -1, "fill, version 1" );
+            test.assert( val.search( "fill\\(0,255,255,100\\);" ) > -1, "fill, version 2" );
+            test.assert( val.search( "image\\( bild, 60, 200 \\);" ) > -1, "image, version 1" );
+            test.assert( val.search( "image\\( bild, 60, 100 \\);" ) > -1, "image, version 2" );
+        } );
+    })
 
     ///////////////////////////////////////////////////////////////////
     // 25. Resolve conflicts and save project
+    casper.then( function() {
+
+        casper.evaluate(function(){
+            $("#project-button-textarea-for-testing").val( 
+                "// This is a second test program\n" +
+                "var bild = getImage(\"Spielplatz/Fred_Yeah\");\n" +
+                "var sound = getSound(\"Spielplatz/Glas\");\n" +
+                "// This is a second test program\n" +
+                "fill(255,0,255,100);\n" +
+                "ellipse(100, 100, 100, 102);\n\n"+ 
+                "fill(100,100,255,100);\n" +
+                "rect(50, 50, 50, 50);\n\n" +
+                "image( bild, 60, 100 );\n" +
+                "playSound( sound );\n"
+            ).trigger("set-live-editor");
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-save-project", function() { 
+        this.wait(200, function() {
+            test.assertExists( "#project-bar-string-input-modal.in", "String-Input-Modal" );
+            casper.fill("#project-bar-string-input-modal.in", { "string-input": "Final compromize." }, false);
+            test.assertExists( "#project-bar-string-input-modal.in [type='submit']", "Submit button of projectname input modal" );
+        } );
+    } );
+
+    casper.thenClick( "#project-bar-string-input-modal.in button.btn-primary", function() {
+        this.wait(200);
+    } );
 
     ///////////////////////////////////////////////////////////////////
     // 26. Logout Tester1 and login Tester0 again
+    casper.thenClick( "div.login-area #logout-button", function() {
+
+        test.assertTitle( "Live-Editor - CYPHERPUNK Computer-Spielplatz", "Landing page: Title Computer-Spielplatz" );
+    } );
+
+    casper.then( function() {
+        casper.open(url + "/login/live-editor").then( function() {
+
+            test.assertTitle( "Login - CYPHERPUNK Computer-Spielplatz", "Login: Title Computer-Spielplatz" );
+
+            casper.fill('form', { name: name + "0" }, false);
+            casper.fill('form', { password: name + "0" }, false);
+
+            test.assertExists( "form button", "Login button" );
+        } );
+    });
+
+    casper.thenClick( "form button", function() {
+
+        this.wait(200, function() {
+            test.assertTitle( "Live-Editor - CYPHERPUNK Computer-Spielplatz", "Live-Editor: Title Computer-Spielplatz" );
+        });
+    });
 
     ///////////////////////////////////////////////////////////////////
     // 27. Confirm that changes are there
+    casper.then( function() {
+
+        casper.evaluate(function(){
+            $("#project-button-textarea-for-testing").trigger("get-live-editor");
+        } );
+
+        this.wait(200, function() {
+
+            var val = casper.evaluate(function( ){
+                return $("#project-button-textarea-for-testing").val();
+            } );
+
+            test.assert( val.search( "fill\\(255,0,255,100\\);" ) > -1, "Ellipse color compromize." );
+            test.assert( val.search( "image\\( bild, 60, 100 \\);" ) > -1, "Image position compromize." );
+        } );
+    });
 
     casper.run(function() {
         test.done();
