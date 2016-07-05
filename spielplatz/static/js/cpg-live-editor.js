@@ -41,11 +41,20 @@ CPG_projectControlBar = new projectControlBar( {
 // Start integration functions AFTER live-editor has loaded
 $( window ).trigger( "live-editor-late-integration" );
 
+$( "#logout-button" ).on( "click", function( e ) {
+	CPG_projectControlBar.clearSessionStorage();
+} );
+
+$( ".kuenste a" ).on( "click tap", function( e ) {
+	self.storeCurrentCodeFile( );
+	self._dirty = false;
+} );
+
+
 CPG_projectControlBar.refreshSession( window.CPG.LoginTime );
 
 window.onbeforeunload = function( ) {
-	//storeCurrentCodeFile( );
-	if( CPG_liveEditor.modified() ) return window.CPG.ProjectBarFileChanged;
+	return CPG_projectControlBar.onBeforeUnload();	
 }
 
 $( window ).blur( function( e ) {

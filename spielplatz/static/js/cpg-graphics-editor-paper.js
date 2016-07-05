@@ -13,6 +13,7 @@ window.GraphicsEditorFrame = Backbone.View.extend ( {
 	codeFiles: {},
 
 	_dirty: false,
+	_onChangeCallback: null,
 
 	initialize: function initialize ( options ) {
 
@@ -73,9 +74,6 @@ window.GraphicsEditorFrame = Backbone.View.extend ( {
 		return "Editors may have alternate file types (paper/png, sounds/mp3)."				
 	},
 
-	// End of interface methods
-	////////////////////////////////////////////////////////////////////////
-
 	modified: function( ) {
 		return this._dirty;
 	},
@@ -83,6 +81,13 @@ window.GraphicsEditorFrame = Backbone.View.extend ( {
 	setClean: function( ) {
 		this._dirty = false;
 	},
+
+    setOnChangeCallback: function( cb ) {
+        this._onChangeCallback = cb;
+    },
+
+	// End of interface methods
+	////////////////////////////////////////////////////////////////////////
 } );
 
 //////////////////////////////////////////////////////////////////////////

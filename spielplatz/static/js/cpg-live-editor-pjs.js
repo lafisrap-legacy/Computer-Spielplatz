@@ -13,6 +13,7 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 	codeFiles: {},
 
 	_dirty: false,
+	_onChangeCallback: null,
 
 	initialize: function initialize ( options ) {
 
@@ -31,15 +32,6 @@ window.LiveEditorFrame = Backbone.View.extend ( {
  
 		$( "#control-bar-restart" ).on( "click", function( e ) {
 			self.restart( );
-		} );
-
-		$( "#logout-button" ).on( "click", function( e ) {
-			localStorage.ĈPG_loginTime = 0;
-		} );
-
-		$( ".kuenste a" ).on( "click tap", function( e ) {
-			self.storeCurrentCodeFile( );
-			self._dirty = false;
 		} );
 	},
 
@@ -75,9 +67,6 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 		return "Editors may have alternate file types (paper/png, sounds/mp3)."				
 	},
 
-	// End of interface methods
-	////////////////////////////////////////////////////////////////////////
-
 	modified: function( ) {
 		return this._dirty;
 	},
@@ -85,6 +74,14 @@ window.LiveEditorFrame = Backbone.View.extend ( {
 	setClean: function( ) {
 		this._dirty = false;
 	},
+
+    setOnChangeCallback: function( cb ) {
+        this._onChangeCallback = cb;
+    },
+
+	// End of interface methods
+	////////////////////////////////////////////////////////////////////////
+
 
 	///////////////////////////////////////////
 	// showModalSound displays a modal dialog to select sounds
@@ -159,7 +156,7 @@ window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
 
 		this.liveEditor = new LiveEditor ( {
 			el: $( "#cpg-live-editor-pjs" ),
-			code: "// Live-Editor, Processing / Javascript",
+			code: "// Live-Editor, Processing / Javascript\n",
 			width: 320,
 			height: 568,
 			editorHeight: "568px",
@@ -175,6 +172,8 @@ window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
 
 		this.liveEditor.editor.on( "change", function ( ) {
 			self._dirty = true;
+
+			if( self._onChangeCallback ) self._onChangeCallback();
 		} );
 
 		// Patch for changing the width, bug in live-editor as of April 2016
@@ -186,6 +185,10 @@ window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
 
 		// Store sound modal address in global variable for editor integration
 		window.showModalSound = this.showModalSound;
+	},
+
+	setOnChangeCallback: function( cb ) {
+		this._onChangeCallback = cb;
 	},
 
 	//////////////////////////////////////////////////////////////

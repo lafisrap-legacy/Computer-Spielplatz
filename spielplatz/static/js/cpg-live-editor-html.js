@@ -26,7 +26,9 @@ window.LiveEditorFrameHTML = window.LiveEditorFrame.extend ( {
 		} );
 
         this.liveEditor.editor.on( "change", function ( ) {
-            this._dirty = true;
+            self._dirty = true;
+
+            if( self.onChangeCallback ) self.onChangeCallback();
         } );
 
 		// We have an own toolbar ...
@@ -90,6 +92,11 @@ window.LiveEditorFrameHTML = window.LiveEditorFrame.extend ( {
             code: newCode,
             changed: code !== newCode
         };
+    },
+
+    alternateType: function() {
+        // No alternate file types for live editor"
+        return null;
     },
 } );
 

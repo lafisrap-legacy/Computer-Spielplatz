@@ -73,13 +73,21 @@ window.ProjectControlBar = Backbone.Model.extend( {
 			this.connect( );
 		} else {
 			this.editor.reset( this.codeFiles[ this.newFile ].code || "" );
+			this.setClean();
 		}
+
+		////////////////////////////////////////////////
+		// Enable onbeforeunload support
+		this.editor.setOnChangeCallback( function() {
+			// Only set editor dirty when it is not just filled with a new code file
+			if( !self._restartingEditor ) self.setDirty( );
+		});
 
 		//////////////////////////////////////////////////
 		// For testing
 		$("#project-button-textarea-for-testing").css( "height", 0 )
 		.on("set-live-editor", function(e) {
-			self.editor.reset( $(this).val() );
+			self.resetEditor( $(this).val() );
 		})
 		.on("get-live-editor", function(e) {
 			$(this).val( self.editor.text() );
@@ -135,15 +143,16 @@ window.ProjectControlBar = Backbone.Model.extend( {
 					} else {
 						self.currentCodeFile = self.newFile;
 						self.codeFileList = [ ];
-						self.codeFiles[ self.currentCodeFile ] = { code: "", timeStamp: null };
+						self.codeFiles[ self.currentCodeFile ] = { code: "", name: self.newFile, timeStamp: 0 };
+						self.codeFileList.unshift( self.currentCodeFile );
 
 						sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
 						sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile;
 						sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
 
 						self.buttonGroup.fillOpenControl( );
-						self.editor.reset( "" );
-						self._dirty = false;
+						self.resetEditor( "" );
+						self.setClean( );
 
 						self.buttonGroup.showFilename();
 					}
@@ -151,8 +160,8 @@ window.ProjectControlBar = Backbone.Model.extend( {
 			} else {
 
 				self.buttonGroup.fillOpenControl( );
-				
-				self.editor.reset( self.codeFiles[ self.currentCodeFile ]? self.codeFiles[ self.currentCodeFile ].code : "" );
+			
+				self.resetEditor( self.codeFiles[ self.currentCodeFile ]? self.codeFiles[ self.currentCodeFile ].code : "" );
 				self.buttonGroup.showFilename();
 			}
 		});
@@ -213,7 +222,6 @@ window.ProjectControlBar = Backbone.Model.extend( {
 							self.codeFiles[ self.currentCodeFile ].code = self.editor.text();
 							sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
 							sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile;
-							self.editor.setClean();
 
 							setTimeout( function() {
 								self.buttonGroup.hideModalWaiting();
@@ -237,11 +245,17 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 			// Set the current code file name and the list entry of all currently loaded code files
 			sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = self.newFile;
-			self.codeFiles[ self.newFile ] = { code: "", name: self.newFile };
-			sessionStorage[ self.newFile ] = JSON.stringify( self.codeFiles[ self.newFile ] );
+			for( var timeStamp = 0, i = 0; i < self.codeFileList.length; i++ ) timeStamp = Math.max( timeStamp, self.codeFiles[ self.codeFileList[i] ].timeStamp );
+			self.codeFiles[ self.newFile ] = { code: "", name: self.newFile, timeStamp: timeStamp + 1 };		
+			self.codeFileList.unshift( self.currentCodeFile );
 
+			sessionStorage[ self.newFile ] = JSON.stringify( self.codeFiles[ self.newFile ] );
+			sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
+
+			self.buttonGroup.fillOpenControl( );
 			self.buttonGroup.showFilename();
-			self.editor.reset( "" );
+			self.resetEditor( "" );
+			self.setClean();
 		};
 
 		if( this.editor.modified() && self.currentCodeFile !== self.newFile ) {
@@ -262,16 +276,15 @@ window.ProjectControlBar = Backbone.Model.extend( {
 	open: function( codeFile ) {
 		var self = this;
 
-		if( this.currentCodeFile !== this.newFile ) {
-			self.codeFiles[ self.currentCodeFile ].code = self.editor.text();
-			sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
-		}
+		self.codeFiles[ self.currentCodeFile ].code = self.editor.text();
+		sessionStorage[ self.currentCodeFile ] = JSON.stringify( self.codeFiles[ self.currentCodeFile ] );
  
 		if( codeFile !== "all" ) {
 
 			sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = codeFile;
 
-			self.editor.reset( self.codeFiles[ self.currentCodeFile ].code );
+			self.resetEditor( self.codeFiles[ self.currentCodeFile ].code );
+
 			self.buttonGroup.showFilename();
 		} else {
 			self.buttonGroup.showModalCodeFiles( function( button, selFiles, selProjects ) {
@@ -440,7 +453,12 @@ window.ProjectControlBar = Backbone.Model.extend( {
 										status: message.Status
 									};
 
-									self.editor.reset( code );
+									self.resetEditor( code );
+
+									self.codeFileList.splice( self.codeFileList.indexOf( self.currentCodeFile ), 1 );
+									if( self.currentCodeFile !== self.newFile ) {
+										self.allFilesList.splice( self.allFilesList.indexOf( self.checkCodeFile( self.currentCodeFile ) ), 1 );
+									}
 
 									self.codeFileList.unshift( newCodeFile );
 									self.allFilesList.unshift( {
@@ -450,11 +468,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 									} );
 
 									if( newCodeFile !== self.currentCodeFile ) {
-										if( self.currentCodeFile !== self.newFile ) {
-											delete self.codeFiles[ self.currentCodeFile ];
-											self.codeFileList.splice( self.codeFileList.indexOf( self.currentCodeFile ), 1 );
-											self.allFilesList.splice( self.allFilesList.indexOf( self.checkCodeFile( self.currentCodeFile ) ), 1 );
-										}
+										delete self.codeFiles[ self.currentCodeFile ];
 										
 										self.currentCodeFile = newCodeFile;
 									}
@@ -474,6 +488,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 										} );
 									}
 									self.isSaving = false;
+									self.setClean();
 								}
 							} );																	
 						} else {
@@ -535,6 +550,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 										self.readSourceFiles( [ fileName ], [ projectName ], function() {
 											self.buttonGroup.showSaving( "success", true );
 											self.isSaving = false;
+											self.setClean();
 											if( res.changed ) {
 												self.buttonGroup.showModalOk( window.CPG.ProjectBarModalRestartEditor, window.CPG.ProjectBarModalRestartEditor2, function() {
 													location.reload( );
@@ -639,7 +655,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = fileNames[ 0 ];
 				self.buttonGroup.fillOpenControl( );
 
-				self.editor.reset( self.codeFiles[ self.currentCodeFile ].code );
+				self.resetEditor( self.codeFiles[ self.currentCodeFile ].code );
 				self.buttonGroup.showFilename();
 				if( cb ) cb();
 			} );
@@ -707,6 +723,10 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				
 				} else if( self.currentCodeFile !== fileName ) {
 
+					// Clear renamed file from memory and session storage
+					self.codeFiles[ self.currentCodeFile ] = null;
+					self.codeFileList.splice( self.codeFileList.indexOf( self.currentCodeFile ), 1 );
+
 					self.codeFiles[ fileName ] = {
 						name: fileName,
 						project: project,
@@ -734,7 +754,8 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				sessionStorage[ fileName ] = JSON.stringify( self.codeFiles[ fileName ] );
 
 				self.buttonGroup.fillOpenControl( );
-				self.editor.setClean();
+				self.setClean( );
+
 				self.buttonGroup.showSaving( "success" );
 				self.buttonGroup.showFilename();
 				
@@ -946,7 +967,64 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 	storeCurrentCodeFile: function() {
 		this.codeFiles[ this.currentCodeFile ].code = this.editor.text();
+		sessionStorage[ this.fileType + "CurrentCodeFile" ] = this.currentCodeFile;
 		sessionStorage[ this.currentCodeFile ] = JSON.stringify( this.codeFiles[ this.currentCodeFile ] );
+	},
+
+	clearSessionStorage: function() {
+		for( var i = 0 ; i < this.codeFileList.length ; i++ ) {
+			sessionStorage.removeItem( this.codeFileList[ i ] );
+		}
+
+		sessionStorage.removeItem( this.fileType + "CodeFileList" );
+		sessionStorage.removeItem( this.fileType + "AllFilesList" );
+		sessionStorage.removeItem( "allProjects" );
+		sessionStorage.removeItem( this.fileType + "CurrentCodeFile" );
+	},
+
+	removeUnknownCodeFile: function() {
+		if( this.currentCodeFile !== this.newFile ) {
+			sessionStorage.removeItem( this.newFile );
+		}
+	},
+
+	onBeforeUnload: function() {
+		var changedFiles = [];
+
+		if( this.currentCodeFile ) {
+			this.storeCurrentCodeFile();
+
+			if( this.userName === "" ) {
+				if( this.codeFiles[ this.currentCodeFile ] && this.codeFiles[ this.currentCodeFile ]._dirty ) {
+					changedFiles.push( this.currentCodeFile );
+				}
+			} else {
+				for( var i = 0; i < this.codeFileList.length; i++ ) {
+					if( this.codeFiles[ this.codeFileList[i] ]._dirty ) {
+						changedFiles.push( this.codeFileList[i] );
+					}
+				}			
+			}
+		}
+
+		if( !changedFiles.length ) return;
+		else return window.CPG.ProjectBarFileChanged.replace( "%s", changedFiles.join("\n") );
+	},
+
+	setClean: function( ) {
+		console.log( "Set", this.currentCodeFile, "clean." );
+		this.codeFiles[ this.currentCodeFile ]._dirty = false;
+	},
+
+	setDirty: function( ) {
+		console.log( "Set", this.currentCodeFile, "dirty." );
+		this.codeFiles[ this.currentCodeFile ]._dirty = true;
+	},
+
+	resetEditor: function( code ) {
+		this._restartingEditor = true;
+		this.editor.reset( code );
+		this._restartingEditor = false;
 	}
 } );
 

@@ -91,7 +91,7 @@
 	"project_bar_modal_open_new_project_2"	: "Willst du das neue Projekt öffnen?",
 	"project_bar_modal_restart_editor"	: "Live-Editor neu starten",
 	"project_bar_modal_restart_editor_2": "Es sind neue Bilder oder Sounds hinzugekommen. Der Live-Editor muss neu gestartet werden.",
-	"project_bar_file_changed"			: "Du hast die Datei geändert. Willst du das Fenster trotzdem verlassen?",
+	"project_bar_file_changed"			: "Du hast folgende Dateien geändert und noch nicht gespeichert:\n\n%s\n\nWillst du das Fenster trotzdem verlassen?",
 
 	"graphics_header_graphics"			: "Bild-Editor",
 	"graphics_header_animations"		: "Animations-Editor",
