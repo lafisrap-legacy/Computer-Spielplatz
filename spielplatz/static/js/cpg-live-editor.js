@@ -42,12 +42,11 @@ CPG_projectControlBar = new projectControlBar( {
 $( window ).trigger( "live-editor-late-integration" );
 
 $( "#logout-button" ).on( "click", function( e ) {
-	CPG_projectControlBar.clearSessionStorage();
+	CPG_projectControlBar.setLogoutFlag();
 } );
 
-$( ".kuenste a" ).on( "click tap", function( e ) {
-	self.storeCurrentCodeFile( );
-	self._dirty = false;
+$( ".prevent-dirty-check" ).on( "click", function( e ) {
+	CPG_projectControlBar.setPreventDirtyCheck();
 } );
 
 

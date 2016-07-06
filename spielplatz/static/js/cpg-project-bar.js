@@ -139,7 +139,11 @@ window.ProjectControlBar = Backbone.Model.extend( {
 					}
 
 					if( codeFilesToRead.length ) {
-						self.readSourceFiles( codeFilesToRead, projects );
+						self.readSourceFiles( codeFilesToRead, projects, function() {
+							if( self.codeFiles[ self.newFile ] && self.codeFiles[ self.newFile ]._dirty ) {
+								self.new( self.codeFiles[ self.newFile ].code );
+							}
+						} );
 					} else {
 						self.currentCodeFile = self.newFile;
 						self.codeFileList = [ ];
@@ -238,7 +242,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		console.log("Setting reconnection interval.", self.reconnectInterval);
 	},
 
-	new: function( ) {
+	new: function( code ) {
 		var self = this;
 
 		var newFile = function( ) {
@@ -254,11 +258,11 @@ window.ProjectControlBar = Backbone.Model.extend( {
 
 			self.buttonGroup.fillOpenControl( );
 			self.buttonGroup.showFilename();
-			self.resetEditor( "" );
+			self.resetEditor( code || "" );
 			self.setClean();
 		};
 
-		if( this.editor.modified() && self.currentCodeFile !== self.newFile ) {
+		if( self.codeFiles[ self.currentCodeFile ]._dirty && !code ) {
 			self.buttonGroup.showModalYesNo( window.CPG.ProjectBarModalFileChanged, window.CPG.ProjectBarModalFileChanged2, false, function( res ) {
 				if( res === "yes" ) {
 					self.saveSourceFile( self.currentCodeFile, self.codeFiles[ self.currentCodeFile ].project, false, function( ) { newFile( ); } ); 
@@ -795,7 +799,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				
 				sessionStorage[ newFileName ] = JSON.stringify( self.codeFiles[ newFileName ] );
 				sessionStorage.removeItem( oldFileName );
-				sessionStorage[ self.fileType + "AllFilesList" ] = JSON.stringify( self.codeFileList );
+				sessionStorage[ self.fileType + "AllFilesList" ] = JSON.stringify( self.allFilesList );
 				sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
 				sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = newFileName;
 				self.buttonGroup.fillOpenControl( );
@@ -808,27 +812,6 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		}
 	},
 
-	////////////////////////////////////////////
-	// refreshSession takes care of the sessionStore when user changes
-	refreshSession: function( loginTime ) {
-
-		// If User changed: clear everything from sessionStorage
-		var recover = window.location.href.search("wstoken=") >= 0;
-
-		if( sessionStorage.ĈPG_loginTime !== loginTime && !recover ) {
-			var fileList = sessionStorage[ this.fileType + "CodeFileList" ] && JSON.parse( sessionStorage[ this.fileType + "CodeFileList" ] ) || [ ];
-			for( var i=0 ; i<fileList.length ; i++ ) sessionStorage.removeItem( fileList[ i ] );
-			sessionStorage.removeItem( this.fileType + "CodeFileList" );
-			sessionStorage.removeItem( this.fileType + "AllFilesList" );
-			sessionStorage.removeItem( this.fileType + "CurrentCodeFile" );
-			localStorage.ĈPG_loginTime = sessionStorage.ĈPG_loginTime = loginTime;
-		}
-
-		// Look if another Tab or window logged out ( and maybe in again ) in the meantime
-		$( window ).focus( function( e ) {
-			if( sessionStorage.ĈPG_loginTime !== localStorage.ĈPG_loginTime ) location.reload( ); 
-		} ); 
-	},
 
 	refreshMails: function refreshMails() {
 		var self = this,
@@ -971,15 +954,50 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		sessionStorage[ this.currentCodeFile ] = JSON.stringify( this.codeFiles[ this.currentCodeFile ] );
 	},
 
+	////////////////////////////////////////////
+	// refreshSession takes care of the sessionStore when user changes
+	refreshSession: function( loginTime ) {
+
+		return;
+		// If User changed: clear everything from sessionStorage
+		var recover = window.location.href.search("wstoken=") >= 0;
+
+		if( parseInt( sessionStorage.ĈPG_loginTime ) !== loginTime && !recover ) {
+			var fileList = sessionStorage[ this.fileType + "CodeFileList" ] && JSON.parse( sessionStorage[ this.fileType + "CodeFileList" ] ) || [ ];
+			for( var i=0 ; i<fileList.length ; i++ ) sessionStorage.removeItem( fileList[ i ] );
+			sessionStorage.removeItem( this.fileType + "CodeFileList" );
+			sessionStorage.removeItem( this.fileType + "AllFilesList" );
+			sessionStorage.removeItem( this.fileType + "CurrentCodeFile" );
+			localStorage.ĈPG_loginTime = sessionStorage.ĈPG_loginTime = loginTime;
+		}
+
+		// Look if another Tab or window logged out ( and maybe in again ) in the meantime
+		$( window ).focus( function( e ) {
+			if( sessionStorage.CPG_loginTime !== localStorage.CPG_loginTime ) location.reload( ); 
+		} ); 
+	},
+
 	clearSessionStorage: function() {
 		for( var i = 0 ; i < this.codeFileList.length ; i++ ) {
 			sessionStorage.removeItem( this.codeFileList[ i ] );
 		}
 
+		sessionStorage.removeItem( this.newFile );
 		sessionStorage.removeItem( this.fileType + "CodeFileList" );
+
 		sessionStorage.removeItem( this.fileType + "AllFilesList" );
 		sessionStorage.removeItem( "allProjects" );
+
 		sessionStorage.removeItem( this.fileType + "CurrentCodeFile" );
+		sessionStorage.removeItem( "CPG_loginTime" );
+	},
+
+	setPreventDirtyCheck: function() {
+		this.preventDirtyCheck = true;
+	},
+
+	setLogoutFlag: function() {
+		this.logoutFlag = true;
 	},
 
 	removeUnknownCodeFile: function() {
@@ -994,18 +1012,27 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		if( this.currentCodeFile ) {
 			this.storeCurrentCodeFile();
 
-			if( this.userName === "" ) {
-				if( this.codeFiles[ this.currentCodeFile ] && this.codeFiles[ this.currentCodeFile ]._dirty ) {
-					changedFiles.push( this.currentCodeFile );
-				}
-			} else {
-				for( var i = 0; i < this.codeFileList.length; i++ ) {
-					if( this.codeFiles[ this.codeFileList[i] ]._dirty ) {
-						changedFiles.push( this.codeFileList[i] );
+			if( !this.preventDirtyCheck ) {
+				if( this.userName === "" ) {
+					if( this.codeFiles[ this.currentCodeFile ] && this.codeFiles[ this.currentCodeFile ]._dirty ) {
+						changedFiles.push( this.currentCodeFile );
 					}
-				}			
+				} else {
+					for( var i = 0; i < this.codeFileList.length; i++ ) {
+						if( this.codeFiles[ this.codeFileList[i] ]._dirty ) {
+							changedFiles.push( this.codeFileList[i] );
+						}
+					}			
+				}				
 			}
 		}
+
+		// Clear storage on logout
+		if( this.logoutFlag ) {
+			CPG_projectControlBar.clearSessionStorage();
+		} 
+
+		this.logoutFlag = this.preventDirtyCheck = false;
 
 		if( !changedFiles.length ) return;
 		else return window.CPG.ProjectBarFileChanged.replace( "%s", changedFiles.join("\n") );

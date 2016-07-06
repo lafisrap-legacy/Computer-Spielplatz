@@ -55,14 +55,14 @@
 	</div><!-- /.modal -->	
 	<div class="login-area">
 		{{if not .UserName }}
-			<a href="/login/live-editor" class="btn btn-info btn-sm pull-right">{{ .LoginLogin }} <span class="glyphicon glyphicon-share-alt"></span></a>
-			<a href="/signup/live-editor" class="btn btn-info btn-sm pull-right">{{ .LoginSignup }} <span class="glyphicon glyphicon-book"></span></a>
+			<a href="/login/live-editor" id="login-button" class="btn btn-info btn-sm pull-right prevent-dirty-check">{{ .LoginLogin }} <span class="glyphicon glyphicon-share-alt"></span></a>
+			<a href="/signup/live-editor" id="signup-button" class="btn btn-info btn-sm pull-right prevent-dirty-check">{{ .LoginSignup }} <span class="glyphicon glyphicon-book"></span></a>
 		{{else}}
 			<a href="/logout/live-editor" id="logout-button" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>		
 		{{end}}
-		<ul class="nav nav-tabs kuenste" style="display:none,">
+		<ul class="nav nav-tabs kuenste">
 		{{range $i, $art := .Arts}}
-			<li><a href="{{$art.Page}}" class="btn btn-default btn-sm btn-{{ $i }}">{{$art.Name}}</a></li>
+			<li><a href="{{$art.Page}}" class="btn btn-default btn-sm btn-{{ $i }} prevent-dirty-check">{{$art.Name}}</a></li>
 		{{end}}						 
 		</ul>
 	</div>

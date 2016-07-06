@@ -77,10 +77,10 @@
 
     <div class="login-area">
         {{if not .UserName }}
-            <a href="/login/graphics-animation" class="btn btn-info btn-sm pull-right">{{ .LoginLogin }} <span class="glyphicon glyphicon-share-alt"></span></a>
-            <a href="/signup/" class="btn btn-info btn-sm pull-right">{{ .LoginSignup }} <span class="glyphicon glyphicon-book"></span></a>
+            <a href="/login/graphics-animation" id="login-button" class="btn btn-info btn-sm pull-right">{{ .LoginLogin }} <span class="glyphicon glyphicon-share-alt"></span></a>
+            <a href="/signup/graphics-animation" id="signup-button" class="btn btn-info btn-sm pull-right">{{ .LoginSignup }} <span class="glyphicon glyphicon-book"></span></a>
         {{else}}
-            <a href="/logout/graphics-animation" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>        
+            <a href="/logout/graphics-animation" id="logout-button" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>        
         {{end}}
         {{range $i, $art := .Arts}}
             <a href="{{$art.Page}}.html" class="btn btn-default btn-sm btn-{{ $i }} page-{{$art.Page}}">{{$art.Name}}</a></li>
@@ -199,6 +199,7 @@
     window.AllImages = JSON.parse({{ .AllImages }});
     window.UserNameForImages = "{{ .UserNameForImages }}";
     window.CPG = {
+        LoginTime: {{ .LoginTime }},
         UserName: "{{ .UserName }}",
         Colorizer: {
             hue: "{{ .GraphicsColorizerHue }}",

@@ -738,6 +738,7 @@ func (c *GraphicsController) Get() {
 	c.Data["AllImages"] = c.getImageInfo(userName)
 	c.Data["OutputSounds"] = c.getSoundInfo(userName)
 	c.Data["UserNameForImages"] = userNameForImages
+	c.Data["LoginTime"] = c.GetSession("LoginTime")
 	c.Data["RightInviteToGroups"] = rights["invitetogroups"]
 	c.Data["RightAddGroups"] = rights["addgroups"]
 
