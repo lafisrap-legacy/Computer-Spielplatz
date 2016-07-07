@@ -7,6 +7,8 @@ window.LiveEditorFrameHTML = window.LiveEditorFrame.extend ( {
     projectRegex: /\"\s*[^\/]+/g,
 
 	initialize: function( options ) {
+        var self = this;
+
 		window.LiveEditorFrame.prototype.initialize.call( this, options );
 
 		this.liveEditor = new LiveEditor( {
@@ -28,7 +30,7 @@ window.LiveEditorFrameHTML = window.LiveEditorFrame.extend ( {
         this.liveEditor.editor.on( "change", function ( ) {
             self._dirty = true;
 
-            if( self.onChangeCallback ) self.onChangeCallback();
+            if( self._onChangeCallback ) self._onChangeCallback();
         } );
 
 		// We have an own toolbar ...
