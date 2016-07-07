@@ -72,8 +72,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 			this.wsToken = options.wsToken;
 			this.connect( );
 		} else {
-			this.editor.reset( this.codeFiles[ this.newFile ].code || "" );
-			this.setClean();
+			this.resetEditor( this.codeFiles[ this.newFile ].code || "" );
 		}
 
 		////////////////////////////////////////////////
@@ -87,7 +86,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 		// For testing
 		$("#project-button-textarea-for-testing").css( "height", 0 )
 		.on("set-live-editor", function(e) {
-			self.resetEditor( $(this).val() );
+			self.editor.reset( $(this).val() );
 		})
 		.on("get-live-editor", function(e) {
 			$(this).val( self.editor.text() );
@@ -251,7 +250,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 			sessionStorage[ self.fileType + "CurrentCodeFile" ] = self.currentCodeFile = self.newFile;
 			for( var timeStamp = 0, i = 0; i < self.codeFileList.length; i++ ) timeStamp = Math.max( timeStamp, self.codeFiles[ self.codeFileList[i] ].timeStamp );
 			self.codeFiles[ self.newFile ] = { code: "", name: self.newFile, timeStamp: timeStamp + 1 };		
-			self.codeFileList.unshift( self.currentCodeFile );
+			if( self.codeFileList.indexOf( self.currentCodeFile ) === -1 ) self.codeFileList.unshift( self.currentCodeFile );
 
 			sessionStorage[ self.newFile ] = JSON.stringify( self.codeFiles[ self.newFile ] );
 			sessionStorage[ self.fileType + "CodeFileList" ] = JSON.stringify( self.codeFileList );
@@ -728,7 +727,7 @@ window.ProjectControlBar = Backbone.Model.extend( {
 				} else if( self.currentCodeFile !== fileName ) {
 
 					// Clear renamed file from memory and session storage
-					self.codeFiles[ self.currentCodeFile ] = null;
+					delete self.codeFiles[ self.currentCodeFile ];
 					self.codeFileList.splice( self.codeFileList.indexOf( self.currentCodeFile ), 1 );
 
 					self.codeFiles[ fileName ] = {

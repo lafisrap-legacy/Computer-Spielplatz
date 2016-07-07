@@ -5,7 +5,7 @@ $( function fn( ) {
 
 	/////////////////////////////////////////////////////////////////
 	// Initiate the live editor that fits to the current page ( tab )
-	var CPG_page = sessionStorage[ "CPG_page" ] || "paper",  
+	var CPG_page = sessionStorage[ "CPG_graphics_page" ] || "paper",  
 		CPG_options = {
 			el: $( "#cpg-graphics-editor-pages" ),
 			page: CPG_page

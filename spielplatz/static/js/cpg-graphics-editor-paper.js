@@ -25,7 +25,7 @@ window.GraphicsEditorFrame = Backbone.View.extend ( {
 		$( "#page-" + this.page ).show( );
 
 		$( ".nav-bar-page" ).on( "click tap ", function( e ) {
-			sessionStorage.CPG_page = $( this ).attr( "rel" );
+			sessionStorage[ "CPG_graphics_page" ] = $( this ).attr( "rel" );
 
 			location.reload( );
 		} );
