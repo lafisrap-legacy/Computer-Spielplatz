@@ -1524,9 +1524,9 @@ var importModal = function( cb ) {
 	} );
 
 	$( ".panel-heading", modal ).on( "click", function( e ) {
-		debugger;
-		var currentProject = $( ".panel-collapse.in", modal ).attr( "project");
+		var currentProject = $( ".panel-collapse.in", modal ).attr( "project"),
 			project = $( this ).parent().find( ".panel-collapse" ).attr( "project");
+
 		$( "[project='" + currentProject + "']", modal ).collapse( "hide" );
 		if( currentProject !== project ) $( "[project='" + project + "']", modal ).collapse( "show" );
 	} );

@@ -147,7 +147,7 @@ window.LiveEditorFramePjs = window.LiveEditorFrame.extend ( {
 
 	imagesRegex: /getImage\(\s*\"([^\"]+)/g,
 	soundsRegex: /getSound\(\s*\"([^\"]+)/g,
-	projectRegex: /\"\s*[^\/]+/g,
+	projectRegex: /\"\s*[^\/]+|\"\//,
 
 	initialize: function( options ) {
         var self = this;
