@@ -957,17 +957,14 @@ window.ProjectControlBar = Backbone.Model.extend( {
 	// refreshSession takes care of the sessionStore when user changes
 	refreshSession: function( loginTime ) {
 
-		return;
 		// If User changed: clear everything from sessionStorage
-		var recover = window.location.href.search("wstoken=") >= 0;
+		var recover = window.location.href.search( "wstoken=" ) > -1,
+			oldLoginTime = parseInt( sessionStorage.CPG_loginTime ) || 0,
+			newLoginTime = parseInt( loginTime ) || 0;
 
-		if( parseInt( sessionStorage.ĈPG_loginTime ) !== loginTime && !recover ) {
-			var fileList = sessionStorage[ this.fileType + "CodeFileList" ] && JSON.parse( sessionStorage[ this.fileType + "CodeFileList" ] ) || [ ];
-			for( var i=0 ; i<fileList.length ; i++ ) sessionStorage.removeItem( fileList[ i ] );
-			sessionStorage.removeItem( this.fileType + "CodeFileList" );
-			sessionStorage.removeItem( this.fileType + "AllFilesList" );
-			sessionStorage.removeItem( this.fileType + "CurrentCodeFile" );
-			localStorage.ĈPG_loginTime = sessionStorage.ĈPG_loginTime = loginTime;
+		if( oldLoginTime !== newLoginTime && !recover ) {
+			sessionStorage.clear();
+			localStorage.CPG_loginTime = sessionStorage.CPG_loginTime = newLoginTime;
 		}
 
 		// Look if another Tab or window logged out ( and maybe in again ) in the meantime

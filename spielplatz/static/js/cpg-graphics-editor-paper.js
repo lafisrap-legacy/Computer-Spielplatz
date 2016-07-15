@@ -102,6 +102,8 @@ window.GraphicsEditorFramePaper = window.GraphicsEditorFrame.extend ( {
 
 		$( "#page-paper" ).on( "change", function ( ) {
 			self._dirty = true;
+
+			if( self._onChangeCallback ) self._onChangeCallback();
 		} );
 	},
 

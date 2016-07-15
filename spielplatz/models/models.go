@@ -191,6 +191,7 @@ func init() {
 			beego.Error(err)
 		}
 	}
+	o.Raw("TRUNCATE TABLE message;").Exec()
 	o.Raw("TRUNCATE TABLE rights;").Exec()
 	o.Raw("TRUNCATE TABLE project;").Exec()
 	o.Raw("TRUNCATE TABLE project_user;").Exec()

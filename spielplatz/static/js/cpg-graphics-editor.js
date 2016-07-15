@@ -48,12 +48,7 @@ $( function fn( ) {
 	});
 
 	window.onbeforeunload = function() {
-		if( window.CPG_projectControlBar ) {
-			console.log( "Storing code file in project control bar!" );
-			CPG_projectControlBar.storeCurrentCodeFile();			
-		}
-
-		if( window.CPG_graphicsEditor.modified() ) return window.CPG.ProjectBarFileChanged;
+		return CPG_projectControlBar.onBeforeUnload();	
 	}
 
 	$( window ).blur( function( e ) {
