@@ -18,6 +18,7 @@ with(paper) {
 		} else {
 			var dst = ctx.createImageData(size.width, size.height);
 
+			debugger;
     		dst.data.set(this._camanOrgImage.getImageData(new Rectangle(0, 0, size.width, size.height)).data);
 			this.setImageData(dst);
 
@@ -26,6 +27,7 @@ with(paper) {
 
 		this._canvas.removeAttribute("data-caman-id");
 		delete options.rollback;
+
 		Caman(this._canvas, function () {
 
 			for( option in options ) {

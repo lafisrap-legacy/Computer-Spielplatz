@@ -10,8 +10,6 @@ var baseLayer, cropperBounds, drawingLayer, baseCropper, baseViewer, baseCommand
 paper.editor = $( "#page-paper" );
 paper.EditorAPI = {
 	text: function() {
-		//var activeLayer = project.activeLayer;
-		//drawingLayer.activate();
 
 		// Add the cropper rect as transparent grey backround
 		var rect = new Path.Rectangle( baseLayer.children[ 0 ].children[ 1 ].bounds );
@@ -25,7 +23,6 @@ paper.EditorAPI = {
 		} );
 
 		rect.remove();
-		//project.activeLayer = activeLayer;
 
 		return JSONDrawingLayer;
 	},
@@ -1090,6 +1087,18 @@ var Commands = Base.extend( {
 
 			r1.remove();
 
+			var max = baseCropper.getRect().size;
+			if ( r2.width > max.width || r2.height > max.height ) {
+				r2.scale( Math.min( max.width / r2.width, max.height / r2.height ) );
+
+				Do.execute( {
+					item: r2,
+					action: "Resize",
+					bounds: new Rectangle( new Point(0,0), max ),
+					join: true,
+				} );
+			}
+
 			var items = project.activeLayer.children;
 			if ( items.length === 1 ) baseCropper.set( r2.bounds );
 		};
@@ -1948,8 +1957,6 @@ var UndoManager = Base.extend( {
 					options.item.colorizeValues = options.newValues;
 					return options.item;
 				};
-
-				debugger;
 				break;
 
 			////////////////////////////////////////////////////
@@ -1967,13 +1974,10 @@ var UndoManager = Base.extend( {
 
 				// Record action
 				this._actions[ this._actionPointer ] = function() {
-					options.oldValues = {
-						rollback: options.item.filter( { commit: true } )
-					}
+					options.oldValues.rollback = options.item.filter( { commit: true } );
 					options.item.colorizeValues = {};
 					return options.item;
 				};
-				debugger;
 				break;
 
 			////////////////////////////////////////////////////
@@ -2064,7 +2068,6 @@ var UndoManager = Base.extend( {
 	////////////////////////////////////////////////////
 	// Undo action
 	undo: function() {
-		debugger;
 		if ( this._actionPointer > 0 ) {
 			this._actionPointer--;
 
@@ -2104,11 +2107,13 @@ var UndoManager = Base.extend( {
 //
 var segment, item, bounds,
 	grabPoint = null,
-	moveItem, movePosition;
+	moveItem, movePosition, currentMousePosition;
 
 /////////////////////////////////////////////////////////////
 // onMouseMove mainly handles cursor shape while hovering over items
 function onMouseMove( event ) {
+
+	currentMousePosition = event.point;
 
 	// Send mouse move also to base viewer, e.g. for magnifying glass
 	if ( baseViewer ) baseViewer.onMouseMove( event );
@@ -2494,6 +2499,30 @@ function onMouseUp( event ) {
 		Do.commit( baseCommands.rubberDirtyRect, true );
 	}
 };
+
+///////////////////////////////////////////////////////
+// onKeyDown handels the user pressing a key
+function onKeyDown( event ) {
+	switch( event.key ) {
+	case "-" :
+	case "+" :
+		for ( var i = 0; i < project.selectedItems.length; i ++ ) {
+			var item = project.selectedItems[ i ],
+				bounds = item.bounds;
+
+				debugger;
+			item.scale( event.key === "+"? 11/10 : 10/11, currentMousePosition );
+
+			Do.execute( {
+				item: item,
+				action: "Resize",
+				bounds: bounds
+			} );
+		}
+		break;
+	}
+}
+
 
 ////////////////////////////////////////////////////////
 // Program startup
