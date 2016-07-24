@@ -82,9 +82,6 @@
         {{else}}
             <a href="/logout/graphics-animation" id="logout-button" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>        
         {{end}}
-        {{range $i, $art := .Arts}}
-            <a href="{{$art.Page}}" class="btn btn-default btn-sm btn-{{ $i }} page-{{$art.Page}}">{{$art.Name}}</a></li>
-        {{end}}                       
     </div>
     <ul class="nav nav-tabs">
         <li id="nav-bar-paper" rel="paper" class="nav-bar-page"><a href="#">{{ .GraphicsHeaderGraphics }}</a></li>

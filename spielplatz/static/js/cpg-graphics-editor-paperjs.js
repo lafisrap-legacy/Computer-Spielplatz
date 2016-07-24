@@ -100,6 +100,13 @@ paper.EditorAPI = {
 Editor = paper.editor;
 
 ////////////////////////////////////////////////////////////////////////
+// Define project bar events
+//
+Editor.on( "project-bar-pre-save-project project-bar-pre-save", function( event ) {
+	if( baseCommands ) baseCommands.activateCommand( "pointer" );
+} );
+
+////////////////////////////////////////////////////////////////////////
 // Cropper is the cropping tool for the editor. It's part of the BaseLayer
 //
 var CropperTopLeft = new Point( 140, 16 );		// Upper left corner of maximum cropper
@@ -729,7 +736,7 @@ var Colorizer = Base.extend( {
 		}
 
 		// Set slider values
-		if ( item.className === "Raster" ) {
+		if ( item && item.className === "Raster" ) {
 
 			var self = this;
 			this._orgItem = item;
@@ -1941,6 +1948,8 @@ var UndoManager = Base.extend( {
 					options.item.colorizeValues = options.newValues;
 					return options.item;
 				};
+
+				debugger;
 				break;
 
 			////////////////////////////////////////////////////
@@ -1958,10 +1967,13 @@ var UndoManager = Base.extend( {
 
 				// Record action
 				this._actions[ this._actionPointer ] = function() {
-					options.oldValues.rollback = options.item.filter( { commit: true } );
+					options.oldValues = {
+						rollback: options.item.filter( { commit: true } )
+					}
 					options.item.colorizeValues = {};
 					return options.item;
 				};
+				debugger;
 				break;
 
 			////////////////////////////////////////////////////
@@ -2052,6 +2064,7 @@ var UndoManager = Base.extend( {
 	////////////////////////////////////////////////////
 	// Undo action
 	undo: function() {
+		debugger;
 		if ( this._actionPointer > 0 ) {
 			this._actionPointer--;
 

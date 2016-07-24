@@ -41,6 +41,7 @@ $( function fn( ) {
 											newFile: window.CPG.ProjectBarNewFile + "." + CPG_page,
 											modalContainer: $( ".container" ),
 											disableProjectInit: true,
+											triggerElement: $( "#page-" + CPG_page )
 										} );		
 
 			CPG_projectControlBar.refreshSession( window.CPG.LoginTime );

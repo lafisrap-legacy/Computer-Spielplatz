@@ -28,7 +28,6 @@
 <script src="build/js/live-editor.editor_ace.js"></script>
 <script src="static/js/live-editor.integration.js"></script>
 
-
 <!-- RIDDLE: Modal dialogs won't work if live-editor file are called after bootstrap.js -->
 <script src="static/js/bootstrap.min.js"></script>
 <script src="static/js/websockets.js"></script>
@@ -60,11 +59,6 @@
 		{{else}}
 			<a href="/logout/live-editor" id="logout-button" class="btn btn-info btn-sm pull-right">{{ .LoginLogout }} '{{ .UserName }}' <span class="glyphicon glyphicon-search"></span></a>		
 		{{end}}
-		<ul class="nav nav-tabs kuenste">
-		{{range $i, $art := .Arts}}
-			<li><a href="{{$art.Page}}" class="btn btn-default btn-sm btn-{{ $i }} prevent-dirty-check">{{$art.Name}}</a></li>
-		{{end}}						 
-		</ul>
 	</div>
 	<ul class="nav nav-tabs">
 		<li id="nav-bar-page-pjs" rel="pjs" class="nav-bar-page prevent-dirty-check"><a href="#">{{ .LiveEditorHeaderPjs }}</a></li>

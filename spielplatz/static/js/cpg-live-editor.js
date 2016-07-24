@@ -56,6 +56,13 @@ window.onbeforeunload = function( ) {
 	return CPG_projectControlBar.onBeforeUnload();	
 }
 
+$( window ).on( "visibilitychange", function() {
+	if( localStorage.resourcesChanged ) {
+		localStorage.removeItem( "resourcesChanged" );
+		CPG_projectControlBar.reloadPage();
+ 	}
+} );
+
 $( window ).blur( function( e ) {
 	//console.log( "Going away to next tab" );
 	// Do Blur Actions Here
