@@ -1087,20 +1087,25 @@ var Commands = Base.extend( {
 
 			r1.remove();
 
-			var max = baseCropper.getRect().size;
-			if ( r2.width > max.width || r2.height > max.height ) {
-				r2.scale( Math.min( max.width / r2.width, max.height / r2.height ) );
+			setTimeout( function( ) {
+				var max = baseCropper.getRect().size;
+				if ( r2.width > max.width || r2.height > max.height ) {
+					r2.scale( Math.min( max.width / r2.width, max.height / r2.height ) );
 
-				Do.execute( {
-					item: r2,
-					action: "Resize",
-					bounds: new Rectangle( new Point(0,0), max ),
-					join: true,
-				} );
-			}
+					r2.bounds.size = r2.bounds.size.floor();
 
-			var items = project.activeLayer.children;
-			if ( items.length === 1 ) baseCropper.set( r2.bounds );
+
+					Do.execute( {
+						item: r2,
+						action: "Resize",
+						bounds: new Rectangle( new Point(0,0), max ),
+						join: true,
+					} );
+				}
+
+				var items = project.activeLayer.children;
+				if ( items.length === 1 ) baseCropper.set( r2.bounds );
+			}, 10 );
 		};
 
 		$( ".command-import" ).on( "click tap", function( event ) {
@@ -1445,9 +1450,10 @@ var Commands = Base.extend( {
 			buffer = item.getImageData( new Rectangle( p.x, p.y, w, h ) );
 
 		// Workaround for Chrome ( part 1 )
-		if ( buffer.width !== w ) {
-			var bufCorr = w - buffer.width;
-			buffer = item.getImageData( new Rectangle( p.x, p.y, w + bufCorr, h ) );
+		if ( buffer.width !== w || buffer.height !== h ) {
+			var bufCorrW = w - buffer.width,
+				bufCorrH = h - buffer.height;
+			buffer = item.getImageData( new Rectangle( p.x, p.y, w + bufCorrW, h + bufCorrH ) );
 		}
 
 		// Erase image data using a mask to remember where we already erased
@@ -1456,8 +1462,8 @@ var Commands = Base.extend( {
 			if ( y >= 0 && y < item.size.height ) {
 				for ( var j = 0 ; j < w ; j++ ) {
 					var x = p.x + j,
-						mp = y * item.size.width * 4 + x * 4 + 3,
-						bp = i * h * 4 + j * 4 + 3;
+						mp = parseInt( y * item.size.width * 4 + x * 4 + 3 ),
+						bp = parseInt( i * h * 4 + j * 4 + 3 );
 
 					if ( x >= 0 && x < item.size.width && mask[ mp ] < brush[ bp ] ) {
 						buffer.data[ bp ] -= brush[ bp ] - mask[ mp ];
@@ -1468,7 +1474,8 @@ var Commands = Base.extend( {
 		}
 
 		// Workaround for Chrome ( part 2 )
-		if ( bufCorr && p.x < 0 ) p.x += bufCorr;
+		if ( bufCorrW && p.x < 0 ) p.x += bufCorrW;
+		if ( bufCorrH && p.y < 0 ) p.y += bufCorrH;
 		item.setImageData( buffer, p );
 
 		// Set the dirty rect for undo manager
@@ -2510,7 +2517,6 @@ function onKeyDown( event ) {
 			var item = project.selectedItems[ i ],
 				bounds = item.bounds;
 
-				debugger;
 			item.scale( event.key === "+"? 11/10 : 10/11, currentMousePosition );
 
 			Do.execute( {
