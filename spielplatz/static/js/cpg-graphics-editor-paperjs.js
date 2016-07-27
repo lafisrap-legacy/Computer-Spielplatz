@@ -517,7 +517,14 @@ var Viewer = Base.extend( {
 	//
 	getCtx: function() {
 		return this._ctx;
-	}
+	},
+
+	/////////////////////////////////////////////////////////////////////
+	// setZoom sets the zoom level of the magifying glass
+	//
+	setZoom: function( zoom ) {
+		this._zoom = zoom;
+	},
 }, {
 
 	/////////////////////////////////////////////////////////////////////
@@ -545,16 +552,7 @@ var Viewer = Base.extend( {
 		if ( this._cropper.getInnerRect( true ).contains( event.point ) ) {
 			if ( !this._zoomActive ) $( ".colorpicker-scroll" ).fadeOut();
 			this._zoomActive = true;
-
-			var clipSize = size / this._zoom;
-
-			this._zoomctx.fillStyle = "white";
-			this._zoomctx.fillRect( 0, 0, size.width, size.height );
-			this._zoomctx.drawImage( this._context,
-									event.point.x - clipSize.width / 2,
-									event.point.y - clipSize.height / 2,
-									clipSize.width, clipSize.height, 0, 0,
-									size.width, size.height );
+			this.drawZoomWindow( event );
 
 		// If mouse just left the cropper rect
 		} else if ( this._zoomActive ) {
@@ -618,6 +616,19 @@ var Viewer = Base.extend( {
 		}
 
 		this.drawColorPicker();
+	},
+
+	drawZoomWindow: function( event ) {
+		var size = this._viewRect.size,
+			clipSize = size / this._zoom;
+
+		this._zoomctx.fillStyle = "white";
+		this._zoomctx.fillRect( 0, 0, size.width, size.height );
+		this._zoomctx.drawImage( this._context,
+								event.point.x - clipSize.width / 2,
+								event.point.y - clipSize.height / 2,
+								clipSize.width, clipSize.height, 0, 0,
+								size.width, size.height );
 	}
 } );
 
@@ -963,6 +974,7 @@ var COMMAND_POINTER		= 1,
 	COMMAND_RESIZE		= 11,
 	COMMAND_ROTATE		= 12;
 	BRUSH_RADII			= [ 0.5, 1, 2, 4, 8, 12, 18, 24 ];
+	BRUSH_ZOOMS			= [ 10, 10, 10, 10, 8, 6, 4, 3 ];
 
 var Commands = Base.extend( {
 	_class: "Commands",
@@ -1022,6 +1034,9 @@ var Commands = Base.extend( {
 				layer = new Layer(),								// Create a new one
 				radius = BRUSH_RADII[ index ],						// Get radius
 				maxRadius = BRUSH_RADII[ BRUSH_RADII.length - 1 ];	// Get biggest radius
+
+			// Set zoom level of magnifying glass
+			baseViewer.setZoom( BRUSH_ZOOMS[ index ] );
 
 			// Create rectangle that surrounds brush (always same size)
 			new Path.Rectangle( {
@@ -1091,9 +1106,7 @@ var Commands = Base.extend( {
 				var max = baseCropper.getRect().size;
 				if ( r2.width > max.width || r2.height > max.height ) {
 					r2.scale( Math.min( max.width / r2.width, max.height / r2.height ) );
-
 					r2.bounds.size = r2.bounds.size.floor();
-
 
 					Do.execute( {
 						item: r2,
@@ -2114,7 +2127,9 @@ var UndoManager = Base.extend( {
 //
 var segment, item, bounds,
 	grabPoint = null,
-	moveItem, movePosition, currentMousePosition;
+	moveItem, movePosition, currentMousePosition,
+	altKeyPressed = false,
+	altKeyMousePos = null;
 
 /////////////////////////////////////////////////////////////
 // onMouseMove mainly handles cursor shape while hovering over items
@@ -2316,6 +2331,9 @@ function onMouseDown( event ) {
 			baseCommands.rubberMask = ctx.createImageData( item.size.width, item.size.height );
 			baseCommands.rubberDirtyRect = null;
 			baseCommands.drawRubberData( item, event.point );
+			setTimeout( function() {
+				baseViewer.drawZoomWindow( event );
+			}, 0 );
 			break;
 		}
 
@@ -2370,13 +2388,24 @@ function onMouseDrag( event ) {
 
 	// Wipe some pixels if rubber is active...
 	if ( baseCommands.rubberCircle ) {
-		baseCommands.rubberCircle.position = event.point;
-		baseCommands.drawRubberData( item, event.point );
+		if( altKeyPressed && !altKeyMousePos ) altKeyMousePos = event.point;
+		if( altKeyPressed ) {
+			baseCommands.rubberCircle.position = altKeyMousePos + ( event.point - altKeyMousePos ) / 5;
+		} else {
+			baseCommands.rubberCircle.position = event.point;
+
+			altKeyMousePos = null;
+		}
+
+		baseCommands.drawRubberData( item, baseCommands.rubberCircle.position.floor() );
+		baseViewer.onMouseMove( {
+			point: baseCommands.rubberCircle.position
+		} );
 	}
 
 	if ( grabPoint ) {
 
-		// For correct resizing we must "das Lot fällen" (don't know how this is in English)
+		// For correct resizing we must "das Lot fällen" (don't know the English term)
 		function getSpPoint( A, B, C ) {
 			var x1 = A.x, y1 = A.y, x2 = B.x, y2 = B.y, x3 = C.x, y3 = C.y;
 			var px = x2 - x1, py = y2 - y1, dAB = px * px + py * py;
@@ -2426,7 +2455,7 @@ function onMouseDrag( event ) {
 	}
 
 	// For the baseViewer this should only be a mouse move
-	if ( baseViewer ) baseViewer.onMouseMove( event );
+	if ( baseViewer && !baseCommands.rubberCircle ) baseViewer.onMouseMove( event );
 };
 
 ///////////////////////////////////////////////////////
@@ -2526,8 +2555,22 @@ function onKeyDown( event ) {
 			} );
 		}
 		break;
+	case "alt" :
+		altKeyPressed = true;
+		break;
 	}
 }
+
+///////////////////////////////////////////////////////
+// onKeyUp handels the user releasing a key
+function onKeyUp( event ) {
+	switch( event.key ) {
+	case "alt" :
+		altKeyPressed = false;
+		break;
+	}
+}
+
 
 
 ////////////////////////////////////////////////////////
