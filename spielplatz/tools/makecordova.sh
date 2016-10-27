@@ -12,6 +12,7 @@
 
 USER="$1"
 PROJECT="$2"
+PROJECT_NO_WHITESPACE="$(echo -e "${PROJECT}" | tr -d '[[:space:]]' | tr -d ,!.)"
 PROJECTDIR="$CPGPATH/static/userdata/$USER/projects/$PROJECT/cordova"
 
 if [ "$1" == "" ] || [ "$2" == "" ]; then
@@ -25,19 +26,23 @@ if [ ! -d $CPGPATH/static/userdata/$USER ]; then
 	exit 2
 fi
 
-if [ ! -d $CPGPATH/static/userdata/$USER/projects/$PROJECT ]; then
+if [ ! -d "$CPGPATH/static/userdata/$USER/projects/$PROJECT" ]; then
 	echo Project $PROJECT does not exist.
 	exit 3
 fi
 
-cordova create $PROJECTDIR org.c2064.org.$PROJECT $PROJECT
-cd $PROJECTDIR && cordova platform add android --save && cordova platform add browser --save
-cp -r $CPGPATH/static/userdata/Admin/bare-projects/cordova/* $PROJECTDIR/www
-sed -i "/Programm-Code hier einfügen/ r ${PROJECTDIR}/../pjs/${PROJECT}.pjs" $PROJECTDIR/www/js/game.js
-sed -i -E "s/getImage\([\s\/]*[^\/]+\//getImage\(\"/" $PROJECTDIR/www/js/game.js
-sed -i -E "s/getSound\([\s\/]*[^\/]+\//getSound\(\"/" $PROJECTDIR/www/js/game.js
-cp ${PROJECTDIR}/../images/* ${PROJECTDIR}/www/img
-cp ${PROJECTDIR}/../sounds/* ${PROJECTDIR}/www/sounds
+echo -e "PROJECT_NO_WHITESPACE='${PROJECT_NO_WHITESPACE}'"
+
+cordova create "$PROJECTDIR" org.c2064.org.$PROJECT_NO_WHITESPACE "$PROJECT"
+cd "$PROJECTDIR" && cordova platform add android --save && cordova platform add browser --save
+cp -r $CPGPATH/static/userdata/Admin/bare-projects/cordova/* "$PROJECTDIR/www"
+cd "$PROJECTDIR" && sed -i "/Programm-Code hier einfügen/ r ../pjs/${PROJECT}.pjs" www/js/game.js
+sed -i -E "s/getImage\([\s\/]*[^\/]+\//getImage\(\"/" "$PROJECTDIR/www/js/game.js"
+sed -i -E "s/getSound\([\s\/]*[^\/]+\//getSound\(\"/" "$PROJECTDIR/www/js/game.js"
+
+echo -e "Copying images from $PROJECTDIR/../images/* to $PROJECTDIR/www/img"
+cd "$PROJECTDIR" && cp ../images/* www/img
+cd "$PROJECTDIR" && cp ../sounds/* www/sounds
 
 cordova build
 cordova build android
