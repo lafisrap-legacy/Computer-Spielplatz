@@ -129,7 +129,15 @@ var soundRegexp *regexp.Regexp = regexp.MustCompile(`sounds\/([^\/]+\/|)([^\.]+)
 ///////////////////////////////////////////////////////
 // init function
 func init() {
-	globalSessions, _ = session.NewManager("memory", `{"cookieName":"computerspielplatzID", "enableSetCookie,omitempty": true, "gclifetime":3600, "maxLifetime": 3600, "secure": false, "sessionIDHashFunc": "sha1", "sessionIDHashKey": "", "cookieLifeTime": 3600, "providerConfig": ""}`)
+	conf := new(session.ManagerConfig)
+	conf.CookieName = "computerspielplatzID"
+	conf.EnableSetCookie = true
+	conf.Gclifetime = 3600
+	conf.Secure = false
+	conf.CookieLifeTime = 3600
+	conf.ProviderConfig = ""
+
+	globalSessions, _ = session.NewManager("memory", conf)
 	go globalSessions.GC()
 
 	SessionXsrfTable.Tokens = make(map[string]SessionXsrfStruct)

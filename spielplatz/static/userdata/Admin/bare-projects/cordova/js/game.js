@@ -8,7 +8,6 @@ else {
 var processing = new Processing(canvas, function(processing) {
 	processing.size(320, 568);
 	processing.background(0,0,0,0);
-	processing.sbShow = false;
 
 	if( $(".container").length ) {
 		var container = $( ".container" );
@@ -16,69 +15,70 @@ var processing = new Processing(canvas, function(processing) {
 		var container = $( "body > div" );
 	}
 
+    ////////////////////////////////////////////////////////
+    // For use in websites: External start and stop events
+	var canvas = $( "canvas", container ),
+        drawFn = null;
+
+    canvas.on( "startProgram", function() {
+        if( drawFn ) processing.draw = drawFn;
+    } ).on( "stopProgram", function() {
+        processing.draw = function() {};
+    } );
+
+    /////////////////////////////////////////////////////////
+    // Mouse and touch handling
 	var mouseIsPressed = false;
 	container.on("mousedown touchstart", function(e) {
 		mouseIsPressed = true;
 
         var pageX = e.changedTouches && e.changedTouches[0].pageX || e.pageX,
-            pageY = e.changedTouches && e.changedTouches[0].pageY || e.pageY;
+            pageY = e.changedTouches && e.changedTouches[0].pageY || e.pageY,
+            offset = $( "canvas", container ).offset();
 
-		processing.mouseX = pageX;
-		processing.mouseY = pageY;
-		processing.sbShow = false;
+		processing.mouseX = pageX - offset.left;
+		processing.mouseY = pageY - offset.top;
+
+		if( processing.mousePressed ) processing.mousePressed();
+
 	}).on("mouseup touchend", function(e) {
 		mouseIsPressed = false;
 
         var pageX = e.changedTouches && e.changedTouches[0].pageX || e.pageX,
-            pageY = e.changedTouches && e.changedTouches[0].pageY || e.pageY;
+            pageY = e.changedTouches && e.changedTouches[0].pageY || e.pageY,
+            offset = $( "canvas", container ).offset();
 
-        processing.mouseX = pageX;
-        processing.mouseY = pageY;
+		processing.mouseX = pageX - offset.left;
+		processing.mouseY = pageY - offset.top;
+
+		if( processing.mouseReleased ) processing.mouseReleased();
+
 	}).on("mousemove touchmove", function(e) {
 
         var pageX = e.changedTouches && e.changedTouches[0].pageX || e.pageX,
-            pageY = e.changedTouches && e.changedTouches[0].pageY || e.pageY;
+            pageY = e.changedTouches && e.changedTouches[0].pageY || e.pageY,
+            offset = $( "canvas", container ).offset();
 
-        processing.mouseX = pageX;
-        processing.mouseY = pageY;
+		processing.mouseX = pageX - offset.left;
+		processing.mouseY = pageY - offset.top;
+
+		if( processing.mouseMoved ) processing.mouseMoved();
 	});
-	processing.mousePressed = function () { 
-		mouseIsPressed = true;
-	};
-	processing.mouseReleased = function () { 
-		mouseIsPressed = false;
-	};
-	processing.mouseClicked = function () {
-		mouseTmp = false;
-	};
-	processing.mouseDragged = function () {
-		mouseTmp = false;
-	};
-	processing.mouseMoved = function () {
-		mouseTmp = false;
-	};
-	processing.mouseScrolled = function () {
-		mouseTmp = false;
-	};
-	processing.mouseOver = function () {
-		mouseTmp = false;
-	};
-	processing.mouseOut = function () {
-		mouseTmp = false;
-	};
-	processing.touchStart = function () {
-		mouseTmp = false;
-	};
-	processing.touchEnd = function () {
-		mouseTmp = false;
-	};
-	processing.touchMove = function () {
-        console.log( "touchMove:", processing.mouseX, processing.mouseY );
-		mouseTmp = false;
-	};
-	processing.touchCancel = function () {
-		mouseTmp = false;
-	};
+
+	/* List of processing.js events
+	 * mousePressed 
+	 * mouseReleased 
+	 * mouseClicked 
+	 * mouseDragged 
+	 * mouseMoved 
+	 * mouseScrolled 
+	 * mouseOver 
+	 * mouseOut 
+	 * touchStart 
+	 * touchEnd 
+	 * touchMove
+	 * touchCancel
+	 */
 
 	var keyIsPressed = false;
 	processing.keyPressed = function () { keyIsPressed = true; };
@@ -122,9 +122,11 @@ var processing = new Processing(canvas, function(processing) {
 	with (processing) {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// Programm-Code hier einfügen ...
-
 	/////////////////////////////////////////////////////////////////////////////////////////////
+	
+
 	};
 
 	if (typeof draw !== 'undefined') processing.draw = draw;
+    drawFn = processing.draw;
 });
