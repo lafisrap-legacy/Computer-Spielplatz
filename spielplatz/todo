@@ -7,6 +7,8 @@ Image Editor (Grafik & Animation)
 
 Live-Editor (Programmieren)
 ###########################
+
+
 throbber.gif und ohnoes.png Pfade umleiten (wie fir throbber-full in integration)
 
 
@@ -15,6 +17,8 @@ FEATURE:
 
 BUG:
 # KRITISCH
+- Throbber bleibt stehen
+- Speichern geht nicht mit Chrome
 - Firefox und Chrome mit zwei verschiedenen Users auf einem Rechner gibt Probleme mit Websockets oder Session? socket.io?
 
 

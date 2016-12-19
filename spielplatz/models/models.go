@@ -412,9 +412,12 @@ func CloneProjectDir(userName string, projectName string, readonly bool) error {
 	options := git.CloneOptions{
 		Bare: false,
 	}
+	beego.Warning("Cloning", url, dir, projectName)
 	_, err := git.Clone(url, dir, &options)
 	if err == nil {
 		MountResourceFiles(userName, projectName)
+	} else {
+		beego.Error(err)
 	}
 
 	// Create rights file

@@ -27,15 +27,15 @@ var projectControlBar = window.ProjectControlBar.extend( {
 } );
 
 CPG_projectControlBar = new projectControlBar( {
-								el: $( "#project-button-group" ),
-								userName: window.CPG.UserName, 
-								fileType: CPG_page,
-								editor: CPG_liveEditor,
-								wsAddress: window.CPG.WebSocketsAddress, 
-								wsToken: window.CPG.WebSocketsToken,
-								newFile: window.CPG.ProjectBarNewFile + "." + CPG_page,
-								modalContainer: $( ".container" ),
-							} );
+		el: $( "#project-button-group" ),
+		userName: window.CPG.UserName, 
+		fileType: CPG_page,
+		editor: CPG_liveEditor,
+		wsAddress: window.CPG.WebSocketsAddress, 
+		wsToken: window.CPG.WebSocketsToken,
+		newFile: window.CPG.ProjectBarNewFile + "." + CPG_page,
+		modalContainer: $( ".container" ),
+	} );
 
 
 // Start integration functions AFTER live-editor has loaded
