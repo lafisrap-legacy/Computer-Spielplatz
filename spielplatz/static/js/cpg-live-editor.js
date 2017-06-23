@@ -52,7 +52,7 @@ $( ".prevent-dirty-check" ).on( "click", function( e ) {
 
 CPG_projectControlBar.refreshSession( window.CPG.LoginTime );
 
-window.onbeforeunload = function( ) {
+window.onbeforeunload = function( e ) {
 	return CPG_projectControlBar.onBeforeUnload();	
 }
 

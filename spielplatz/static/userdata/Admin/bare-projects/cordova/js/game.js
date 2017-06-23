@@ -65,21 +65,6 @@ var processing = new Processing(canvas, function(processing) {
 		if( processing.mouseMoved ) processing.mouseMoved();
 	});
 
-	/* List of processing.js events
-	 * mousePressed 
-	 * mouseReleased 
-	 * mouseClicked 
-	 * mouseDragged 
-	 * mouseMoved 
-	 * mouseScrolled 
-	 * mouseOver 
-	 * mouseOut 
-	 * touchStart 
-	 * touchEnd 
-	 * touchMove
-	 * touchCancel
-	 */
-
 	var keyIsPressed = false;
 	processing.keyPressed = function () { keyIsPressed = true; };
 	processing.keyReleased = function () { keyIsPressed = false; };
@@ -110,13 +95,37 @@ var processing = new Processing(canvas, function(processing) {
 	processing.rotate = function(angle) {
 		rotateFn(processing.radians(angle));
 	}
-	var cosFn = processing.cos;
-	processing.cos = function(angle) {
-		return cosFn(processing.radians(angle));
+	var arcFn = processing.arc;
+	processing.arc = function(x,y,w,h,a1,a2) {
+		return arcFn(x,y,w,h,processing.radians(a1), processing.radians(a2));
 	}
 	var sinFn = processing.sin;
 	processing.sin = function(angle) {
 		return sinFn(processing.radians(angle));
+	}
+	var asinFn = processing.asin;
+	processing.asin = function(value) {
+		return processing.degrees(asinFn(value));
+	}
+	var cosFn = processing.cos;
+	processing.cos = function(angle) {
+		return cosFn(processing.radians(angle));
+	}
+	var acosFn = processing.acos;
+	processing.acos = function(value) {
+		return processing.degrees(acosFn(value));
+	}
+	var tanFn = processing.tan;
+	processing.tan = function(angle) {
+		return tanFn(processing.radians(angle));
+	}
+	var atanFn = processing.atan;
+	processing.atan = function(value) {
+		return processing.degrees(atanFn(value));
+	}
+	var atan2Fn = processing.atan2;
+	processing.atan2 = function(y, x) {
+		return processing.degrees(atan2Fn(y,x));
 	}
 
 	with (processing) {

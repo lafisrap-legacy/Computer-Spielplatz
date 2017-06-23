@@ -91,7 +91,7 @@
 	<h4>ellipse(x, y, w, h)</h4>
 	<p>Zeichnet eine Ellipse, wobei die ersten beiden Koordinaten die Mitte der ellipse bezeichnen und die beiden anderen die Breite und die Höhe. Um die Position zu ändern, siehe rectMode().</p>
 </li>
-<li style="display:none">
+<li style="">
 	<h4>triangle(x1, y1, x2, y2, x3, y3)</h4>
 	<p>Zeichnet ein Dreieck.</p>
 </li>
@@ -103,11 +103,11 @@
 	<h4>point(x, y)</h4>
 	<p>Zeichnet einen Punkt. Farbe der Linie wird durch den letzten vorangehenden stroke()-Aufruf bestimmt, die Dicke durch strokeWeight().</p>
 </li>
-<li style="display:none">
+<li style="">
 	<h4>arc(x, y, w, h, start, stop)</h4>
 	<p>Zeichnet einen Ellipsenabschnitt. Der Befehl ist sehr ähnlich wie ellipse(), fügt nur zwei Parameter für den Start- und den Endwinkel hinzu (0-360).</p>
 </li>
-<li style="display:none">
+<li style="">
 	<h4>bezier(x1, y1, cx1, cy1, cx2, cy2, x2, y2)</h4>
 	<p>Draws a bezier curve. To extract points and tangents after drawing the curve, use bezierPoint() and bezierTangent.</p>
 </li>
@@ -115,7 +115,7 @@
 	<h4>quad(x1, y1, x2, y2, x3, y3, x4, y4)</h4>
 	<p>Draws any quadrilateral, with the points listed as parameters in a clockwise or counter-clockwise direction.</p>
 </li>
-<li style="display:none">
+<li style="">
 	<h4>image(image, x, y, width*, height*)</h4>
 	<p>Draw an image on the canvas. The only allowed images are those that popup in the image picker when you use the getImage() method. The image is positioned using the x/y as the upper left corner. For alternate ways to position images, see imageMode.</p>
 </li>
@@ -123,15 +123,15 @@
 	<h4>playSound(sound)</h4>
 	<p>Plays a short sound. The only allowed sounds are those that popup in the picker when you use the getSound() method.</p>
 </li>
-<li style="display:none">
+<li style="">
 	<h4>rectMode(MODE)</h4>
 	<p>Modifies the location from which rectangles draw.</p>
 </li>
-<li style="display:none">
+<li style="">
 	<h4>ellipseMode(MODE)</h4>
 	<p>Changes how ellipses are drawn.</p>
 </li>
-<li style="display:none">
+<li style="">
 	<h4>imageMode(MODE)</h4>
 	<p>Ändert den Bezugspunkt der Position eines Bildes. Mögliche Werte: CENTER, CORNERS, oder CORNER (Voreinstellung).</p>
 </li>
@@ -190,7 +190,7 @@
 <li>
 	<h4>stroke(r, g, b, a*)</h4>
 	<p>Setzt die Linienfarbe, Rot, Grün, Blau und die Deckkraft (0 = transparent, 255 = undurchsichtig).</p></li>
-<li style="display:none">
+<li style="">
 	<h4>color(r, g, b, a*)</h4>
 	<p>This function lets you store all three color components in a single variable. You can then pass that one variable to functions like background(), stroke(), and fill().</p>
 </li>
@@ -266,7 +266,7 @@
 	<h4>createFont(name, size*)</h4>
 	<p>Using textFont() with createFont(), it's possible to change the font of text drawn.</p>
 </li>
-<li style="display:none">
+<li style="">
 	<h4>textWidth(str)</h4>
 	<p>Calculates and returns the width of any string.</p>
 </li>
@@ -282,19 +282,19 @@
 	<h4>textLeading(dist)</h4>
 	<p>Sets the spacing between lines of text in units of pixels. This setting will be used in all subsequent calls to the text() function.</p>
 </li>
-<li style="display:none">
+<li style="">
 	<h4>textAlign(ALIGN, YALIGN)</h4>
 	<p>Setzt den Bezugspunkt für die Textposition, horizontal und vertikal. Mögliche Werte horizontal: LEFT (Voreinstellung), CENTER, oder RIGHT, vertikal: TOP (Voreinstellung), BOTTOM, CENTER, oder BASELINE.</p>
 </li>
-<li style="display:none">
+<li style="">
 	<h4>rotate(angle)</h4>
 	<p>Sets the rotation angle for any shapes drawn after the command. If called multiple times, the angle will be added to the previous angle (accumulative effect). To stop rotation, use pushMatrix()/popMatrix().</p>
 </li>
-<li style="display:none">
+<li style="">
 	<h4>scale(amount, amountY*)</h4>
 	<p>Increases the size of shapes drawn after the command, by expanding and contracting vertices. For example, scale(2) makes it increase in size by 200%. If called multiple times, the sizes will multiply (accumulative effect). It can be called with one parameter to resize the same in both dimensions, or with two parameters to size differently in each dimension.	To stop resizing shapes, use pushMatrix()/popMatrix().</p>
 </li>
-<li style="display:none">
+<li style="">
 	<h4>translate(x, y)</h4>
 	<p>Displaces the drawn shapes by a given amount in the x/y directions. If called multiple times, the offsets will be added to each other (accumulative effect). To stop translating shapes, use pushMatrix()/popMatrix().</p>
 </li>
@@ -306,7 +306,7 @@
 	<h4>popMatrix()</h4>
 	<p>Restores the previous coordinate system (from the \"matrix stack\") - whatever was most recently pushed</p>
 </li>
-<li style="display:none">
+<li style="">
 	<h4>resetMatrix()</h4>
 	<p>Replaces the current transformation matrix with the identity matrix. This effectively clears all transformation functions set before it</p>
 </li>
@@ -326,7 +326,7 @@
 	<h4>noLoop()</h4>
 	<p>Stops the program from continuously executing the code within draw(). If loop() is called, the code in draw() begin to run continuously again</p>
 </li>
-<li style="display:none">
+<li style="">
 	<h4>random(min, max)</h4>
 	<p>Gibt eine Zufallszahl zwischen min und max zurück.</p>
 </li>
@@ -476,12 +476,98 @@
 </li>
 </ul>
 <div>
-<h2>Spiel 1</h2>
+
+
+<h2>Vorlage für Animation</h2>
 <code>
 <pre>
-// empty 
+// Live-Editor, Processing / Javascript
+
+var x = 165;
+var y = 200;
+var a = 133;
+var b = 17;
+
+// 1) Oberhalb: Die Variablen!
+////////////////////////////////////////////////////
+
+var gesicht = function( x, y ) {
+
+////////////////////////////////////////////////////
+// 2) Dann die Gesicht-Funktion
+
+
+... hier die Befehle für das Gesicht einfügen
+
+
+//////////////////////////////////////////////
+// 3) Unten: Geschweifte Klammer zu (wichtig!)
+};
+
+//////////////////////////////////////////////
+// 4) Dann die draw-Funktion
+
+var draw = function() {
+    background(255);
+    
+    gesicht( x, y );
+    
+    x = x + 1;
+};
+
 </pre>
 </code>
+
+	
+<h2>Erweiterte Version</h2>
+<code>
+<pre>
+// Live-Editor, Processing / Javascript
+
+var x = 165;
+var y = 200;
+var a = 133;
+var b = 17;
+
+// 1) Oberhalb: Die Variablen!
+////////////////////////////////////////////////////
+
+var gesicht = function( x, y ) {
+
+////////////////////////////////////////////////////
+// 2) Dann die Gesicht-Funktion und Verschiebung des Koordinatensystems
+
+translate( x, y ); 
+x = y = 0;
+
+rotate( 0 );
+scale( 1 );
+
+////////////////////////////////////////////////////
+
+
+... hier die Befehle für das Gesicht einfügen
+
+
+//////////////////////////////////////////////
+// 3) Unten: Koordinatensystem zurücksetzen und geschweifte Klammer zu.
+
+resetMatrix();
+};
+
+//////////////////////////////////////////////
+// 4) Dann die draw-Funktion
+
+var draw = function() {
+    background(255);
+    
+    gesicht( x, y );
+    
+    x = x + 1;
+};
+</pre>
+</code>
+
 </div>
 
 <script>

@@ -15,7 +15,7 @@ window.LiveEditorFrameHTML = window.LiveEditorFrame.extend ( {
 			editorType: "ace_webpage",
 			outputType: "webpage",
 			el: $( "#cpg-live-editor-html" ),
-			code: "<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<meta charset='utf-8'>\n\t\t<title>Neue Webseite</title>\n\t</head>\n\t<body>\n\n\t</body>\n</html>",
+			code: "<!DOCTYPE html>\n<html>\n<head>\n\t<meta charset='utf-8'>\n\t<title>Neue Webseite</title>\n\t<style>\n\n\t</style>\n</head>\n<body>\n\n</body>\n</html>",
 			width: 400,
 			height: 568,
 			editorHeight: "568px",
